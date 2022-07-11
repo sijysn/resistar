@@ -1,0 +1,10 @@
+version: "3"
+services:
+  frontend:
+    build: ./docker/frontend
+    container_name: resistar-frontend
+    volumes:
+      - ./frontend:/app
+    command: sh -c "yarn run dev"
+    ports:
+      - "3000:3000"
