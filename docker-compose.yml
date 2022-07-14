@@ -1,7 +1,7 @@
 version: "3"
 services:
   frontend:
-    build: ./docker/frontend
+    build: ./frontend
     container_name: resistar-frontend
     volumes:
       - ./frontend:/app
