@@ -1,5 +1,5 @@
 build:
   docker:
-    frontend: docker/frontend/Dockerfile
+    web: docker/frontend/Dockerfile
 run:
-  frontend: sh -c "yarn run dev"
+  web: sh -c "yarn run dev"
