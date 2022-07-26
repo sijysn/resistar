@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "docker": "docker-compose up",
-    "docker-stop": "docker-compose down"
+    "docker-stop": "docker-compose down",
+    "deploy-front": "git subtree push --prefix frontend/ front main"
   }
 }
