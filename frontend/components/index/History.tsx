@@ -31,6 +31,90 @@ const historyList = [
     ],
     createdAt: "2022-07-28",
   },
+  {
+    id: 3,
+    title: "洗剤の購入",
+    price: 1200,
+    type: "daily",
+    fromUser: { id: 1, username: "seiji", imageUrl: "" },
+    toUsers: [
+      { id: 2, username: "motsu", imageUrl: "" },
+      { id: 3, username: "kanta", imageUrl: "" },
+    ],
+    createdAt: "2022-07-28",
+  },
+  {
+    id: 4,
+    title: "洗剤の購入",
+    price: 1200,
+    type: "daily",
+    fromUser: { id: 1, username: "seiji", imageUrl: "" },
+    toUsers: [
+      { id: 2, username: "motsu", imageUrl: "" },
+      { id: 3, username: "kanta", imageUrl: "" },
+    ],
+    createdAt: "2022-07-28",
+  },
+  {
+    id: 5,
+    title: "洗剤の購入",
+    price: 1200,
+    type: "daily",
+    fromUser: { id: 1, username: "seiji", imageUrl: "" },
+    toUsers: [
+      { id: 2, username: "motsu", imageUrl: "" },
+      { id: 3, username: "kanta", imageUrl: "" },
+    ],
+    createdAt: "2022-07-28",
+  },
+  {
+    id: 6,
+    title: "洗剤の購入",
+    price: 1200,
+    type: "daily",
+    fromUser: { id: 1, username: "seiji", imageUrl: "" },
+    toUsers: [
+      { id: 2, username: "motsu", imageUrl: "" },
+      { id: 3, username: "kanta", imageUrl: "" },
+    ],
+    createdAt: "2022-07-28",
+  },
+  {
+    id: 7,
+    title: "洗剤の購入",
+    price: 1200,
+    type: "daily",
+    fromUser: { id: 1, username: "seiji", imageUrl: "" },
+    toUsers: [
+      { id: 2, username: "motsu", imageUrl: "" },
+      { id: 3, username: "kanta", imageUrl: "" },
+    ],
+    createdAt: "2022-07-28",
+  },
+  {
+    id: 8,
+    title: "洗剤の購入",
+    price: 1200,
+    type: "daily",
+    fromUser: { id: 1, username: "seiji", imageUrl: "" },
+    toUsers: [
+      { id: 2, username: "motsu", imageUrl: "" },
+      { id: 3, username: "kanta", imageUrl: "" },
+    ],
+    createdAt: "2022-07-28",
+  },
+  {
+    id: 9,
+    title: "洗剤の購入",
+    price: 1200,
+    type: "daily",
+    fromUser: { id: 1, username: "seiji", imageUrl: "" },
+    toUsers: [
+      { id: 2, username: "motsu", imageUrl: "" },
+      { id: 3, username: "kanta", imageUrl: "" },
+    ],
+    createdAt: "2022-07-28",
+  },
 ];
 
 const History = () => {
@@ -68,6 +152,7 @@ const HistoryList = styled(List)(
   width: 100%;
   max-width: 360px;
   background-color: ${theme.palette.background.paper};
+  margin: 0 auto;
 `
 ) as typeof List;
 
@@ -79,6 +164,8 @@ const HistoryListItem = styled(ListItem)`
 const StyledListItemAvatar = styled(ListItemAvatar)`
   position: relative;
   height: 100%;
+  display: flex;
+  align-items: center;
 ` as typeof ListItemAvatar;
 
 const FromUserAvatar = styled(Avatar)`
