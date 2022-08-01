@@ -38,12 +38,12 @@ const History = () => {
     <HistoryList>
       {historyList.map(({ id, title, price, fromUser, toUsers, createdAt }) => {
         return (
-          <ListItem key={id}>
-            <ListItemAvatar sx={{ position: "relative" }}>
+          <HistoryListItem key={id}>
+            <StyledListItemAvatar>
               <Avatar src={fromUser.imageUrl} />
-              <Avatar src={fromUser.imageUrl} />
-            </ListItemAvatar>
-            <ListItemText
+              <FromUserAvatar src={fromUser.imageUrl} />
+            </StyledListItemAvatar>
+            <StyledListItemText
               primary={title}
               secondary={
                 <ToUsers>
@@ -56,7 +56,7 @@ const History = () => {
               }
             />
             <ListItemText primary={<Price>¥{price}</Price>} />
-          </ListItem>
+          </HistoryListItem>
         );
       })}
     </HistoryList>
@@ -66,10 +66,35 @@ const History = () => {
 const HistoryList = styled(List)(
   ({ theme }) => `
   width: 100%;
-  maxWidth: 360px;
+  max-width: 360px;
   background-color: ${theme.palette.background.paper};
 `
-);
+) as typeof List;
+
+const HistoryListItem = styled(ListItem)`
+  padding: 16px;
+  height: 76px;
+`;
+
+const StyledListItemAvatar = styled(ListItemAvatar)`
+  position: relative;
+  height: 100%;
+` as typeof ListItemAvatar;
+
+const FromUserAvatar = styled(Avatar)`
+  position: absolute;
+  bottom: 0;
+  right: 10px;
+  width: 20px;
+  height: 20px;
+`;
+
+const StyledListItemText = styled(ListItemText)`
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+`;
 
 const ToUsers = styled("span")`
   display: flex;
@@ -82,6 +107,7 @@ const ToUserAvatar = styled(Avatar)`
 
 const Price = styled("p")`
   text-align: end;
+  margin: 0;
 `;
 
 export default History;
