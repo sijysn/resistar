@@ -139,7 +139,7 @@ const History = () => {
                 </ToUsers>
               }
             />
-            <ListItemText primary={<Price>¥{price}</Price>} />
+            <ListItemText primary={<Price>¥{price.toLocaleString()}</Price>} />
           </HistoryListItem>
         );
       })}
