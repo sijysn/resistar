@@ -1,5 +1,9 @@
 import * as React from "react";
-import { Avatar, styled } from "@mui/material";
+import Avatar from "@mui/material/Avatar";
+import IconButton from "@mui/material/IconButton";
+import { styled } from "@mui/material";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 
 const data = {
   userTotal: 3000,
@@ -17,9 +21,17 @@ const Overview = () => {
   const [year, month] = yearAndMonth.split("-");
   return (
     <Wrapper>
-      <p>
-        {year}年{month}月のあなたの支払い
-      </p>
+      <OverviewHeader>
+        <IconButton size="large">
+          <ChevronLeftIcon />
+        </IconButton>
+        <div>
+          {year}年{month}月のあなたの支払い
+        </div>
+        <IconButton size="large">
+          <ChevronRightIcon />
+        </IconButton>
+      </OverviewHeader>
       <Total>
         ¥{userTotal.toLocaleString()}
         <GroupTotal> / ¥{groupTotal.toLocaleString()}</GroupTotal>
@@ -45,6 +57,11 @@ const Wrapper = styled("div")`
   align-items: center;
   justify-content: center;
   color: #fff;
+`;
+
+const OverviewHeader = styled("div")`
+  display: flex;
+  align-items: center;
 `;
 
 const Total = styled("div")`
