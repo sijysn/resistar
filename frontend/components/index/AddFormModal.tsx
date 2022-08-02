@@ -18,11 +18,20 @@ type ModalProps = {
   close: () => void;
 };
 
-const types = ["日用品", "交通費", "食費", "ショッピング", "その他"];
+const types = [
+  "日用品",
+  "交通費",
+  "家賃",
+  "水道光熱費",
+  "通信費",
+  "食費",
+  "ショッピング",
+  "その他",
+];
 const users = [
-  { id: 1, username: "seiji", imageUrl: "" },
-  { id: 2, username: "motsu", imageUrl: "" },
-  { id: 3, username: "kanta", imageUrl: "" },
+  { id: 1, username: "せーじ", imageUrl: "" },
+  { id: 2, username: "もつ", imageUrl: "" },
+  { id: 3, username: "かんた", imageUrl: "" },
 ];
 
 const Transition = React.forwardRef(
@@ -47,8 +56,9 @@ const initialValues = {
 const AddFormModal: React.FC<ModalProps> = ({ isOpen, close }) => {
   const [title, setTitle] = React.useState(initialValues["title"]);
   const [type, setType] = React.useState(initialValues["type"]);
-  const handleSelectorChange = (e: SelectChangeEvent<string>) =>
+  const handleSelectorChange = (e: SelectChangeEvent<string>) => {
     setType(e.target.value);
+  };
   const [price, setPrice] = React.useState(initialValues["price"]);
   const [fromUsers, setFromUsers] = React.useState<UserProps[]>(
     initialValues["fromUsers"]
@@ -107,13 +117,13 @@ const AddFormModal: React.FC<ModalProps> = ({ isOpen, close }) => {
           onChange={(e: any) => setPrice(e.target.value)}
         />
         <StyledUsersSelector
-          label="請求者"
+          label="購入者"
           selectableUsers={users}
           setSelectedUsers={setFromUsers}
           selectedUsers={fromUsers}
         />
         <UsersSelector
-          label="請求先"
+          label="負担者"
           selectableUsers={users}
           setSelectedUsers={setToUsers}
           selectedUsers={toUsers}
