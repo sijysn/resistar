@@ -2,7 +2,8 @@ import * as React from "react";
 import { Avatar, styled } from "@mui/material";
 
 const data = {
-  total: 12000,
+  userTotal: 3000,
+  groupTotal: 12000,
   yearAndMonth: "2022-07",
   members: [
     { id: 1, username: "seiji", imageUrl: "" },
@@ -12,14 +13,17 @@ const data = {
 };
 
 const Overview = () => {
-  const { total, yearAndMonth, members } = data;
+  const { userTotal, groupTotal, yearAndMonth, members } = data;
   const [year, month] = yearAndMonth.split("-");
   return (
     <Wrapper>
       <p>
-        {year}年{month}月の支払い
+        {year}年{month}月のあなたの支払い
       </p>
-      <Total>¥{total.toLocaleString()}</Total>
+      <Total>
+        ¥{userTotal.toLocaleString()}
+        <GroupTotal> / ¥{groupTotal.toLocaleString()}</GroupTotal>
+      </Total>
       <Members>
         <MembersCount>メンバー({members.length})</MembersCount>
         <MemberList>
@@ -45,6 +49,10 @@ const Wrapper = styled("div")`
 
 const Total = styled("div")`
   font-size: 2rem;
+`;
+
+const GroupTotal = styled("span")`
+  font-size: 1rem;
 `;
 
 const Members = styled("div")`
