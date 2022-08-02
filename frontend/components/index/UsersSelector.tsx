@@ -6,6 +6,20 @@ import ListItemText from "@mui/material/ListItemText";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
 import Checkbox from "@mui/material/Checkbox";
 
+export type UserProps = {
+  id: number;
+  username: string;
+  imageUrl: string;
+};
+
+type Props = {
+  label: string;
+  selectableUsers: UserProps[];
+  setSelectedUsers: (value: React.SetStateAction<UserProps[]>) => void;
+  selectedUsers: UserProps[];
+  className?: string;
+};
+
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
 const MenuProps = {
@@ -17,21 +31,22 @@ const MenuProps = {
   },
 };
 
-const names = ["seiji", "kanta", "motsu"];
+const getIsUserSelected = (selectedUsers: UserProps[], userId: number) =>
+  selectedUsers.map((selectedUser) => selectedUser.id).includes(userId);
 
-const UsersSelector: React.FC<{ label: string; className?: string }> = ({
+const UsersSelector: React.FC<Props> = ({
   label,
+  selectableUsers,
+  setSelectedUsers,
+  selectedUsers,
   className,
 }) => {
-  const [personName, setPersonName] = React.useState<string[]>([]);
-
-  const handleChange = (event: SelectChangeEvent<typeof personName>) => {
-    const {
-      target: { value },
-    } = event;
-    setPersonName(
-      // On autofill we get a stringified value.
-      typeof value === "string" ? value.split(",") : value
+  const handleChange = (e: SelectChangeEvent<number[]>) => {
+    const { value } = e.target;
+    setSelectedUsers(
+      typeof value === "string"
+        ? selectedUsers
+        : selectableUsers.filter(({ id }) => value.includes(id))
     );
   };
 
@@ -40,17 +55,22 @@ const UsersSelector: React.FC<{ label: string; className?: string }> = ({
       <InputLabel shrink>{label}</InputLabel>
       <Select
         multiple
-        value={personName}
+        value={selectedUsers.map((selectedUser) => selectedUser.id)}
         onChange={handleChange}
-        renderValue={(selected) => selected.join(", ")}
+        renderValue={(_) =>
+          selectedUsers.map(({ username }) => username).join(", ")
+        }
         MenuProps={MenuProps}
       >
-        {names.map((name) => (
-          <MenuItem key={name} value={name}>
-            <Checkbox checked={personName.indexOf(name) > -1} />
-            <ListItemText primary={name} />
-          </MenuItem>
-        ))}
+        {selectableUsers.map((selectableUser) => {
+          const { id, username } = selectableUser;
+          return (
+            <MenuItem key={id} value={id}>
+              <Checkbox checked={getIsUserSelected(selectedUsers, id)} />
+              <ListItemText primary={username} />
+            </MenuItem>
+          );
+        })}
       </Select>
     </FormControl>
   );

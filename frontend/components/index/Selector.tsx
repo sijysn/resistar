@@ -6,6 +6,17 @@ import ListItemText from "@mui/material/ListItemText";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
 import Checkbox from "@mui/material/Checkbox";
 
+type Props = {
+  label: string;
+  items: string[];
+  handleChange: (
+    event: SelectChangeEvent<string>,
+    child: React.ReactNode
+  ) => void;
+  selectedItem?: string;
+  className?: string;
+};
+
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
 const MenuProps = {
@@ -17,33 +28,25 @@ const MenuProps = {
   },
 };
 
-const types = ["日用品", "交通費", "食費", "ショッピング", "その他"];
-
-const Selector: React.FC<{ label: string; className?: string }> = ({
+const Selector: React.FC<Props> = ({
   label,
+  items,
+  handleChange,
+  selectedItem,
   className,
 }) => {
-  const [type, setType] = React.useState<string>("日用品");
-
-  const handleChange = (event: SelectChangeEvent<typeof type>) => {
-    const {
-      target: { value },
-    } = event;
-    setType(value);
-  };
-
   return (
     <FormControl fullWidth variant="standard" className={className}>
       <InputLabel shrink>{label}</InputLabel>
       <Select
-        value={type}
+        value={selectedItem}
         onChange={handleChange}
         renderValue={(selected) => selected}
         MenuProps={MenuProps}
       >
-        {types.map((item) => (
+        {items.map((item) => (
           <MenuItem key={item} value={item}>
-            <Checkbox checked={item === type} />
+            <Checkbox checked={item === selectedItem} />
             <ListItemText primary={item} />
           </MenuItem>
         ))}

@@ -7,15 +7,23 @@ import DialogTitle from "@mui/material/DialogTitle";
 import Slide from "@mui/material/Slide";
 import TextField from "@mui/material/TextField";
 import InputAdornment from "@mui/material/InputAdornment";
+import { SelectChangeEvent } from "@mui/material/Select";
 import { styled } from "@mui/material";
 import { TransitionProps } from "@mui/material/transitions";
 import Selector from "./Selector";
-import UsersSelector from "./UsersSelector";
+import UsersSelector, { UserProps } from "./UsersSelector";
 
 type ModalProps = {
   isOpen: boolean;
   close: () => void;
 };
+
+const types = ["日用品", "交通費", "食費", "ショッピング", "その他"];
+const users = [
+  { id: 1, username: "seiji", imageUrl: "" },
+  { id: 2, username: "motsu", imageUrl: "" },
+  { id: 3, username: "kanta", imageUrl: "" },
+];
 
 const Transition = React.forwardRef(
   (
@@ -28,7 +36,40 @@ const Transition = React.forwardRef(
   }
 );
 
+const initialValues = {
+  title: "",
+  type: "日用品",
+  price: 0,
+  fromUsers: [],
+  toUsers: [],
+};
+
 const AddFormModal: React.FC<ModalProps> = ({ isOpen, close }) => {
+  const [title, setTitle] = React.useState(initialValues["title"]);
+  const [type, setType] = React.useState(initialValues["type"]);
+  const handleSelectorChange = (e: SelectChangeEvent<string>) =>
+    setType(e.target.value);
+  const [price, setPrice] = React.useState(initialValues["price"]);
+  const [fromUsers, setFromUsers] = React.useState<UserProps[]>(
+    initialValues["fromUsers"]
+  );
+  const [toUsers, setToUsers] = React.useState<UserProps[]>(
+    initialValues["toUsers"]
+  );
+
+  const addHistory = () => {
+    console.log(title, type, price, fromUsers, toUsers);
+    initializeValues();
+  };
+
+  const initializeValues = () => {
+    setTitle(initialValues["title"]);
+    setType(initialValues["type"]);
+    setPrice(initialValues["price"]);
+    setFromUsers(initialValues["fromUsers"]);
+    setToUsers(initialValues["toUsers"]);
+  };
+
   return (
     <StyledDialog
       open={isOpen}
@@ -41,27 +82,53 @@ const AddFormModal: React.FC<ModalProps> = ({ isOpen, close }) => {
         <StyledTextField
           label="タイトル"
           variant="standard"
+          value={title}
           fullWidth
           InputProps={{ placeholder: "洗剤の購入" }}
           InputLabelProps={{
             shrink: true,
           }}
+          onChange={(e: any) => setTitle(e.target.value)}
         />
-        <StyledSelector label="タイプ" />
+        <StyledSelector
+          label="タイプ"
+          items={types}
+          handleChange={handleSelectorChange}
+          selectedItem={type}
+        />
         <StyledTextField
           label="支払い額"
           variant="standard"
+          value={price}
           InputProps={{
             startAdornment: <InputAdornment position="start">¥</InputAdornment>,
           }}
           fullWidth
+          onChange={(e: any) => setPrice(e.target.value)}
         />
-        <StyledUsersSelector label="請求元" />
-        <UsersSelector label="請求先" />
+        <StyledUsersSelector
+          label="請求者"
+          selectableUsers={users}
+          setSelectedUsers={setFromUsers}
+          selectedUsers={fromUsers}
+        />
+        <UsersSelector
+          label="請求先"
+          selectableUsers={users}
+          setSelectedUsers={setToUsers}
+          selectedUsers={toUsers}
+        />
       </StyledDialogContent>
       <DialogActions>
         <Button onClick={close}>キャンセル</Button>
-        <Button onClick={close}>追加</Button>
+        <Button
+          onClick={() => {
+            addHistory();
+            close();
+          }}
+        >
+          追加
+        </Button>
       </DialogActions>
     </StyledDialog>
   );
