@@ -3,7 +3,6 @@ import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import Slide from "@mui/material/Slide";
 import TextField from "@mui/material/TextField";
@@ -38,32 +37,28 @@ const AddFormModal: React.FC<ModalProps> = ({ isOpen, close }) => {
       onClose={close}
     >
       <DialogTitle>新しい支払い</DialogTitle>
-      <DialogContent>
-        <StyledDialogContentText>
-          <StyledTextField
-            label="タイトル"
-            variant="standard"
-            fullWidth
-            InputProps={{ placeholder: "洗剤の購入" }}
-            InputLabelProps={{
-              shrink: true,
-            }}
-          />
-          <StyledSelector label="タイプ" />
-          <StyledTextField
-            label="支払い額"
-            variant="standard"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">¥</InputAdornment>
-              ),
-            }}
-            fullWidth
-          />
-          <StyledUsersSelector label="請求元" />
-          <UsersSelector label="請求先" />
-        </StyledDialogContentText>
-      </DialogContent>
+      <StyledDialogContent>
+        <StyledTextField
+          label="タイトル"
+          variant="standard"
+          fullWidth
+          InputProps={{ placeholder: "洗剤の購入" }}
+          InputLabelProps={{
+            shrink: true,
+          }}
+        />
+        <StyledSelector label="タイプ" />
+        <StyledTextField
+          label="支払い額"
+          variant="standard"
+          InputProps={{
+            startAdornment: <InputAdornment position="start">¥</InputAdornment>,
+          }}
+          fullWidth
+        />
+        <StyledUsersSelector label="請求元" />
+        <UsersSelector label="請求先" />
+      </StyledDialogContent>
       <DialogActions>
         <Button onClick={close}>キャンセル</Button>
         <Button onClick={close}>追加</Button>
@@ -83,8 +78,8 @@ const StyledDialog = styled(Dialog)`
   }
 `;
 
-const StyledDialogContentText = styled(DialogContentText)`
-  padding: 16px 0;
+const StyledDialogContent = styled(DialogContent)`
+  padding: 16px 24px;
 `;
 
 const StyledTextField = styled(TextField)`
