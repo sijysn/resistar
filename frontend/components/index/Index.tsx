@@ -5,7 +5,6 @@ import { styled } from "@mui/material";
 import History from "./History";
 import Overview from "./Overview";
 import AddFormModal from "./AddFormModal";
-import styles from "../../styles/Home.module.css";
 
 type Props = {
   yearAndMonth: string;
