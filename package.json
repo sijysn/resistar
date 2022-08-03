@@ -3,8 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "docker": "docker-compose up",
-    "docker-stop": "docker-compose down",
-    "deploy-front": "git subtree push --prefix frontend/ front main"
+    "docker": "docker-compose build && docker-compose up",
+    "docker-stop": "docker-compose down"
   }
 }
