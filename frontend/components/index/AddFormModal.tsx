@@ -28,22 +28,21 @@ const types = [
   "ショッピング",
   "その他",
 ];
+
 const users = [
   { id: 1, username: "せーじ", imageUrl: "" },
   { id: 2, username: "もつ", imageUrl: "" },
   { id: 3, username: "かんた", imageUrl: "" },
 ];
 
-const Transition = React.forwardRef(
-  (
-    props: TransitionProps & {
-      children: React.ReactElement<any, any>;
-    },
-    ref: React.Ref<unknown>
-  ) => {
-    return <Slide direction="up" ref={ref} {...props} />;
-  }
-);
+const Transition = React.forwardRef(function TransitionComponent(
+  props: TransitionProps & {
+    children: React.ReactElement<any, any>;
+  },
+  ref: React.Ref<unknown>
+) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
 
 const initialValues = {
   title: "",
