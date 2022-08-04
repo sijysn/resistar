@@ -1,0 +1,43 @@
+# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
+
+type History {
+  id: ID!
+  title: String!
+  type: Type!
+  price: Int!
+  fromUsers: [User!]!
+  toUsers: [User!]!
+}
+
+enum Type {
+  DIARY
+  TRAVEL
+  RENT
+  UTILITY
+  COMMUNICATION
+  FOOD
+  OTHERS
+}
+
+type User {
+  id: ID!
+  name: String!
+}
+
+type Query {
+  histories: [History!]!
+}
+
+input NewHistory {
+  title: String!
+  type: Type!
+  price: Int!
+  fromUserIds: [ID!]!
+  toUserIds: [ID!]!
+}
+
+type Mutation {
+  addHistory(input: NewHistory!): History!
+}
