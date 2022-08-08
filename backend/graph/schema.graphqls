@@ -9,6 +9,9 @@ type History {
   price: Int!
   fromUsers: [User!]!
   toUsers: [User!]!
+  createdAt: String!
+  updatedAt: String
+  deletedAt: String
 }
 
 enum Type {
@@ -24,6 +27,9 @@ enum Type {
 type User {
   id: ID!
   name: String!
+  createdAt: String!
+  updatedAt: String
+  deletedAt: String
 }
 
 type Query {
@@ -38,6 +44,11 @@ input NewHistory {
   toUserIds: [ID!]!
 }
 
+input NewUser {
+  name: String!
+}
+
 type Mutation {
   addHistory(input: NewHistory!): History!
+  addUser(input: NewUser!): User!
 }

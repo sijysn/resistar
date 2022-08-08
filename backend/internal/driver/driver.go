@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func ConnectSQL(dsn string) (*gorm.DB, error) {
+func ConnectDB(dsn string) (*gorm.DB, error) {
 	db, err := NewDatabase(dsn)
 	if err != nil {
 		panic(err)
