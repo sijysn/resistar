@@ -5,7 +5,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/sijysn/resistar/backend/graph/generated"
 	"github.com/sijysn/resistar/backend/graph/model"
@@ -48,12 +47,37 @@ func (r *historyResolver) ToUsers(ctx context.Context, obj *model.History) ([]*m
 
 // AddHistory is the resolver for the addHistory field.
 func (r *mutationResolver) AddHistory(ctx context.Context, input model.NewHistory) (*model.History, error) {
-	panic(fmt.Errorf("not implemented"))
+	var fromUsers []*dbModel.User
+	var fromUser *dbModel.User
+	for _, v := range input.FromUserIds {
+		r.DB.Where("id = ?", v).First(&fromUser).Scan(&fromUser)
+		fromUsers = append(fromUsers, fromUser)
+	}
+
+	var toUsers []*dbModel.User
+	var toUser *dbModel.User
+	for _, v := range input.ToUserIds {
+		r.DB.Where("id = ?", v).First(&dbModel.User{}).Scan(&toUser)
+		toUsers = append(toUsers, toUser)
+	}
+
+	dbNewHistory := &dbModel.History{
+		Title:     input.Title,
+		Type:      dbModel.Type(input.Type),
+		Price:     input.Price,
+		FromUsers: fromUsers,
+		ToUsers:   toUsers,
+	}
+	var newHistory *model.History
+	r.DB.Create(dbNewHistory).Scan(&newHistory)
+	return newHistory, nil
 }
 
 // AddUser is the resolver for the addUser field.
 func (r *mutationResolver) AddUser(ctx context.Context, input model.NewUser) (*model.User, error) {
-	panic(fmt.Errorf("not implemented"))
+	var newUser *model.User
+	r.DB.Create(&dbModel.User{Name: input.Name}).Scan(&newUser)
+	return newUser, nil
 }
 
 // Histories is the resolver for the histories field.
