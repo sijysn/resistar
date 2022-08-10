@@ -34,9 +34,9 @@ func (r *mutationResolver) AddHistory(ctx context.Context, input model.NewHistor
 	}
 
 	dbNewHistory := &dbModel.History{
-		Title: input.Title,
-		Type:  model.Type(input.Type),
-		Price: input.Price,
+		Title:   input.Title,
+		Type:    model.Type(input.Type),
+		Price:   input.Price,
 		GroupID: uint(groupID),
 	}
 
@@ -125,7 +125,7 @@ func (r *queryResolver) Histories(ctx context.Context, input model.HistoriesQuer
 			FromUsers: fromUsers,
 			ToUsers:   toUsers,
 			CreatedAt: v.CreatedAt.Format("2006-01-02 15:04:05"),
-			GroupID: strconv.FormatUint(uint64(v.GroupID), 10),
+			GroupID:   strconv.FormatUint(uint64(v.GroupID), 10),
 		}
 		histories = append(histories, history)
 	}
@@ -134,9 +134,17 @@ func (r *queryResolver) Histories(ctx context.Context, input model.HistoriesQuer
 }
 
 // Users is the resolver for the users field.
-func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
+func (r *queryResolver) Users(ctx context.Context, input model.UsersQuery) ([]*model.User, error) {
 	var users []*model.User
-	r.DB.Find(&dbModel.User{}).Scan(&users)
+	var dbUsers []dbModel.User
+	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	err = r.DB.Where("group_id = ?", uint(groupID)).Find(&dbUsers).Scan(&users).Error
+	if err != nil {
+		return nil, err
+	}
 	return users, nil
 }
 

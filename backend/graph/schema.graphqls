@@ -47,9 +47,13 @@ input HistoriesQuery {
   groupID: ID!
 }
 
+input UsersQuery {
+  groupID: ID!
+}
+
 type Query {
   histories(input: HistoriesQuery!): [History!]!
-  users: [User!]!
+  users(input: UsersQuery!): [User!]!
 }
 
 input NewHistory {

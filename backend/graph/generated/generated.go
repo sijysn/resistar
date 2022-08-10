@@ -72,7 +72,7 @@ type ComplexityRoot struct {
 
 	Query struct {
 		Histories func(childComplexity int, input model.HistoriesQuery) int
-		Users     func(childComplexity int) int
+		Users     func(childComplexity int, input model.UsersQuery) int
 	}
 
 	User struct {
@@ -92,7 +92,7 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	Histories(ctx context.Context, input model.HistoriesQuery) ([]*model.History, error)
-	Users(ctx context.Context) ([]*model.User, error)
+	Users(ctx context.Context, input model.UsersQuery) ([]*model.User, error)
 }
 
 type executableSchema struct {
@@ -256,7 +256,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Query.Users(childComplexity), true
+		args, err := ec.field_Query_users_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Users(childComplexity, args["input"].(model.UsersQuery)), true
 
 	case "User.createdAt":
 		if e.complexity.User.CreatedAt == nil {
@@ -311,6 +316,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputHistoriesQuery,
 		ec.unmarshalInputNewHistory,
 		ec.unmarshalInputNewUser,
+		ec.unmarshalInputUsersQuery,
 	)
 	first := true
 
@@ -420,9 +426,13 @@ input HistoriesQuery {
   groupID: ID!
 }
 
+input UsersQuery {
+  groupID: ID!
+}
+
 type Query {
   histories(input: HistoriesQuery!): [History!]!
-  users: [User!]!
+  users(input: UsersQuery!): [User!]!
 }
 
 input NewHistory {
@@ -504,6 +514,21 @@ func (ec *executionContext) field_Query_histories_args(ctx context.Context, rawA
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNHistoriesQuery2githubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐHistoriesQuery(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_users_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.UsersQuery
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNUsersQuery2githubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐUsersQuery(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1473,7 +1498,7 @@ func (ec *executionContext) _Query_users(ctx context.Context, field graphql.Coll
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Users(rctx)
+		return ec.resolvers.Query().Users(rctx, fc.Args["input"].(model.UsersQuery))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1513,6 +1538,17 @@ func (ec *executionContext) fieldContext_Query_users(ctx context.Context, field 
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_users_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
 	}
 	return fc, nil
 }
@@ -3825,6 +3861,34 @@ func (ec *executionContext) unmarshalInputNewUser(ctx context.Context, obj inter
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUsersQuery(ctx context.Context, obj interface{}) (model.UsersQuery, error) {
+	var it model.UsersQuery
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"groupID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "groupID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("groupID"))
+			it.GroupID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -4726,6 +4790,11 @@ func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋsijysnᚋresistarᚋb
 		return graphql.Null
 	}
 	return ec._User(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNUsersQuery2githubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐUsersQuery(ctx context.Context, v interface{}) (model.UsersQuery, error) {
+	res, err := ec.unmarshalInputUsersQuery(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {

@@ -57,6 +57,10 @@ type User struct {
 	GroupID   string  `json:"groupID"`
 }
 
+type UsersQuery struct {
+	GroupID string `json:"groupID"`
+}
+
 type Type string
 
 const (
