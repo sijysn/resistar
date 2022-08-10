@@ -28,10 +28,16 @@ func (r *mutationResolver) AddHistory(ctx context.Context, input model.NewHistor
 		return nil, err
 	}
 
+	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+
 	dbNewHistory := &dbModel.History{
 		Title: input.Title,
 		Type:  model.Type(input.Type),
 		Price: input.Price,
+		GroupID: uint(groupID),
 	}
 
 	var newHistory *model.History
@@ -63,16 +69,36 @@ func (r *mutationResolver) AddHistory(ctx context.Context, input model.NewHistor
 // AddUser is the resolver for the addUser field.
 func (r *mutationResolver) AddUser(ctx context.Context, input model.NewUser) (*model.User, error) {
 	var newUser *model.User
-	r.DB.Create(&dbModel.User{Name: input.Name}).Scan(&newUser)
+	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	err = r.DB.Create(&dbModel.User{Name: input.Name, GroupID: uint(groupID)}).Scan(&newUser).Error
+	if err != nil {
+		return nil, err
+	}
 	return newUser, nil
+}
+
+// AddGroup is the resolver for the addGroup field.
+func (r *mutationResolver) AddGroup(ctx context.Context) (*model.Group, error) {
+	var newGroup *model.Group
+	err := r.DB.Create(&dbModel.Group{}).Scan(&newGroup).Error
+	if err != nil {
+		return nil, err
+	}
+	return newGroup, nil
 }
 
 // Histories is the resolver for the histories field.
 func (r *queryResolver) Histories(ctx context.Context, input model.HistoriesQuery) ([]*model.History, error) {
 	var histories []*model.History
 	var dbHistories []dbModel.History
-
-	err := r.DB.Debug().Preload("FromUsers").Preload("ToUsers").Where("date_part('year', created_at) = ? AND date_part('month', created_at) = ?", input.Year, input.Month).Order("created_at DESC").Find(&dbHistories).Error
+	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	err = r.DB.Debug().Preload("FromUsers").Preload("ToUsers").Where("group_id = ? AND date_part('year', created_at) = ? AND date_part('month', created_at) = ?", groupID, input.Year, input.Month).Order("created_at DESC").Find(&dbHistories).Error
 	if err != nil {
 		return nil, err
 	}
@@ -99,6 +125,7 @@ func (r *queryResolver) Histories(ctx context.Context, input model.HistoriesQuer
 			FromUsers: fromUsers,
 			ToUsers:   toUsers,
 			CreatedAt: v.CreatedAt.Format("2006-01-02 15:04:05"),
+			GroupID: strconv.FormatUint(uint64(v.GroupID), 10),
 		}
 		histories = append(histories, history)
 	}

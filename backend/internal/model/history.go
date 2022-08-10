@@ -18,6 +18,7 @@ type History struct {
 	Price     int     `json:"price"`
 	FromUsers []User `json:"fromUsers" gorm:"many2many:history_from_users"`
 	ToUsers   []User `json:"toUsers" gorm:"many2many:history_to_users"`
+	GroupID uint
 }
 
 type HistoryForScan struct {
