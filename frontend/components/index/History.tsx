@@ -1,50 +1,31 @@
 import * as React from "react";
-import { useQuery, NetworkStatus } from "@apollo/client";
+import { useQuery, NetworkStatus, ApolloError } from "@apollo/client";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import ListItemAvatar from "@mui/material/ListItemAvatar";
 import Avatar from "@mui/material/Avatar";
 import { styled } from "@mui/material";
-import dayjs from "dayjs";
 import {
   GET_HISTORIES,
   getHistoriesProps,
   getHistoriesVarsProps,
 } from "../../lib/api/getHistories";
+import dayjs from "dayjs";
 
 type Props = {
-  yearAndMonth: string;
+  loading: boolean;
+  error?: ApolloError;
+  data?: getHistoriesProps;
+  loadingMoreHistories: boolean;
 };
 
-const History: React.FC<Props> = ({ yearAndMonth }) => {
-  const currentYear = dayjs(yearAndMonth).format("YYYY");
-  const currentMonth = dayjs(yearAndMonth).format("MM");
-  const getHistoriesQueryVars = {
-    groupID: "1",
-    year: currentYear,
-    month: currentMonth,
-  };
-  const { loading, error, data, fetchMore, networkStatus } = useQuery<
-    getHistoriesProps,
-    getHistoriesVarsProps
-  >(GET_HISTORIES, {
-    variables: getHistoriesQueryVars,
-    // networkStatusが変わるとコンポーネントが再レンダリングされる
-    notifyOnNetworkStatusChange: true,
-  });
-
-  const loadingMoreHistories = networkStatus === NetworkStatus.fetchMore;
-
-  // const loadMoreHistories = () => {
-  //   fetchMore({
-  //     variables: getHistoriesQueryVars,
-  //   });
-  // };
-  // React.useEffect(() => {
-  //   loadMoreHistories();
-  // }, []);
-
+const History: React.FC<Props> = ({
+  loading,
+  error,
+  data,
+  loadingMoreHistories,
+}) => {
   if (error) return <div>Error</div>;
   if ((loading && !loadingMoreHistories) || !data) return <div>Loading</div>;
   if (data.histories.length === 0) return <div>データがありません。</div>;

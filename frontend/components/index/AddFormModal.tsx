@@ -26,6 +26,7 @@ import {
 type ModalProps = {
   isOpen: boolean;
   close: () => void;
+  onAdd: () => void;
 };
 
 const users = [
@@ -59,7 +60,7 @@ const initialValues: initializeValuesProps = {
   toUsers: [],
 };
 
-const AddFormModal: React.FC<ModalProps> = ({ isOpen, close }) => {
+const AddFormModal: React.FC<ModalProps> = ({ isOpen, close, onAdd }) => {
   const [title, setTitle] = React.useState(initialValues["title"]);
   const [type, setType] = React.useState(initialValues["type"]);
   const handleSelectorChange = (e: SelectChangeEvent<string>) => {
@@ -87,10 +88,13 @@ const AddFormModal: React.FC<ModalProps> = ({ isOpen, close }) => {
       fromUserIds: fromUsers.map(({ id }) => id),
       toUserIds: toUsers.map(({ id }) => id),
     };
-    console.log(addHistoryQueryVars);
     add({ variables: addHistoryQueryVars });
     initializeValues();
   };
+
+  React.useEffect(() => {
+    onAdd();
+  }, [loading]);
 
   const initializeValues = () => {
     setTitle(initialValues["title"]);
