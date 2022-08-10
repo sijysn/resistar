@@ -4,6 +4,8 @@ go 1.17
 
 require (
 	github.com/99designs/gqlgen v0.17.13
+	github.com/go-chi/chi v1.5.4
+	github.com/rs/cors v1.8.2
 	github.com/vektah/gqlparser/v2 v2.4.6
 	gorm.io/driver/postgres v1.3.8
 	gorm.io/gorm v1.23.8

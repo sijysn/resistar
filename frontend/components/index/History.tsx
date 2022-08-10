@@ -1,148 +1,70 @@
 import * as React from "react";
+import { ApolloError } from "@apollo/client";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import ListItemAvatar from "@mui/material/ListItemAvatar";
 import Avatar from "@mui/material/Avatar";
-import { styled } from "@mui/material";
+import { css, styled } from "@mui/material";
+import { getHistoriesProps } from "../../lib/api/getHistories";
 
-const historyList = [
-  {
-    id: 1,
-    title: "洗剤の購入",
-    price: 1200,
-    type: "daily",
-    fromUser: { id: 1, username: "seiji", imageUrl: "" },
-    toUsers: [
-      { id: 2, username: "motsu", imageUrl: "" },
-      { id: 3, username: "kanta", imageUrl: "" },
-    ],
-    createdAt: "2022-07-28",
-  },
-  {
-    id: 2,
-    title: "洗剤の購入",
-    price: 1200,
-    type: "daily",
-    fromUser: { id: 1, username: "seiji", imageUrl: "" },
-    toUsers: [
-      { id: 2, username: "motsu", imageUrl: "" },
-      { id: 3, username: "kanta", imageUrl: "" },
-    ],
-    createdAt: "2022-07-28",
-  },
-  {
-    id: 3,
-    title: "洗剤の購入",
-    price: 1200,
-    type: "daily",
-    fromUser: { id: 1, username: "seiji", imageUrl: "" },
-    toUsers: [
-      { id: 2, username: "motsu", imageUrl: "" },
-      { id: 3, username: "kanta", imageUrl: "" },
-    ],
-    createdAt: "2022-07-28",
-  },
-  {
-    id: 4,
-    title: "洗剤の購入",
-    price: 1200,
-    type: "daily",
-    fromUser: { id: 1, username: "seiji", imageUrl: "" },
-    toUsers: [
-      { id: 2, username: "motsu", imageUrl: "" },
-      { id: 3, username: "kanta", imageUrl: "" },
-    ],
-    createdAt: "2022-07-28",
-  },
-  {
-    id: 5,
-    title: "洗剤の購入",
-    price: 1200,
-    type: "daily",
-    fromUser: { id: 1, username: "seiji", imageUrl: "" },
-    toUsers: [
-      { id: 2, username: "motsu", imageUrl: "" },
-      { id: 3, username: "kanta", imageUrl: "" },
-    ],
-    createdAt: "2022-07-28",
-  },
-  {
-    id: 6,
-    title: "洗剤の購入",
-    price: 1200,
-    type: "daily",
-    fromUser: { id: 1, username: "seiji", imageUrl: "" },
-    toUsers: [
-      { id: 2, username: "motsu", imageUrl: "" },
-      { id: 3, username: "kanta", imageUrl: "" },
-    ],
-    createdAt: "2022-07-28",
-  },
-  {
-    id: 7,
-    title: "洗剤の購入",
-    price: 1200,
-    type: "daily",
-    fromUser: { id: 1, username: "seiji", imageUrl: "" },
-    toUsers: [
-      { id: 2, username: "motsu", imageUrl: "" },
-      { id: 3, username: "kanta", imageUrl: "" },
-    ],
-    createdAt: "2022-07-28",
-  },
-  {
-    id: 8,
-    title: "洗剤の購入",
-    price: 1200,
-    type: "daily",
-    fromUser: { id: 1, username: "seiji", imageUrl: "" },
-    toUsers: [
-      { id: 2, username: "motsu", imageUrl: "" },
-      { id: 3, username: "kanta", imageUrl: "" },
-    ],
-    createdAt: "2022-07-28",
-  },
-  {
-    id: 9,
-    title: "洗剤の購入",
-    price: 1200,
-    type: "daily",
-    fromUser: { id: 1, username: "seiji", imageUrl: "" },
-    toUsers: [
-      { id: 2, username: "motsu", imageUrl: "" },
-      { id: 3, username: "kanta", imageUrl: "" },
-    ],
-    createdAt: "2022-07-28",
-  },
-];
+type Props = {
+  loading: boolean;
+  error?: ApolloError;
+  data?: getHistoriesProps;
+  loadingMoreHistories: boolean;
+};
 
-const History = () => {
+const History: React.FC<Props> = ({
+  loading,
+  error,
+  data,
+  loadingMoreHistories,
+}) => {
+  if (error) return <div>Error</div>;
+  if ((loading && !loadingMoreHistories) || !data) return <div>Loading</div>;
+  if (data.histories.length === 0) return <div>データがありません。</div>;
   return (
     <HistoryList>
-      {historyList.map(({ id, title, price, fromUser, toUsers, createdAt }) => {
-        return (
-          <HistoryListItem key={id}>
-            <StyledListItemAvatar>
-              <Avatar src={fromUser.imageUrl} />
-              <FromUserAvatar src={fromUser.imageUrl} />
-            </StyledListItemAvatar>
-            <StyledListItemText
-              primary={title}
-              secondary={
-                <ToUsers>
-                  {toUsers.map(({ id, imageUrl }) => {
-                    return (
-                      <ToUserAvatar key={id} src={imageUrl} component="span" />
-                    );
-                  })}
-                </ToUsers>
-              }
-            />
-            <ListItemText primary={<Price>¥{price.toLocaleString()}</Price>} />
-          </HistoryListItem>
-        );
-      })}
+      {data.histories.map(
+        ({ id, title, price, fromUsers, toUsers, createdAt }) => {
+          return (
+            <HistoryListItem key={id}>
+              <StyledListItemAvatar>
+                <Avatar src={""} />
+                {fromUsers.map(({ id }, index) => {
+                  if (index === 0) {
+                    return <FromUserAvatar1 src={""} key={id} />;
+                  }
+                  if (index === 1) {
+                    return <FromUserAvatar2 src={""} key={id} />;
+                  }
+                  if (index === 1) {
+                    return <FromUserAvatar3 src={""} key={id} />;
+                  }
+                  return <React.Fragment key={id}></React.Fragment>;
+                })}
+              </StyledListItemAvatar>
+              <StyledListItemText
+                primary={title}
+                secondary={
+                  <ToUsers>
+                    {toUsers.map(({ id }) => {
+                      return (
+                        <ToUserAvatar key={id} src={""} component="span" />
+                      );
+                    })}
+                    {createdAt}
+                  </ToUsers>
+                }
+              />
+              <ListItemText
+                primary={<Price>¥{price.toLocaleString()}</Price>}
+              />
+            </HistoryListItem>
+          );
+        }
+      )}
     </HistoryList>
   );
 };
@@ -168,12 +90,29 @@ const StyledListItemAvatar = styled(ListItemAvatar)`
   align-items: center;
 ` as typeof ListItemAvatar;
 
-const FromUserAvatar = styled(Avatar)`
+const FromUserAvatarCss = css`
   position: absolute;
   bottom: 0;
-  right: 10px;
   width: 20px;
   height: 20px;
+`;
+
+const FromUserAvatar1 = styled(Avatar)`
+  ${FromUserAvatarCss}
+  z-index: 10;
+  right: 10px;
+`;
+
+const FromUserAvatar2 = styled(Avatar)`
+  ${FromUserAvatarCss}
+  z-index: 5;
+  right: 5px;
+`;
+
+const FromUserAvatar3 = styled(Avatar)`
+  ${FromUserAvatarCss}
+  z-index: 0;
+  right: 0;
 `;
 
 const StyledListItemText = styled(ListItemText)`

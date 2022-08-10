@@ -7,9 +7,9 @@ import Select, { SelectChangeEvent } from "@mui/material/Select";
 import Checkbox from "@mui/material/Checkbox";
 
 export type UserProps = {
-  id: number;
-  username: string;
-  imageUrl: string;
+  id: string;
+  name: string;
+  imageUrl?: string;
 };
 
 type Props = {
@@ -31,7 +31,7 @@ const MenuProps = {
   },
 };
 
-const getIsUserSelected = (selectedUsers: UserProps[], userId: number) =>
+const getIsUserSelected = (selectedUsers: UserProps[], userId: string) =>
   selectedUsers.map((selectedUser) => selectedUser.id).includes(userId);
 
 const UsersSelector: React.FC<Props> = ({
@@ -41,7 +41,7 @@ const UsersSelector: React.FC<Props> = ({
   selectedUsers,
   className,
 }) => {
-  const handleChange = (e: SelectChangeEvent<number[]>) => {
+  const handleChange = (e: SelectChangeEvent<string[]>) => {
     const { value } = e.target;
     setSelectedUsers(
       typeof value === "string"
@@ -57,17 +57,15 @@ const UsersSelector: React.FC<Props> = ({
         multiple
         value={selectedUsers.map((selectedUser) => selectedUser.id)}
         onChange={handleChange}
-        renderValue={(_) =>
-          selectedUsers.map(({ username }) => username).join(", ")
-        }
+        renderValue={(_) => selectedUsers.map(({ name }) => name).join(", ")}
         MenuProps={MenuProps}
       >
         {selectableUsers.map((selectableUser) => {
-          const { id, username } = selectableUser;
+          const { id, name } = selectableUser;
           return (
             <MenuItem key={id} value={id}>
               <Checkbox checked={getIsUserSelected(selectedUsers, id)} />
-              <ListItemText primary={username} />
+              <ListItemText primary={name} />
             </MenuItem>
           );
         })}
