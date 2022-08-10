@@ -34,6 +34,7 @@ type User {
 
 type Query {
   histories: [History!]!
+  users: [User!]!
 }
 
 input NewHistory {

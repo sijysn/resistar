@@ -1,6 +1,8 @@
 package graph
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+)
 
 // This file will not be regenerated automatically.
 //

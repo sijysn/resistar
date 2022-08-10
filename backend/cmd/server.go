@@ -10,6 +10,7 @@ import (
 	"github.com/sijysn/resistar/backend/graph"
 	"github.com/sijysn/resistar/backend/graph/generated"
 	"github.com/sijysn/resistar/backend/internal/driver"
+	"github.com/sijysn/resistar/backend/internal/migrate"
 )
 
 const defaultPort = "8080"
@@ -21,6 +22,8 @@ func run() {
 		log.Fatal("cannot connect to database!")
 	}
 	log.Println("Connected to database!")
+
+	migrate.Migrate(db)
 
 	port := os.Getenv("PORT")
 	if port == "" {

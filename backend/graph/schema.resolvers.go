@@ -5,6 +5,7 @@ package graph
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/sijysn/resistar/backend/graph/generated"
 	"github.com/sijysn/resistar/backend/graph/model"
@@ -13,63 +14,98 @@ import (
 
 // FromUsers is the resolver for the fromUsers field.
 func (r *historyResolver) FromUsers(ctx context.Context, obj *model.History) ([]*model.User, error) {
-	var users []*model.User
-	var user *model.User
-	for _, v := range obj.FromUsers {
-		r.DB.First(&model.User{ID: v.ID}).Scan(&user)
-		users = append(users, &model.User{
-			ID: user.ID,
-			Name: user.Name,
-			CreatedAt: user.CreatedAt,
-			UpdatedAt: user.UpdatedAt,
-			DeletedAt: user.DeletedAt,
-		})
+	// var histories []*model.History
+	var dbHistories []dbModel.History
+	// var historyForScan []dbModel.HistoryForScan
+	// var dbFromUsers []dbModel.User
+	var fromUsers []*model.User
+	// var toUsers []*model.User
+
+	err := r.DB.Debug().Model(&dbHistories).Preload("FromUsers").Find(&dbHistories).Error
+	if err != nil {
+		return nil, err
 	}
-	return users, nil
+	for _, v := range dbHistories {
+		// fmt.Println(len(v.ToUsers))
+		for _, valueFromUser := range v.FromUsers {
+			fromUser := &model.User{
+				ID: strconv.FormatUint(uint64(valueFromUser.ID),10),
+				Name: valueFromUser.Name,
+			}
+			fromUsers = append(fromUsers, fromUser)
+		}
+	}
+
+	return fromUsers, nil
 }
 
 // ToUsers is the resolver for the toUsers field.
 func (r *historyResolver) ToUsers(ctx context.Context, obj *model.History) ([]*model.User, error) {
-	var users []*model.User
-	var user *model.User
-	for _, v := range obj.FromUsers {
-		r.DB.First(&model.User{ID: v.ID}).Scan(&user)
-		users = append(users, &model.User{
-			ID: user.ID,
-			Name: user.Name,
-			CreatedAt: user.CreatedAt,
-			UpdatedAt: user.UpdatedAt,
-			DeletedAt: user.DeletedAt,
-		})
+	var dbHistories []dbModel.History
+	var toUsers []*model.User
+
+	err := r.DB.Debug().Model(&dbHistories).Preload("ToUsers").Find(&dbHistories).Error
+	if err != nil {
+		return nil, err
 	}
-	return users, nil
+	for _, v := range dbHistories {
+		for _, valueToUser := range v.ToUsers {
+			toUser := &model.User{
+				ID: strconv.FormatUint(uint64(valueToUser.ID),10),
+				Name: valueToUser.Name,
+			}
+			toUsers = append(toUsers, toUser)
+		}
+	}
+
+	return toUsers, nil
 }
 
 // AddHistory is the resolver for the addHistory field.
 func (r *mutationResolver) AddHistory(ctx context.Context, input model.NewHistory) (*model.History, error) {
-	var fromUsers []*dbModel.User
-	var fromUser *dbModel.User
-	for _, v := range input.FromUserIds {
-		r.DB.Where("id = ?", v).First(&fromUser).Scan(&fromUser)
-		fromUsers = append(fromUsers, fromUser)
+	var dbFromUsers []dbModel.User
+	var fromUsers []*model.User
+	err := r.DB.Where(input.FromUserIds).Find(&dbFromUsers).Scan(&fromUsers).Error
+	if err != nil {
+		return nil, err
 	}
 
-	var toUsers []*dbModel.User
-	var toUser *dbModel.User
-	for _, v := range input.ToUserIds {
-		r.DB.Where("id = ?", v).First(&dbModel.User{}).Scan(&toUser)
-		toUsers = append(toUsers, toUser)
+	var dbToUsers []dbModel.User
+	var toUsers []*model.User
+	err = r.DB.Where(input.ToUserIds).Find(&dbToUsers).Scan(&toUsers).Error
+	if err != nil {
+		return nil, err
 	}
 
 	dbNewHistory := &dbModel.History{
 		Title:     input.Title,
-		Type:      dbModel.Type(input.Type),
+		Type:      model.Type(input.Type),
 		Price:     input.Price,
-		FromUsers: fromUsers,
-		ToUsers:   toUsers,
 	}
+	
 	var newHistory *model.History
-	r.DB.Create(dbNewHistory).Scan(&newHistory)
+	var historyForScan *dbModel.HistoryForScan
+	err = r.DB.Create(dbNewHistory).Scan(&historyForScan).Error
+	if err != nil {
+		return nil, err
+	}
+	err = r.DB.Model(dbNewHistory).Association("FromUsers").Append(dbFromUsers)
+	if err != nil {
+		return nil, err
+	}
+	err = r.DB.Model(dbNewHistory).Association("ToUsers").Append(dbToUsers)
+	if err != nil {
+		return nil, err
+	}
+	newHistory = &model.History{
+		ID: strconv.FormatUint(uint64(historyForScan.ID),10),
+		Title: historyForScan.Title,
+		Type: historyForScan.Type,
+		Price: historyForScan.Price,
+		FromUsers: fromUsers,
+		ToUsers: toUsers,
+		CreatedAt: historyForScan.CreatedAt.Format("2006-01-02 15:04:05"),
+	}
 	return newHistory, nil
 }
 
@@ -83,8 +119,31 @@ func (r *mutationResolver) AddUser(ctx context.Context, input model.NewUser) (*m
 // Histories is the resolver for the histories field.
 func (r *queryResolver) Histories(ctx context.Context) ([]*model.History, error) {
 	var histories []*model.History
-	r.DB.Find(&dbModel.History{}).Scan(&histories)
+	var historyForScan []dbModel.HistoryForScan
+
+	err := r.DB.Debug().Model(&dbModel.History{}).Find(&historyForScan).Error
+	if err != nil {
+		return nil, err
+	}
+	for _, v := range historyForScan {
+		history := &model.History{
+			ID: strconv.FormatUint(uint64(v.ID),10),
+			Title: v.Title,
+			Type: v.Type,
+			Price: v.Price,
+			CreatedAt: v.CreatedAt.Format("2006-01-02 15:04:05"),
+		}
+		histories = append(histories, history)
+	}
+
 	return histories, nil
+}
+
+// Users is the resolver for the users field.
+func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
+	var users []*model.User
+	r.DB.Find(&dbModel.User{}).Scan(&users)
+	return users, nil
 }
 
 // History returns generated.HistoryResolver implementation.
