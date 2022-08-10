@@ -36,7 +36,6 @@ type Config struct {
 }
 
 type ResolverRoot interface {
-	History() HistoryResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 }
@@ -63,7 +62,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Histories func(childComplexity int) int
+		Histories func(childComplexity int, input model.HistoriesQuery) int
 		Users     func(childComplexity int) int
 	}
 
@@ -76,16 +75,12 @@ type ComplexityRoot struct {
 	}
 }
 
-type HistoryResolver interface {
-	FromUsers(ctx context.Context, obj *model.History) ([]*model.User, error)
-	ToUsers(ctx context.Context, obj *model.History) ([]*model.User, error)
-}
 type MutationResolver interface {
 	AddHistory(ctx context.Context, input model.NewHistory) (*model.History, error)
 	AddUser(ctx context.Context, input model.NewUser) (*model.User, error)
 }
 type QueryResolver interface {
-	Histories(ctx context.Context) ([]*model.History, error)
+	Histories(ctx context.Context, input model.HistoriesQuery) ([]*model.History, error)
 	Users(ctx context.Context) ([]*model.User, error)
 }
 
@@ -196,7 +191,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Query.Histories(childComplexity), true
+		args, err := ec.field_Query_histories_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Histories(childComplexity, args["input"].(model.HistoriesQuery)), true
 
 	case "Query.users":
 		if e.complexity.Query.Users == nil {
@@ -248,6 +248,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputHistoriesQuery,
 		ec.unmarshalInputNewHistory,
 		ec.unmarshalInputNewUser,
 	)
@@ -344,8 +345,13 @@ type User {
   deletedAt: String
 }
 
+input HistoriesQuery {
+  year: String!
+  month: String!
+}
+
 type Query {
-  histories: [History!]!
+  histories(input: HistoriesQuery!): [History!]!
   users: [User!]!
 }
 
@@ -415,6 +421,21 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_histories_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.HistoriesQuery
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNHistoriesQuery2githubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐHistoriesQuery(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -646,7 +667,7 @@ func (ec *executionContext) _History_fromUsers(ctx context.Context, field graphq
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.History().FromUsers(rctx, obj)
+		return obj.FromUsers, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -667,8 +688,8 @@ func (ec *executionContext) fieldContext_History_fromUsers(ctx context.Context, 
 	fc = &graphql.FieldContext{
 		Object:     "History",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -702,7 +723,7 @@ func (ec *executionContext) _History_toUsers(ctx context.Context, field graphql.
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.History().ToUsers(rctx, obj)
+		return obj.ToUsers, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -723,8 +744,8 @@ func (ec *executionContext) fieldContext_History_toUsers(ctx context.Context, fi
 	fc = &graphql.FieldContext{
 		Object:     "History",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -1026,7 +1047,7 @@ func (ec *executionContext) _Query_histories(ctx context.Context, field graphql.
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Histories(rctx)
+		return ec.resolvers.Query().Histories(rctx, fc.Args["input"].(model.HistoriesQuery))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1072,6 +1093,17 @@ func (ec *executionContext) fieldContext_Query_histories(ctx context.Context, fi
 			}
 			return nil, fmt.Errorf("no field named %q was found under type History", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_histories_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
 	}
 	return fc, nil
 }
@@ -3248,6 +3280,42 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputHistoriesQuery(ctx context.Context, obj interface{}) (model.HistoriesQuery, error) {
+	var it model.HistoriesQuery
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"year", "month"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "year":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("year"))
+			it.Year, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "month":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("month"))
+			it.Month, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputNewHistory(ctx context.Context, obj interface{}) (model.NewHistory, error) {
 	var it model.NewHistory
 	asMap := map[string]interface{}{}
@@ -3359,75 +3427,49 @@ func (ec *executionContext) _History(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._History_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "title":
 
 			out.Values[i] = ec._History_title(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "type":
 
 			out.Values[i] = ec._History_type(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "price":
 
 			out.Values[i] = ec._History_price(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "fromUsers":
-			field := field
 
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._History_fromUsers(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
+			out.Values[i] = ec._History_fromUsers(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
 			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
 		case "toUsers":
-			field := field
 
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._History_toUsers(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
+			out.Values[i] = ec._History_toUsers(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
 			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
 		case "createdAt":
 
 			out.Values[i] = ec._History_createdAt(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "updatedAt":
 
@@ -3965,6 +4007,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNHistoriesQuery2githubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐHistoriesQuery(ctx context.Context, v interface{}) (model.HistoriesQuery, error) {
+	res, err := ec.unmarshalInputHistoriesQuery(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNHistory2githubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐHistory(ctx context.Context, sel ast.SelectionSet, v model.History) graphql.Marshaler {

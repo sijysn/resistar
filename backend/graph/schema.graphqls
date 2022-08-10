@@ -32,8 +32,13 @@ type User {
   deletedAt: String
 }
 
+input HistoriesQuery {
+  year: String!
+  month: String!
+}
+
 type Query {
-  histories: [History!]!
+  histories(input: HistoriesQuery!): [History!]!
   users: [User!]!
 }
 

@@ -8,6 +8,11 @@ import (
 	"strconv"
 )
 
+type HistoriesQuery struct {
+	Year  string `json:"year"`
+	Month string `json:"month"`
+}
+
 type History struct {
 	ID        string  `json:"id"`
 	Title     string  `json:"title"`
