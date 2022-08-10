@@ -5,6 +5,7 @@ import {
   InMemoryCache,
   from,
   NormalizedCacheObject,
+  gql,
 } from "@apollo/client";
 import { onError } from "@apollo/client/link/error";
 import merge from "deepmerge";
@@ -34,6 +35,18 @@ const createApolloClient = () => {
     ssrMode: typeof window === "undefined",
     link: from([errorLink, httpLink]),
     cache: new InMemoryCache(),
+    typeDefs: gql`
+      # graphqlのクエリ内で独自の型を使用する場合はここに定義する
+      enum Type {
+        DIARY
+        TRAVEL
+        RENT
+        UTILITY
+        COMMUNICATION
+        FOOD
+        OTHERS
+      }
+    `,
   });
 };
 

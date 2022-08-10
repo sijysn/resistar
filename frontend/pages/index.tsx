@@ -3,7 +3,11 @@ import type { NextPage } from "next";
 import Index from "../components/index/Index";
 import dayjs from "dayjs";
 import { addApolloState, initializeApollo } from "../lib/apollo-client";
-import { GET_HISTORIES, HistoriesProps } from "../components/index/History";
+import {
+  GET_HISTORIES,
+  getHistoriesProps,
+  getHistoriesVarsProps,
+} from "../lib/api/getHistories";
 
 export const getServerSideProps = async () => {
   const currentYear = dayjs().format("YYYY");
@@ -16,7 +20,7 @@ export const getServerSideProps = async () => {
     month: currentMonth,
   };
 
-  await apolloClient.query<HistoriesProps>({
+  await apolloClient.query<getHistoriesProps, getHistoriesVarsProps>({
     query: GET_HISTORIES,
     variables: getHistoriesQueryVars,
   });

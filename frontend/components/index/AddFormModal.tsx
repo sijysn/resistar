@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useMutation } from "@apollo/client";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
@@ -12,26 +13,25 @@ import { styled } from "@mui/material";
 import { TransitionProps } from "@mui/material/transitions";
 import Selector from "./Selector";
 import UsersSelector, { UserProps } from "./UsersSelector";
+import {
+  ADD_HISTORY,
+  addHistoryProps,
+  addHistoryVarsProps,
+  DisplayedType,
+  DisplayedTypes,
+  DISPLAYED_TYPE_DIARY,
+  TypesMaster,
+} from "../../lib/api/addHistory";
 
 type ModalProps = {
   isOpen: boolean;
   close: () => void;
 };
 
-const types = [
-  "日用品",
-  "交通費",
-  "家賃",
-  "水道光熱費",
-  "通信費",
-  "食費",
-  "その他",
-];
-
 const users = [
-  { id: 1, username: "せーじ", imageUrl: "" },
-  { id: 2, username: "もつ", imageUrl: "" },
-  { id: 3, username: "かんた", imageUrl: "" },
+  { id: "1", name: "せーじ" },
+  { id: "2", name: "もつ" },
+  { id: "3", name: "かんた" },
 ];
 
 const Transition = React.forwardRef(function TransitionComponent(
@@ -43,9 +43,17 @@ const Transition = React.forwardRef(function TransitionComponent(
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-const initialValues = {
+type initializeValuesProps = {
+  title: string;
+  type: DisplayedType;
+  price: number;
+  fromUsers: UserProps[];
+  toUsers: UserProps[];
+};
+
+const initialValues: initializeValuesProps = {
   title: "",
-  type: "日用品",
+  type: DISPLAYED_TYPE_DIARY,
   price: 0,
   fromUsers: [],
   toUsers: [],
@@ -55,7 +63,7 @@ const AddFormModal: React.FC<ModalProps> = ({ isOpen, close }) => {
   const [title, setTitle] = React.useState(initialValues["title"]);
   const [type, setType] = React.useState(initialValues["type"]);
   const handleSelectorChange = (e: SelectChangeEvent<string>) => {
-    setType(e.target.value);
+    setType(e.target.value as DisplayedType);
   };
   const [price, setPrice] = React.useState(initialValues["price"]);
   const [fromUsers, setFromUsers] = React.useState<UserProps[]>(
@@ -65,8 +73,22 @@ const AddFormModal: React.FC<ModalProps> = ({ isOpen, close }) => {
     initialValues["toUsers"]
   );
 
+  const [add, { loading, error }] = useMutation<
+    addHistoryProps,
+    addHistoryVarsProps
+  >(ADD_HISTORY);
+
   const addHistory = () => {
-    console.log(title, type, price, fromUsers, toUsers);
+    const addHistoryQueryVars: addHistoryVarsProps = {
+      groupID: "1",
+      title: title,
+      type: TypesMaster[type],
+      price: Number(price),
+      fromUserIds: fromUsers.map(({ id }) => id),
+      toUserIds: toUsers.map(({ id }) => id),
+    };
+    console.log(addHistoryQueryVars);
+    add({ variables: addHistoryQueryVars });
     initializeValues();
   };
 
@@ -77,6 +99,9 @@ const AddFormModal: React.FC<ModalProps> = ({ isOpen, close }) => {
     setFromUsers(initialValues["fromUsers"]);
     setToUsers(initialValues["toUsers"]);
   };
+
+  if (loading) return <div>Submitting...</div>;
+  if (error) return <div>Submission error! {error.message}</div>;
 
   return (
     <StyledDialog
@@ -100,7 +125,7 @@ const AddFormModal: React.FC<ModalProps> = ({ isOpen, close }) => {
         />
         <StyledSelector
           label="タイプ"
-          items={types}
+          items={DisplayedTypes}
           handleChange={handleSelectorChange}
           selectedItem={type}
         />

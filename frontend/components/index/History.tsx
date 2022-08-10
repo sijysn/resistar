@@ -1,5 +1,5 @@
 import * as React from "react";
-import { gql, useQuery, NetworkStatus } from "@apollo/client";
+import { useQuery, NetworkStatus } from "@apollo/client";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
@@ -7,46 +7,11 @@ import ListItemAvatar from "@mui/material/ListItemAvatar";
 import Avatar from "@mui/material/Avatar";
 import { styled } from "@mui/material";
 import dayjs from "dayjs";
-
-type User = {
-  id: string;
-  name: string;
-  imageUrl?: string;
-};
-
-type HistoryProps = {
-  id: string;
-  title: string;
-  price: number;
-  type: string;
-  fromUsers: User[];
-  toUsers: User[];
-  createdAt: string;
-};
-
-export type HistoriesProps = {
-  histories: HistoryProps[];
-};
-
-export const GET_HISTORIES = gql`
-  query($groupID: ID!, $year: String!, $month: String!) {
-    histories(input: { groupID: $groupID, year: $year, month: $month }) {
-      id
-      title
-      price
-      type
-      fromUsers {
-        id
-        name
-      }
-      toUsers {
-        id
-        name
-      }
-      createdAt
-    }
-  }
-`;
+import {
+  GET_HISTORIES,
+  getHistoriesProps,
+  getHistoriesVarsProps,
+} from "../../lib/api/getHistories";
 
 type Props = {
   yearAndMonth: string;
@@ -60,25 +25,25 @@ const History: React.FC<Props> = ({ yearAndMonth }) => {
     year: currentYear,
     month: currentMonth,
   };
-  const { loading, error, data, networkStatus } = useQuery<HistoriesProps>(
-    GET_HISTORIES,
-    {
-      variables: getHistoriesQueryVars,
-      // networkStatusが変わるとコンポーネントが再レンダリングされる
-      notifyOnNetworkStatusChange: true,
-    }
-  );
+  const { loading, error, data, fetchMore, networkStatus } = useQuery<
+    getHistoriesProps,
+    getHistoriesVarsProps
+  >(GET_HISTORIES, {
+    variables: getHistoriesQueryVars,
+    // networkStatusが変わるとコンポーネントが再レンダリングされる
+    notifyOnNetworkStatusChange: true,
+  });
 
   const loadingMoreHistories = networkStatus === NetworkStatus.fetchMore;
 
   // const loadMoreHistories = () => {
   //   fetchMore({
-  //     variables: {
-  //       year: "2022",
-  //       month: "08",
-  //     },
+  //     variables: getHistoriesQueryVars,
   //   });
   // };
+  // React.useEffect(() => {
+  //   loadMoreHistories();
+  // }, []);
 
   if (error) return <div>Error</div>;
   if ((loading && !loadingMoreHistories) || !data) return <div>Loading</div>;
