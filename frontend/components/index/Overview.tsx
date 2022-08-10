@@ -5,25 +5,30 @@ import IconButton from "@mui/material/IconButton";
 import { styled } from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import { getHistoriesProps } from "../../lib/api/getHistories";
 import dayjs from "dayjs";
 
 type Props = {
   yearAndMonth: string;
+  data?: getHistoriesProps;
 };
 
-const data = {
-  userTotal: 3000,
-  groupTotal: 12000,
-  yearAndMonth: "2022-07",
-  members: [
-    { id: 1, name: "seiji" },
-    { id: 2, name: "motsu" },
-    { id: 3, name: "kanta" },
-  ],
+const getTotal = (data?: getHistoriesProps) => {
+  if (data) {
+    return data.histories.reduce((prev, { price }) => prev + price, 0);
+  }
+  return 0;
 };
 
-const Overview: React.FC<Props> = ({ yearAndMonth }) => {
-  const { userTotal, groupTotal, members } = data;
+const userTotal = 3000;
+const members = [
+  { id: 1, name: "seiji" },
+  { id: 2, name: "motsu" },
+  { id: 3, name: "kanta" },
+];
+
+const Overview: React.FC<Props> = ({ yearAndMonth, data }) => {
+  // const { userTotal, groupTotal, members } = data;
   const [year, month] = dayjs(yearAndMonth).format("YYYY-M").split("-");
   const previousYearAndMonth = dayjs(yearAndMonth)
     .subtract(1, "M")
@@ -48,7 +53,7 @@ const Overview: React.FC<Props> = ({ yearAndMonth }) => {
       </OverviewHeader>
       <Total>
         ¥{userTotal.toLocaleString()}
-        <GroupTotal> / ¥{groupTotal.toLocaleString()}</GroupTotal>
+        <GroupTotal> / ¥{getTotal(data).toLocaleString()}</GroupTotal>
       </Total>
       <Members>
         <MembersCount>メンバー({members.length})</MembersCount>

@@ -1,17 +1,12 @@
 import * as React from "react";
-import { useQuery, NetworkStatus, ApolloError } from "@apollo/client";
+import { ApolloError } from "@apollo/client";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import ListItemAvatar from "@mui/material/ListItemAvatar";
 import Avatar from "@mui/material/Avatar";
 import { styled } from "@mui/material";
-import {
-  GET_HISTORIES,
-  getHistoriesProps,
-  getHistoriesVarsProps,
-} from "../../lib/api/getHistories";
-import dayjs from "dayjs";
+import { getHistoriesProps } from "../../lib/api/getHistories";
 
 type Props = {
   loading: boolean;

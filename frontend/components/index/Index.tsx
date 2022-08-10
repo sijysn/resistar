@@ -49,7 +49,7 @@ const Index: React.FC<Props> = ({ yearAndMonth }) => {
   return (
     <div>
       <Main>
-        <Overview yearAndMonth={yearAndMonth} />
+        <Overview yearAndMonth={yearAndMonth} data={data} />
         <History
           loading={loading}
           error={error}
