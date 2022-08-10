@@ -19,7 +19,7 @@ const Index: React.FC<Props> = ({ yearAndMonth }) => {
     <div>
       <Main>
         <Overview yearAndMonth={yearAndMonth} />
-        <History />
+        <History yearAndMonth={yearAndMonth} />
         <AddButton aria-label="add" size="large" onClick={openModal}>
           <AddIcon />
         </AddButton>

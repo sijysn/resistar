@@ -6,33 +6,7 @@ import ListItemText from "@mui/material/ListItemText";
 import ListItemAvatar from "@mui/material/ListItemAvatar";
 import Avatar from "@mui/material/Avatar";
 import { styled } from "@mui/material";
-
-const historyList = [
-  {
-    id: 1,
-    title: "洗剤の購入",
-    price: 1200,
-    type: "daily",
-    fromUsers: [{ id: 1, name: "seiji", imageUrl: "" }],
-    toUsers: [
-      { id: 2, name: "motsu", imageUrl: "" },
-      { id: 3, name: "kanta", imageUrl: "" },
-    ],
-    createdAt: "2022-07-28",
-  },
-  {
-    id: 2,
-    title: "洗剤の購入",
-    price: 1200,
-    type: "daily",
-    fromUsers: [{ id: 1, name: "seiji", imageUrl: "" }],
-    toUsers: [
-      { id: 2, name: "motsu", imageUrl: "" },
-      { id: 3, name: "kanta", imageUrl: "" },
-    ],
-    createdAt: "2022-07-28",
-  },
-];
+import dayjs from "dayjs";
 
 type User = {
   id: string;
@@ -74,13 +48,18 @@ export const GET_HISTORIES = gql`
   }
 `;
 
-export const getHistoriesQueryVars = {
-  groupID: "1",
-  year: "2022",
-  month: "08",
+type Props = {
+  yearAndMonth: string;
 };
 
-const History = () => {
+const History: React.FC<Props> = ({ yearAndMonth }) => {
+  const currentYear = dayjs(yearAndMonth).format("YYYY");
+  const currentMonth = dayjs(yearAndMonth).format("MM");
+  const getHistoriesQueryVars = {
+    groupID: "1",
+    year: currentYear,
+    month: currentMonth,
+  };
   const { loading, error, data, networkStatus } = useQuery<HistoriesProps>(
     GET_HISTORIES,
     {
@@ -103,6 +82,7 @@ const History = () => {
 
   if (error) return <div>Error</div>;
   if ((loading && !loadingMoreHistories) || !data) return <div>Loading</div>;
+  if (data.histories.length === 0) return <div>データがありません。</div>;
   return (
     <HistoryList>
       {data.histories.map(

@@ -10,7 +10,7 @@ import { onError } from "@apollo/client/link/error";
 import merge from "deepmerge";
 import isEqual from "lodash/isEqual";
 
-export const APOLLO_STATE_PROP_NAME = "__APOLLO_STATE__";
+const APOLLO_STATE = "__APOLLO_STATE__";
 
 let apolloClient: ApolloClient<NormalizedCacheObject>;
 
@@ -67,13 +67,13 @@ export const addApolloState = (
   pageProps: any
 ) => {
   if (pageProps?.props) {
-    pageProps.props[APOLLO_STATE_PROP_NAME] = client.cache.extract();
+    pageProps.props[APOLLO_STATE] = client.cache.extract();
   }
   return pageProps;
 };
 
 export const useApollo = (pageProps: any) => {
-  const state = pageProps[APOLLO_STATE_PROP_NAME];
+  const state = pageProps[APOLLO_STATE];
   const store = useMemo(() => initializeApollo(state), [state]);
   return store;
 };

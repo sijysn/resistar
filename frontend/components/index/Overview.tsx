@@ -16,9 +16,9 @@ const data = {
   groupTotal: 12000,
   yearAndMonth: "2022-07",
   members: [
-    { id: 1, username: "seiji", imageUrl: "" },
-    { id: 2, username: "motsu", imageUrl: "" },
-    { id: 3, username: "kanta", imageUrl: "" },
+    { id: 1, name: "seiji", imageUrl: "" },
+    { id: 2, name: "motsu", imageUrl: "" },
+    { id: 3, name: "kanta", imageUrl: "" },
   ],
 };
 
