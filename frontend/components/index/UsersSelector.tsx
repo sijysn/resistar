@@ -9,7 +9,7 @@ import Checkbox from "@mui/material/Checkbox";
 export type UserProps = {
   id: string;
   name: string;
-  imageUrl?: string;
+  imageURL?: string;
 };
 
 type Props = {

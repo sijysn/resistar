@@ -109,12 +109,14 @@ func (r *queryResolver) Histories(ctx context.Context, input model.HistoriesQuer
 			fromUsers = append(fromUsers, &model.User{
 				ID:   strconv.FormatUint(uint64(fromUser.ID), 10),
 				Name: fromUser.Name,
+				ImageURL: fromUser.ImageURL,
 			})
 		}
 		for _, toUser := range v.ToUsers {
 			toUsers = append(toUsers, &model.User{
 				ID:   strconv.FormatUint(uint64(toUser.ID), 10),
 				Name: toUser.Name,
+				ImageURL: toUser.ImageURL,
 			})
 		}
 

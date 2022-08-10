@@ -24,6 +24,7 @@ const History: React.FC<Props> = ({
   if (error) return <div>Error</div>;
   if ((loading && !loadingMoreHistories) || !data) return <div>Loading</div>;
   if (data.histories.length === 0) return <div>データがありません。</div>;
+  console.log(data.histories);
   return (
     <HistoryList>
       {data.histories.map(
@@ -32,15 +33,15 @@ const History: React.FC<Props> = ({
             <HistoryListItem key={id}>
               <StyledListItemAvatar>
                 <Avatar src={""} />
-                {fromUsers.map(({ id }, index) => {
+                {fromUsers.map(({ id, imageURL }, index) => {
                   if (index === 0) {
-                    return <FromUserAvatar1 src={""} key={id} />;
+                    return <FromUserAvatar1 src={imageURL} key={id} />;
                   }
                   if (index === 1) {
-                    return <FromUserAvatar2 src={""} key={id} />;
+                    return <FromUserAvatar2 src={imageURL} key={id} />;
                   }
                   if (index === 1) {
-                    return <FromUserAvatar3 src={""} key={id} />;
+                    return <FromUserAvatar3 src={imageURL} key={id} />;
                   }
                   return <React.Fragment key={id}></React.Fragment>;
                 })}
@@ -49,9 +50,13 @@ const History: React.FC<Props> = ({
                 primary={title}
                 secondary={
                   <ToUsers>
-                    {toUsers.map(({ id }) => {
+                    {toUsers.map(({ id, imageURL }) => {
                       return (
-                        <ToUserAvatar key={id} src={""} component="span" />
+                        <ToUserAvatar
+                          key={id}
+                          src={imageURL}
+                          component="span"
+                        />
                       );
                     })}
                     {createdAt}

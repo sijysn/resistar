@@ -28,7 +28,7 @@ enum Type {
 type User {
   id: ID!
   name: String!
-  imageURL: String
+  imageURL: String!
   createdAt: String!
   updatedAt: String
   deletedAt: String

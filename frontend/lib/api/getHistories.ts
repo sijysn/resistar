@@ -10,10 +10,12 @@ export const GET_HISTORIES = gql`
       fromUsers {
         id
         name
+        imageURL
       }
       toUsers {
         id
         name
+        imageURL
       }
       createdAt
     }
@@ -33,7 +35,7 @@ export type getHistoriesVarsProps = {
 type User = {
   id: string;
   name: string;
-  imageUrl?: string;
+  imageURL?: string;
 };
 
 type HistoryProps = {
