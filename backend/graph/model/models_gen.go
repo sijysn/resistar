@@ -44,13 +44,15 @@ type NewHistory struct {
 }
 
 type NewUser struct {
-	Name    string `json:"name"`
-	GroupID string `json:"groupID"`
+	Name     string  `json:"name"`
+	ImageURL *string `json:"imageURL"`
+	GroupID  string  `json:"groupID"`
 }
 
 type User struct {
 	ID        string  `json:"id"`
 	Name      string  `json:"name"`
+	ImageURL  *string `json:"imageURL"`
 	CreatedAt string  `json:"createdAt"`
 	UpdatedAt *string `json:"updatedAt"`
 	DeletedAt *string `json:"deletedAt"`

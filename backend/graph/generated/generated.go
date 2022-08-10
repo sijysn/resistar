@@ -80,6 +80,7 @@ type ComplexityRoot struct {
 		DeletedAt func(childComplexity int) int
 		GroupID   func(childComplexity int) int
 		ID        func(childComplexity int) int
+		ImageURL  func(childComplexity int) int
 		Name      func(childComplexity int) int
 		UpdatedAt func(childComplexity int) int
 	}
@@ -291,6 +292,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.ID(childComplexity), true
 
+	case "User.imageURL":
+		if e.complexity.User.ImageURL == nil {
+			break
+		}
+
+		return e.complexity.User.ImageURL(childComplexity), true
+
 	case "User.name":
 		if e.complexity.User.Name == nil {
 			break
@@ -407,6 +415,7 @@ enum Type {
 type User {
   id: ID!
   name: String!
+  imageURL: String
   createdAt: String!
   updatedAt: String
   deletedAt: String
@@ -446,6 +455,7 @@ input NewHistory {
 
 input NewUser {
   name: String!
+  imageURL: String
   groupID: ID!
 }
 
@@ -964,6 +974,8 @@ func (ec *executionContext) fieldContext_History_fromUsers(ctx context.Context, 
 				return ec.fieldContext_User_id(ctx, field)
 			case "name":
 				return ec.fieldContext_User_name(ctx, field)
+			case "imageURL":
+				return ec.fieldContext_User_imageURL(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_User_createdAt(ctx, field)
 			case "updatedAt":
@@ -1022,6 +1034,8 @@ func (ec *executionContext) fieldContext_History_toUsers(ctx context.Context, fi
 				return ec.fieldContext_User_id(ctx, field)
 			case "name":
 				return ec.fieldContext_User_name(ctx, field)
+			case "imageURL":
+				return ec.fieldContext_User_imageURL(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_User_createdAt(ctx, field)
 			case "updatedAt":
@@ -1327,6 +1341,8 @@ func (ec *executionContext) fieldContext_Mutation_addUser(ctx context.Context, f
 				return ec.fieldContext_User_id(ctx, field)
 			case "name":
 				return ec.fieldContext_User_name(ctx, field)
+			case "imageURL":
+				return ec.fieldContext_User_imageURL(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_User_createdAt(ctx, field)
 			case "updatedAt":
@@ -1527,6 +1543,8 @@ func (ec *executionContext) fieldContext_Query_users(ctx context.Context, field 
 				return ec.fieldContext_User_id(ctx, field)
 			case "name":
 				return ec.fieldContext_User_name(ctx, field)
+			case "imageURL":
+				return ec.fieldContext_User_imageURL(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_User_createdAt(ctx, field)
 			case "updatedAt":
@@ -1758,6 +1776,47 @@ func (ec *executionContext) _User_name(ctx context.Context, field graphql.Collec
 }
 
 func (ec *executionContext) fieldContext_User_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _User_imageURL(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_imageURL(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ImageURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_imageURL(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "User",
 		Field:      field,
@@ -3832,7 +3891,7 @@ func (ec *executionContext) unmarshalInputNewUser(ctx context.Context, obj inter
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "groupID"}
+	fieldsInOrder := [...]string{"name", "imageURL", "groupID"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -3844,6 +3903,14 @@ func (ec *executionContext) unmarshalInputNewUser(ctx context.Context, obj inter
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "imageURL":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("imageURL"))
+			it.ImageURL, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4194,6 +4261,10 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "imageURL":
+
+			out.Values[i] = ec._User_imageURL(ctx, field, obj)
+
 		case "createdAt":
 
 			out.Values[i] = ec._User_createdAt(ctx, field, obj)

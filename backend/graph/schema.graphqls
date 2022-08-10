@@ -28,6 +28,7 @@ enum Type {
 type User {
   id: ID!
   name: String!
+  imageURL: String
   createdAt: String!
   updatedAt: String
   deletedAt: String
@@ -67,6 +68,7 @@ input NewHistory {
 
 input NewUser {
   name: String!
+  imageURL: String
   groupID: ID!
 }
 

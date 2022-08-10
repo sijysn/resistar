@@ -63,7 +63,7 @@ func (r *mutationResolver) AddHistory(ctx context.Context, input model.NewHistor
 		ToUsers:   toUsers,
 		CreatedAt: historyForScan.CreatedAt.Format("2006-01-02 15:04:05"),
 	}
-	
+
 	return newHistory, nil
 }
 

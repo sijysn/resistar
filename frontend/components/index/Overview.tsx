@@ -22,9 +22,9 @@ const getTotal = (data?: getHistoriesProps) => {
 
 const userTotal = 3000;
 const members = [
-  { id: 1, name: "seiji" },
-  { id: 2, name: "motsu" },
-  { id: 3, name: "kanta" },
+  { id: 1, name: "seiji", imageUrl: "/images/user1.jpg" },
+  { id: 2, name: "motsu", imageUrl: "/images/user2.jpg" },
+  { id: 3, name: "kanta", imageUrl: "/images/user3.jpg" },
 ];
 
 const Overview: React.FC<Props> = ({ yearAndMonth, data }) => {
@@ -58,8 +58,8 @@ const Overview: React.FC<Props> = ({ yearAndMonth, data }) => {
       <Members>
         <MembersCount>メンバー({members.length})</MembersCount>
         <MemberList>
-          {members.map(({ id }) => (
-            <Member key={id} src={""} />
+          {members.map(({ id, imageUrl }) => (
+            <Member key={id} src={imageUrl} />
           ))}
         </MemberList>
       </Members>
