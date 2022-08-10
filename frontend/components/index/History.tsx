@@ -5,7 +5,7 @@ import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import ListItemAvatar from "@mui/material/ListItemAvatar";
 import Avatar from "@mui/material/Avatar";
-import { styled } from "@mui/material";
+import { css, styled } from "@mui/material";
 import { getHistoriesProps } from "../../lib/api/getHistories";
 
 type Props = {
@@ -31,13 +31,18 @@ const History: React.FC<Props> = ({
           return (
             <HistoryListItem key={id}>
               <StyledListItemAvatar>
-                {fromUsers.map(({ id }) => {
-                  return (
-                    <React.Fragment key={id}>
-                      <Avatar src={""} />
-                      <FromUserAvatar src={""} />
-                    </React.Fragment>
-                  );
+                <Avatar src={""} />
+                {fromUsers.map(({ id }, index) => {
+                  if (index === 0) {
+                    return <FromUserAvatar1 src={""} key={id} />;
+                  }
+                  if (index === 1) {
+                    return <FromUserAvatar2 src={""} key={id} />;
+                  }
+                  if (index === 1) {
+                    return <FromUserAvatar3 src={""} key={id} />;
+                  }
+                  return <React.Fragment key={id}></React.Fragment>;
                 })}
               </StyledListItemAvatar>
               <StyledListItemText
@@ -85,12 +90,29 @@ const StyledListItemAvatar = styled(ListItemAvatar)`
   align-items: center;
 ` as typeof ListItemAvatar;
 
-const FromUserAvatar = styled(Avatar)`
+const FromUserAvatarCss = css`
   position: absolute;
   bottom: 0;
-  right: 10px;
   width: 20px;
   height: 20px;
+`;
+
+const FromUserAvatar1 = styled(Avatar)`
+  ${FromUserAvatarCss}
+  z-index: 10;
+  right: 10px;
+`;
+
+const FromUserAvatar2 = styled(Avatar)`
+  ${FromUserAvatarCss}
+  z-index: 5;
+  right: 5px;
+`;
+
+const FromUserAvatar3 = styled(Avatar)`
+  ${FromUserAvatarCss}
+  z-index: 0;
+  right: 0;
 `;
 
 const StyledListItemText = styled(ListItemText)`
