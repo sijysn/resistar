@@ -1,4 +1,5 @@
 import * as React from "react";
+import { gql, useQuery, NetworkStatus } from "@apollo/client";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
@@ -12,10 +13,10 @@ const historyList = [
     title: "洗剤の購入",
     price: 1200,
     type: "daily",
-    fromUser: { id: 1, username: "seiji", imageUrl: "" },
+    fromUsers: [{ id: 1, name: "seiji", imageUrl: "" }],
     toUsers: [
-      { id: 2, username: "motsu", imageUrl: "" },
-      { id: 3, username: "kanta", imageUrl: "" },
+      { id: 2, name: "motsu", imageUrl: "" },
+      { id: 3, name: "kanta", imageUrl: "" },
     ],
     createdAt: "2022-07-28",
   },
@@ -24,125 +25,120 @@ const historyList = [
     title: "洗剤の購入",
     price: 1200,
     type: "daily",
-    fromUser: { id: 1, username: "seiji", imageUrl: "" },
+    fromUsers: [{ id: 1, name: "seiji", imageUrl: "" }],
     toUsers: [
-      { id: 2, username: "motsu", imageUrl: "" },
-      { id: 3, username: "kanta", imageUrl: "" },
-    ],
-    createdAt: "2022-07-28",
-  },
-  {
-    id: 3,
-    title: "洗剤の購入",
-    price: 1200,
-    type: "daily",
-    fromUser: { id: 1, username: "seiji", imageUrl: "" },
-    toUsers: [
-      { id: 2, username: "motsu", imageUrl: "" },
-      { id: 3, username: "kanta", imageUrl: "" },
-    ],
-    createdAt: "2022-07-28",
-  },
-  {
-    id: 4,
-    title: "洗剤の購入",
-    price: 1200,
-    type: "daily",
-    fromUser: { id: 1, username: "seiji", imageUrl: "" },
-    toUsers: [
-      { id: 2, username: "motsu", imageUrl: "" },
-      { id: 3, username: "kanta", imageUrl: "" },
-    ],
-    createdAt: "2022-07-28",
-  },
-  {
-    id: 5,
-    title: "洗剤の購入",
-    price: 1200,
-    type: "daily",
-    fromUser: { id: 1, username: "seiji", imageUrl: "" },
-    toUsers: [
-      { id: 2, username: "motsu", imageUrl: "" },
-      { id: 3, username: "kanta", imageUrl: "" },
-    ],
-    createdAt: "2022-07-28",
-  },
-  {
-    id: 6,
-    title: "洗剤の購入",
-    price: 1200,
-    type: "daily",
-    fromUser: { id: 1, username: "seiji", imageUrl: "" },
-    toUsers: [
-      { id: 2, username: "motsu", imageUrl: "" },
-      { id: 3, username: "kanta", imageUrl: "" },
-    ],
-    createdAt: "2022-07-28",
-  },
-  {
-    id: 7,
-    title: "洗剤の購入",
-    price: 1200,
-    type: "daily",
-    fromUser: { id: 1, username: "seiji", imageUrl: "" },
-    toUsers: [
-      { id: 2, username: "motsu", imageUrl: "" },
-      { id: 3, username: "kanta", imageUrl: "" },
-    ],
-    createdAt: "2022-07-28",
-  },
-  {
-    id: 8,
-    title: "洗剤の購入",
-    price: 1200,
-    type: "daily",
-    fromUser: { id: 1, username: "seiji", imageUrl: "" },
-    toUsers: [
-      { id: 2, username: "motsu", imageUrl: "" },
-      { id: 3, username: "kanta", imageUrl: "" },
-    ],
-    createdAt: "2022-07-28",
-  },
-  {
-    id: 9,
-    title: "洗剤の購入",
-    price: 1200,
-    type: "daily",
-    fromUser: { id: 1, username: "seiji", imageUrl: "" },
-    toUsers: [
-      { id: 2, username: "motsu", imageUrl: "" },
-      { id: 3, username: "kanta", imageUrl: "" },
+      { id: 2, name: "motsu", imageUrl: "" },
+      { id: 3, name: "kanta", imageUrl: "" },
     ],
     createdAt: "2022-07-28",
   },
 ];
 
+type User = {
+  id: string;
+  name: string;
+  imageUrl?: string;
+};
+
+type HistoryProps = {
+  id: string;
+  title: string;
+  price: number;
+  type: string;
+  fromUsers: User[];
+  toUsers: User[];
+  createdAt: string;
+};
+
+export type HistoriesProps = {
+  histories: HistoryProps[];
+};
+
+export const GET_HISTORIES = gql`
+  query($groupID: ID!, $year: String!, $month: String!) {
+    histories(input: { groupID: $groupID, year: $year, month: $month }) {
+      id
+      title
+      price
+      type
+      fromUsers {
+        id
+        name
+      }
+      toUsers {
+        id
+        name
+      }
+      createdAt
+    }
+  }
+`;
+
+export const getHistoriesQueryVars = {
+  groupID: "1",
+  year: "2022",
+  month: "08",
+};
+
 const History = () => {
+  const { loading, error, data, networkStatus } = useQuery<HistoriesProps>(
+    GET_HISTORIES,
+    {
+      variables: getHistoriesQueryVars,
+      // networkStatusが変わるとコンポーネントが再レンダリングされる
+      notifyOnNetworkStatusChange: true,
+    }
+  );
+
+  const loadingMoreHistories = networkStatus === NetworkStatus.fetchMore;
+
+  // const loadMoreHistories = () => {
+  //   fetchMore({
+  //     variables: {
+  //       year: "2022",
+  //       month: "08",
+  //     },
+  //   });
+  // };
+
+  if (error) return <div>Error</div>;
+  if ((loading && !loadingMoreHistories) || !data) return <div>Loading</div>;
   return (
     <HistoryList>
-      {historyList.map(({ id, title, price, fromUser, toUsers, createdAt }) => {
-        return (
-          <HistoryListItem key={id}>
-            <StyledListItemAvatar>
-              <Avatar src={fromUser.imageUrl} />
-              <FromUserAvatar src={fromUser.imageUrl} />
-            </StyledListItemAvatar>
-            <StyledListItemText
-              primary={title}
-              secondary={
-                <ToUsers>
-                  {toUsers.map(({ id, imageUrl }) => {
-                    return (
-                      <ToUserAvatar key={id} src={imageUrl} component="span" />
-                    );
-                  })}
-                </ToUsers>
-              }
-            />
-            <ListItemText primary={<Price>¥{price.toLocaleString()}</Price>} />
-          </HistoryListItem>
-        );
-      })}
+      {data.histories.map(
+        ({ id, title, price, fromUsers, toUsers, createdAt }) => {
+          return (
+            <HistoryListItem key={id}>
+              <StyledListItemAvatar>
+                {fromUsers.map(({ id }) => {
+                  return (
+                    <React.Fragment key={id}>
+                      <Avatar src={""} />
+                      <FromUserAvatar src={""} />
+                    </React.Fragment>
+                  );
+                })}
+              </StyledListItemAvatar>
+              <StyledListItemText
+                primary={title}
+                secondary={
+                  <ToUsers>
+                    {toUsers.map(({ id }) => {
+                      return (
+                        <ToUserAvatar key={id} src={""} component="span" />
+                      );
+                    })}
+                    {createdAt}
+                  </ToUsers>
+                }
+              />
+              <ListItemText
+                primary={<Price>¥{price.toLocaleString()}</Price>}
+              />
+            </HistoryListItem>
+          );
+        }
+      )}
     </HistoryList>
   );
 };
