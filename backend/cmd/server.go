@@ -9,17 +9,28 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/sijysn/resistar/backend/graph"
 	"github.com/sijysn/resistar/backend/graph/generated"
+	"github.com/sijysn/resistar/backend/internal/driver"
+	"github.com/sijysn/resistar/backend/internal/migrate"
 )
 
 const defaultPort = "8080"
 
-func main() {
+func run() {
+	log.Println("Connecting to database...")
+	db, err := driver.ConnectDB("host=localhost port=5432 dbname=resistar_development user=yoshinoseiji password=")
+	if err != nil {
+		log.Fatal("cannot connect to database!")
+	}
+	log.Println("Connected to database!")
+
+	migrate.Migrate(db)
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = defaultPort
 	}
 
-	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
+	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{DB: db}}))
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", srv)

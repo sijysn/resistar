@@ -8,6 +8,19 @@ import (
 	"strconv"
 )
 
+type Group struct {
+	ID        string  `json:"id"`
+	CreatedAt string  `json:"createdAt"`
+	UpdatedAt *string `json:"updatedAt"`
+	DeletedAt *string `json:"deletedAt"`
+}
+
+type HistoriesQuery struct {
+	Year    string `json:"year"`
+	Month   string `json:"month"`
+	GroupID string `json:"groupID"`
+}
+
 type History struct {
 	ID        string  `json:"id"`
 	Title     string  `json:"title"`
@@ -15,6 +28,10 @@ type History struct {
 	Price     int     `json:"price"`
 	FromUsers []*User `json:"fromUsers"`
 	ToUsers   []*User `json:"toUsers"`
+	CreatedAt string  `json:"createdAt"`
+	UpdatedAt *string `json:"updatedAt"`
+	DeletedAt *string `json:"deletedAt"`
+	GroupID   string  `json:"groupID"`
 }
 
 type NewHistory struct {
@@ -23,11 +40,25 @@ type NewHistory struct {
 	Price       int      `json:"price"`
 	FromUserIds []string `json:"fromUserIds"`
 	ToUserIds   []string `json:"toUserIds"`
+	GroupID     string   `json:"groupID"`
+}
+
+type NewUser struct {
+	Name    string `json:"name"`
+	GroupID string `json:"groupID"`
 }
 
 type User struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID        string  `json:"id"`
+	Name      string  `json:"name"`
+	CreatedAt string  `json:"createdAt"`
+	UpdatedAt *string `json:"updatedAt"`
+	DeletedAt *string `json:"deletedAt"`
+	GroupID   string  `json:"groupID"`
+}
+
+type UsersQuery struct {
+	GroupID string `json:"groupID"`
 }
 
 type Type string

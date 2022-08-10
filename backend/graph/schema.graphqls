@@ -9,6 +9,10 @@ type History {
   price: Int!
   fromUsers: [User!]!
   toUsers: [User!]!
+  createdAt: String!
+  updatedAt: String
+  deletedAt: String
+  groupID: ID!
 }
 
 enum Type {
@@ -24,10 +28,32 @@ enum Type {
 type User {
   id: ID!
   name: String!
+  createdAt: String!
+  updatedAt: String
+  deletedAt: String
+  groupID: ID!
+}
+
+type Group {
+  id: ID!
+  createdAt: String!
+  updatedAt: String
+  deletedAt: String
+}
+
+input HistoriesQuery {
+  year: String!
+  month: String!
+  groupID: ID!
+}
+
+input UsersQuery {
+  groupID: ID!
 }
 
 type Query {
-  histories: [History!]!
+  histories(input: HistoriesQuery!): [History!]!
+  users(input: UsersQuery!): [User!]!
 }
 
 input NewHistory {
@@ -36,8 +62,16 @@ input NewHistory {
   price: Int!
   fromUserIds: [ID!]!
   toUserIds: [ID!]!
+  groupID: ID!
+}
+
+input NewUser {
+  name: String!
+  groupID: ID!
 }
 
 type Mutation {
   addHistory(input: NewHistory!): History!
+  addUser(input: NewUser!): User!
+  addGroup: Group!
 }
