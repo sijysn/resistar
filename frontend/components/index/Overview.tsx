@@ -1,6 +1,6 @@
 import * as React from "react";
 import Link from "next/link";
-import { useQuery, NetworkStatus } from "@apollo/client";
+import { useQuery } from "@apollo/client";
 import Avatar from "@mui/material/Avatar";
 import IconButton from "@mui/material/IconButton";
 import { styled } from "@mui/material";
@@ -13,7 +13,6 @@ import {
   getUsersProps,
   getUsersVarsProps,
 } from "../../lib/api/getUsers";
-import { networkInterfaces } from "os";
 
 type Props = {
   yearAndMonth: string;
@@ -28,11 +27,6 @@ const getTotal = (historiesData?: getHistoriesProps) => {
 };
 
 const userTotal = 3000;
-const members = [
-  { id: 1, name: "seiji", imageURL: "/images/user1.jpg" },
-  { id: 2, name: "motsu", imageURL: "/images/user2.jpg" },
-  { id: 3, name: "kanta", imageURL: "/images/user3.jpg" },
-];
 
 const Overview: React.FC<Props> = ({ yearAndMonth, historiesData }) => {
   const [year, month] = dayjs(yearAndMonth).format("YYYY-M").split("-");
