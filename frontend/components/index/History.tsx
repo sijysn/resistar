@@ -24,15 +24,14 @@ const History: React.FC<Props> = ({
   if (error) return <div>Error</div>;
   if ((loading && !loadingMoreHistories) || !data) return <div>Loading</div>;
   if (data.histories.length === 0) return <div>データがありません。</div>;
-  console.log(data.histories);
   return (
     <HistoryList>
       {data.histories.map(
-        ({ id, title, price, fromUsers, toUsers, createdAt }) => {
+        ({ id, title, type, price, fromUsers, toUsers, createdAt }) => {
           return (
             <HistoryListItem key={id}>
               <StyledListItemAvatar>
-                <Avatar src={""} />
+                <TypeAvatar src={`/images/types/${type}.svg`} />
                 {fromUsers.map(({ id, imageURL }, index) => {
                   if (index === 0) {
                     return <FromUserAvatar1 src={imageURL} key={id} />;
@@ -86,6 +85,11 @@ const HistoryList = styled(List)(
 const HistoryListItem = styled(ListItem)`
   padding: 16px;
   height: 76px;
+`;
+
+const TypeAvatar = styled(Avatar)`
+  padding: 10px;
+  background-color: red;
 `;
 
 const StyledListItemAvatar = styled(ListItemAvatar)`
