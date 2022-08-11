@@ -12,7 +12,7 @@ import { SelectChangeEvent } from "@mui/material/Select";
 import { styled } from "@mui/material";
 import { TransitionProps } from "@mui/material/transitions";
 import Selector from "./Selector";
-import UsersSelector, { UserProps } from "./UsersSelector";
+import UsersSelector from "./UsersSelector";
 import {
   ADD_HISTORY,
   addHistoryProps,
@@ -22,6 +22,7 @@ import {
   DISPLAYED_TYPE_DIARY,
   TypesMaster,
 } from "../../lib/api/addHistory";
+import { UserProps } from "../../lib/api/getUsers";
 
 type ModalProps = {
   isOpen: boolean;
