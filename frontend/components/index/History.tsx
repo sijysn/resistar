@@ -27,20 +27,20 @@ const History: React.FC<Props> = ({
   return (
     <HistoryList>
       {data.histories.map(
-        ({ id, title, price, fromUsers, toUsers, createdAt }) => {
+        ({ id, title, type, price, fromUsers, toUsers, createdAt }) => {
           return (
             <HistoryListItem key={id}>
               <StyledListItemAvatar>
-                <Avatar src={""} />
-                {fromUsers.map(({ id }, index) => {
+                <TypeAvatar src={`/images/types/${type}.svg`} />
+                {fromUsers.map(({ id, imageURL }, index) => {
                   if (index === 0) {
-                    return <FromUserAvatar1 src={""} key={id} />;
+                    return <FromUserAvatar1 src={imageURL} key={id} />;
                   }
                   if (index === 1) {
-                    return <FromUserAvatar2 src={""} key={id} />;
+                    return <FromUserAvatar2 src={imageURL} key={id} />;
                   }
                   if (index === 1) {
-                    return <FromUserAvatar3 src={""} key={id} />;
+                    return <FromUserAvatar3 src={imageURL} key={id} />;
                   }
                   return <React.Fragment key={id}></React.Fragment>;
                 })}
@@ -49,9 +49,13 @@ const History: React.FC<Props> = ({
                 primary={title}
                 secondary={
                   <ToUsers>
-                    {toUsers.map(({ id }) => {
+                    {toUsers.map(({ id, imageURL }) => {
                       return (
-                        <ToUserAvatar key={id} src={""} component="span" />
+                        <ToUserAvatar
+                          key={id}
+                          src={imageURL}
+                          component="span"
+                        />
                       );
                     })}
                     {createdAt}
@@ -81,6 +85,11 @@ const HistoryList = styled(List)(
 const HistoryListItem = styled(ListItem)`
   padding: 16px;
   height: 76px;
+`;
+
+const TypeAvatar = styled(Avatar)`
+  padding: 10px;
+  background-color: red;
 `;
 
 const StyledListItemAvatar = styled(ListItemAvatar)`

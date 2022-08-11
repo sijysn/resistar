@@ -52,7 +52,7 @@ type NewUser struct {
 type User struct {
 	ID        string  `json:"id"`
 	Name      string  `json:"name"`
-	ImageURL  *string `json:"imageURL"`
+	ImageURL  string  `json:"imageURL"`
 	CreatedAt string  `json:"createdAt"`
 	UpdatedAt *string `json:"updatedAt"`
 	DeletedAt *string `json:"deletedAt"`

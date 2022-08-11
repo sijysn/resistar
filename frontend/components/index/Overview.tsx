@@ -1,39 +1,58 @@
 import * as React from "react";
 import Link from "next/link";
+import { useQuery, NetworkStatus } from "@apollo/client";
 import Avatar from "@mui/material/Avatar";
 import IconButton from "@mui/material/IconButton";
 import { styled } from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import { getHistoriesProps } from "../../lib/api/getHistories";
 import dayjs from "dayjs";
+import { getHistoriesProps } from "../../lib/api/getHistories";
+import {
+  GET_USERS,
+  getUsersProps,
+  getUsersVarsProps,
+} from "../../lib/api/getUsers";
+import { networkInterfaces } from "os";
 
 type Props = {
   yearAndMonth: string;
-  data?: getHistoriesProps;
+  historiesData?: getHistoriesProps;
 };
 
-const getTotal = (data?: getHistoriesProps) => {
-  if (data) {
-    return data.histories.reduce((prev, { price }) => prev + price, 0);
+const getTotal = (historiesData?: getHistoriesProps) => {
+  if (historiesData) {
+    return historiesData.histories.reduce((prev, { price }) => prev + price, 0);
   }
   return 0;
 };
 
 const userTotal = 3000;
 const members = [
-  { id: 1, name: "seiji", imageUrl: "/images/user1.jpg" },
-  { id: 2, name: "motsu", imageUrl: "/images/user2.jpg" },
-  { id: 3, name: "kanta", imageUrl: "/images/user3.jpg" },
+  { id: 1, name: "seiji", imageURL: "/images/user1.jpg" },
+  { id: 2, name: "motsu", imageURL: "/images/user2.jpg" },
+  { id: 3, name: "kanta", imageURL: "/images/user3.jpg" },
 ];
 
-const Overview: React.FC<Props> = ({ yearAndMonth, data }) => {
-  // const { userTotal, groupTotal, members } = data;
+const Overview: React.FC<Props> = ({ yearAndMonth, historiesData }) => {
   const [year, month] = dayjs(yearAndMonth).format("YYYY-M").split("-");
   const previousYearAndMonth = dayjs(yearAndMonth)
     .subtract(1, "M")
     .format("YYYY-MM");
   const nextYearAndMonth = dayjs(yearAndMonth).add(1, "M").format("YYYY-MM");
+  const getUsersQueryVars = {
+    groupID: "1",
+  };
+  const { loading, error, data } = useQuery<getUsersProps, getUsersVarsProps>(
+    GET_USERS,
+    {
+      variables: getUsersQueryVars,
+      notifyOnNetworkStatusChange: true,
+    }
+  );
+  if (loading || !data) return <div>loading</div>;
+  if (error) return <div>{error.message}</div>;
+  if (data.users.length === 0) return <div>メンバーがいません</div>;
   return (
     <Wrapper>
       <OverviewHeader>
@@ -53,13 +72,13 @@ const Overview: React.FC<Props> = ({ yearAndMonth, data }) => {
       </OverviewHeader>
       <Total>
         ¥{userTotal.toLocaleString()}
-        <GroupTotal> / ¥{getTotal(data).toLocaleString()}</GroupTotal>
+        <GroupTotal> / ¥{getTotal(historiesData).toLocaleString()}</GroupTotal>
       </Total>
       <Members>
-        <MembersCount>メンバー({members.length})</MembersCount>
+        <MembersCount>メンバー({data.users.length})</MembersCount>
         <MemberList>
-          {members.map(({ id, imageUrl }) => (
-            <Member key={id} src={imageUrl} />
+          {data.users.map(({ id, imageURL }) => (
+            <Member key={id} src={imageURL} />
           ))}
         </MemberList>
       </Members>

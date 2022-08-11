@@ -5,12 +5,7 @@ import FormControl from "@mui/material/FormControl";
 import ListItemText from "@mui/material/ListItemText";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
 import Checkbox from "@mui/material/Checkbox";
-
-export type UserProps = {
-  id: string;
-  name: string;
-  imageUrl?: string;
-};
+import { UserProps } from "../../lib/api/getUsers";
 
 type Props = {
   label: string;
