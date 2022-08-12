@@ -4,8 +4,9 @@ import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import ListItemAvatar from "@mui/material/ListItemAvatar";
+import Typography from "@mui/material/Typography";
 import Avatar from "@mui/material/Avatar";
-import { css, styled } from "@mui/material";
+import { css, Divider, styled } from "@mui/material";
 import { getHistoriesProps } from "../../lib/api/getHistories";
 import {
   QueryType,
@@ -18,6 +19,7 @@ import {
   QUERY_TYPE_OTHERS,
 } from "../../lib/api/addHistory";
 import { COLOR } from "../../lib/color";
+import dayjs from "dayjs";
 
 type Props = {
   loading: boolean;
@@ -38,51 +40,61 @@ const History: React.FC<Props> = ({
   return (
     <HistoryList>
       {data.histories.map(
-        ({ id, title, type, price, fromUsers, toUsers, createdAt }) => {
+        ({ id, title, type, price, fromUsers, toUsers, createdAt }, index) => {
           const typeAvatarStyle = css`
             background-color: ${getColor(type)};
           `;
           return (
-            <HistoryListItem key={id}>
-              <StyledListItemAvatar>
-                <TypeAvatar
-                  src={`/images/types/${type}.svg`}
-                  css={typeAvatarStyle}
+            <React.Fragment key={id}>
+              {showDate(createdAt, index, data) && (
+                <DateWrapper>
+                  <Date variant="body2" color="text.secondary">
+                    {dayjs(createdAt).format("M")}月
+                    {dayjs(createdAt).format("DD")}日
+                  </Date>
+                  <Divider />
+                </DateWrapper>
+              )}
+              <HistoryListItem>
+                <StyledListItemAvatar>
+                  <TypeAvatar
+                    src={`/images/types/${type}.svg`}
+                    css={typeAvatarStyle}
+                  />
+                  {fromUsers.map(({ id, imageURL }, index) => {
+                    if (index === 0) {
+                      return <FromUserAvatar1 src={imageURL} key={id} />;
+                    }
+                    if (index === 1) {
+                      return <FromUserAvatar2 src={imageURL} key={id} />;
+                    }
+                    if (index === 2) {
+                      return <FromUserAvatar3 src={imageURL} key={id} />;
+                    }
+                    return <React.Fragment key={id}></React.Fragment>;
+                  })}
+                </StyledListItemAvatar>
+                <StyledListItemText
+                  primary={title}
+                  secondary={
+                    <ToUsers>
+                      {toUsers.map(({ id, imageURL }) => {
+                        return (
+                          <ToUserAvatar
+                            key={id}
+                            src={imageURL}
+                            component="span"
+                          />
+                        );
+                      })}
+                    </ToUsers>
+                  }
                 />
-                {fromUsers.map(({ id, imageURL }, index) => {
-                  if (index === 0) {
-                    return <FromUserAvatar1 src={imageURL} key={id} />;
-                  }
-                  if (index === 1) {
-                    return <FromUserAvatar2 src={imageURL} key={id} />;
-                  }
-                  if (index === 1) {
-                    return <FromUserAvatar3 src={imageURL} key={id} />;
-                  }
-                  return <React.Fragment key={id}></React.Fragment>;
-                })}
-              </StyledListItemAvatar>
-              <StyledListItemText
-                primary={title}
-                secondary={
-                  <ToUsers>
-                    {toUsers.map(({ id, imageURL }) => {
-                      return (
-                        <ToUserAvatar
-                          key={id}
-                          src={imageURL}
-                          component="span"
-                        />
-                      );
-                    })}
-                    {createdAt}
-                  </ToUsers>
-                }
-              />
-              <ListItemText
-                primary={<Price>¥{price.toLocaleString()}</Price>}
-              />
-            </HistoryListItem>
+                <ListItemText
+                  primary={<Price>¥{price.toLocaleString()}</Price>}
+                />
+              </HistoryListItem>
+            </React.Fragment>
           );
         }
       )}
@@ -111,6 +123,21 @@ const getColor = (type: QueryType) => {
   }
 };
 
+const showDate = (
+  createdAt: string,
+  index: number,
+  data: getHistoriesProps
+) => {
+  if (index === 0) {
+    return true;
+  }
+  const lastHistoryDay = dayjs(data.histories[index - 1].createdAt).format(
+    "DD"
+  );
+  const currentHistoryDay = dayjs(createdAt).format("DD");
+  return lastHistoryDay !== currentHistoryDay;
+};
+
 const HistoryList = styled(List)(
   ({ theme }) => `
   width: 100%;
@@ -119,6 +146,14 @@ const HistoryList = styled(List)(
   margin: 0 auto;
 `
 ) as typeof List;
+
+const DateWrapper = styled("div")`
+  padding: 0 16px;
+`;
+
+const Date = styled(Typography)`
+  padding: 8px 0;
+`;
 
 const HistoryListItem = styled(ListItem)`
   padding: 16px;
