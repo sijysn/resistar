@@ -75,13 +75,15 @@ const Main = styled("main")`
   position: relative;
 `;
 
-const AddButton = styled(IconButton)`
-  background-color: #f68989 !important;
+const AddButton = styled(IconButton)(
+  ({ theme }) => `
+  background-color: ${theme.palette.primary.main} !important;
   color: #fff;
   position: fixed;
   bottom: 20px;
   right: 20px;
-`;
+`
+);
 
 const Footer = styled("footer")`
   display: flex;

@@ -7,6 +7,17 @@ import ListItemAvatar from "@mui/material/ListItemAvatar";
 import Avatar from "@mui/material/Avatar";
 import { css, styled } from "@mui/material";
 import { getHistoriesProps } from "../../lib/api/getHistories";
+import {
+  QueryType,
+  QUERY_TYPE_DIARY,
+  QUERY_TYPE_TRAVEL,
+  QUERY_TYPE_RENT,
+  QUERY_TYPE_UTILITY,
+  QUERY_TYPE_COMMUNICATION,
+  QUERY_TYPE_FOOD,
+  QUERY_TYPE_OTHERS,
+} from "../../lib/api/addHistory";
+import { COLOR } from "../../lib/color";
 
 type Props = {
   loading: boolean;
@@ -28,10 +39,16 @@ const History: React.FC<Props> = ({
     <HistoryList>
       {data.histories.map(
         ({ id, title, type, price, fromUsers, toUsers, createdAt }) => {
+          const typeAvatarStyle = css`
+            background-color: ${getColor(type)};
+          `;
           return (
             <HistoryListItem key={id}>
               <StyledListItemAvatar>
-                <TypeAvatar src={`/images/types/${type}.svg`} />
+                <TypeAvatar
+                  src={`/images/types/${type}.svg`}
+                  css={typeAvatarStyle}
+                />
                 {fromUsers.map(({ id, imageURL }, index) => {
                   if (index === 0) {
                     return <FromUserAvatar1 src={imageURL} key={id} />;
@@ -71,6 +88,27 @@ const History: React.FC<Props> = ({
       )}
     </HistoryList>
   );
+};
+
+const getColor = (type: QueryType) => {
+  switch (type) {
+    case QUERY_TYPE_DIARY:
+      return COLOR.TYPE_DIARY;
+    case QUERY_TYPE_TRAVEL:
+      return COLOR.TYPE_TRAVEL;
+    case QUERY_TYPE_RENT:
+      return COLOR.TYPE_RENT;
+    case QUERY_TYPE_UTILITY:
+      return COLOR.TYPE_UTILITY;
+    case QUERY_TYPE_COMMUNICATION:
+      return COLOR.TYPE_COMMUNICATION;
+    case QUERY_TYPE_FOOD:
+      return COLOR.TYPE_FOOD;
+    case QUERY_TYPE_OTHERS:
+      return COLOR.TYPE_OTHERS;
+    default:
+      return COLOR.TYPE_OTHERS;
+  }
 };
 
 const HistoryList = styled(List)(
