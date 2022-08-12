@@ -80,8 +80,9 @@ const Overview: React.FC<Props> = ({ yearAndMonth, historiesData }) => {
   );
 };
 
-const Wrapper = styled("div")`
-  background-color: #f68989;
+const Wrapper = styled("div")(
+  ({ theme }) => `
+  background-color: ${theme.palette.primary.main};
   height: 200px;
   width: 100%;
   display: flex;
@@ -89,7 +90,8 @@ const Wrapper = styled("div")`
   align-items: center;
   justify-content: center;
   color: #fff;
-`;
+`
+);
 
 const OverviewHeader = styled("div")`
   display: flex;
@@ -124,6 +126,7 @@ const MemberList = styled("div")`
 const Member = styled(Avatar)`
   width: 40px;
   height: 40px;
+  margin: 4px;
 ` as typeof Avatar;
 
 export default Overview;

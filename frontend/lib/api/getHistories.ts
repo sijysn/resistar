@@ -1,5 +1,6 @@
 import { gql } from "@apollo/client";
 import { UserProps } from "./getUsers";
+import { QueryType } from "./addHistory";
 
 export const GET_HISTORIES = gql`
   query($groupID: ID!, $year: String!, $month: String!) {
@@ -37,7 +38,7 @@ type HistoryProps = {
   id: string;
   title: string;
   price: number;
-  type: string;
+  type: QueryType;
   fromUsers: UserProps[];
   toUsers: UserProps[];
   createdAt: string;

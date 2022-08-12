@@ -4,9 +4,22 @@ import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import ListItemAvatar from "@mui/material/ListItemAvatar";
+import Typography from "@mui/material/Typography";
 import Avatar from "@mui/material/Avatar";
-import { css, styled } from "@mui/material";
+import { css, Divider, styled } from "@mui/material";
 import { getHistoriesProps } from "../../lib/api/getHistories";
+import {
+  QueryType,
+  QUERY_TYPE_DIARY,
+  QUERY_TYPE_TRAVEL,
+  QUERY_TYPE_RENT,
+  QUERY_TYPE_UTILITY,
+  QUERY_TYPE_COMMUNICATION,
+  QUERY_TYPE_FOOD,
+  QUERY_TYPE_OTHERS,
+} from "../../lib/api/addHistory";
+import { COLOR } from "../../lib/color";
+import dayjs from "dayjs";
 
 type Props = {
   loading: boolean;
@@ -27,51 +40,111 @@ const History: React.FC<Props> = ({
   return (
     <HistoryList>
       {data.histories.map(
-        ({ id, title, type, price, fromUsers, toUsers, createdAt }) => {
+        ({ id, title, type, price, fromUsers, toUsers, createdAt }, index) => {
+          const typeAvatarStyle = css`
+            background-color: ${getColor(type)};
+          `;
           return (
-            <HistoryListItem key={id}>
-              <StyledListItemAvatar>
-                <TypeAvatar src={`/images/types/${type}.svg`} />
-                {fromUsers.map(({ id, imageURL }, index) => {
-                  if (index === 0) {
-                    return <FromUserAvatar1 src={imageURL} key={id} />;
+            <React.Fragment key={id}>
+              {showDate(createdAt, index, data) && (
+                <DateWrapper>
+                  <Date variant="body2" color="text.secondary">
+                    {dayjs(createdAt).format("M")}月
+                    {dayjs(createdAt).format("DD")}日
+                  </Date>
+                  <Divider />
+                </DateWrapper>
+              )}
+              <HistoryListItem>
+                <StyledListItemAvatar>
+                  <TypeAvatar
+                    src={`/images/types/${type}.svg`}
+                    css={typeAvatarStyle}
+                  />
+                  {fromUsers.map(({ id, imageURL }, index) => {
+                    if (index === 0) {
+                      return <FromUserAvatar1 src={imageURL} key={id} />;
+                    }
+                    if (index === 1) {
+                      return <FromUserAvatar2 src={imageURL} key={id} />;
+                    }
+                    if (index === 2) {
+                      return <FromUserAvatar3 src={imageURL} key={id} />;
+                    }
+                    return <React.Fragment key={id}></React.Fragment>;
+                  })}
+                </StyledListItemAvatar>
+                <StyledListItemText
+                  primary={title}
+                  secondary={
+                    <ToUsers>
+                      {toUsers.map(({ id, imageURL }, index) => {
+                        if (index < displayableUsers) {
+                          return (
+                            <ToUserAvatar
+                              key={id}
+                              src={imageURL}
+                              component="span"
+                            />
+                          );
+                        }
+                        return <React.Fragment key={id}></React.Fragment>;
+                      })}
+                      {toUsers.length > displayableUsers && (
+                        <AndMore>+{toUsers.length - displayableUsers}</AndMore>
+                      )}
+                    </ToUsers>
                   }
-                  if (index === 1) {
-                    return <FromUserAvatar2 src={imageURL} key={id} />;
-                  }
-                  if (index === 1) {
-                    return <FromUserAvatar3 src={imageURL} key={id} />;
-                  }
-                  return <React.Fragment key={id}></React.Fragment>;
-                })}
-              </StyledListItemAvatar>
-              <StyledListItemText
-                primary={title}
-                secondary={
-                  <ToUsers>
-                    {toUsers.map(({ id, imageURL }) => {
-                      return (
-                        <ToUserAvatar
-                          key={id}
-                          src={imageURL}
-                          component="span"
-                        />
-                      );
-                    })}
-                    {createdAt}
-                  </ToUsers>
-                }
-              />
-              <ListItemText
-                primary={<Price>¥{price.toLocaleString()}</Price>}
-              />
-            </HistoryListItem>
+                />
+                <ListItemText
+                  primary={<Price>¥{price.toLocaleString()}</Price>}
+                />
+              </HistoryListItem>
+            </React.Fragment>
           );
         }
       )}
     </HistoryList>
   );
 };
+
+const getColor = (type: QueryType) => {
+  switch (type) {
+    case QUERY_TYPE_DIARY:
+      return COLOR.TYPE_DIARY;
+    case QUERY_TYPE_TRAVEL:
+      return COLOR.TYPE_TRAVEL;
+    case QUERY_TYPE_RENT:
+      return COLOR.TYPE_RENT;
+    case QUERY_TYPE_UTILITY:
+      return COLOR.TYPE_UTILITY;
+    case QUERY_TYPE_COMMUNICATION:
+      return COLOR.TYPE_COMMUNICATION;
+    case QUERY_TYPE_FOOD:
+      return COLOR.TYPE_FOOD;
+    case QUERY_TYPE_OTHERS:
+      return COLOR.TYPE_OTHERS;
+    default:
+      return COLOR.TYPE_OTHERS;
+  }
+};
+
+const showDate = (
+  createdAt: string,
+  index: number,
+  data: getHistoriesProps
+) => {
+  if (index === 0) {
+    return true;
+  }
+  const lastHistoryDay = dayjs(data.histories[index - 1].createdAt).format(
+    "DD"
+  );
+  const currentHistoryDay = dayjs(createdAt).format("DD");
+  return lastHistoryDay !== currentHistoryDay;
+};
+
+const displayableUsers = 3;
 
 const HistoryList = styled(List)(
   ({ theme }) => `
@@ -81,6 +154,14 @@ const HistoryList = styled(List)(
   margin: 0 auto;
 `
 ) as typeof List;
+
+const DateWrapper = styled("div")`
+  padding: 0 16px;
+`;
+
+const Date = styled(Typography)`
+  padding: 8px 0;
+`;
 
 const HistoryListItem = styled(ListItem)`
   padding: 16px;
@@ -129,6 +210,11 @@ const StyledListItemText = styled(ListItemText)`
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  padding: 0 8px;
+`;
+
+const AndMore = styled("span")`
+  margin-left: 8px;
 `;
 
 const ToUsers = styled("span")`
