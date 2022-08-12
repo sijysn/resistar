@@ -126,6 +126,7 @@ const MemberList = styled("div")`
 const Member = styled(Avatar)`
   width: 40px;
   height: 40px;
+  margin: 4px;
 ` as typeof Avatar;
 
 export default Overview;

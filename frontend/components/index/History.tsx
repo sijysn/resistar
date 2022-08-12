@@ -78,15 +78,21 @@ const History: React.FC<Props> = ({
                   primary={title}
                   secondary={
                     <ToUsers>
-                      {toUsers.map(({ id, imageURL }) => {
-                        return (
-                          <ToUserAvatar
-                            key={id}
-                            src={imageURL}
-                            component="span"
-                          />
-                        );
+                      {toUsers.map(({ id, imageURL }, index) => {
+                        if (index < displayableUsers) {
+                          return (
+                            <ToUserAvatar
+                              key={id}
+                              src={imageURL}
+                              component="span"
+                            />
+                          );
+                        }
+                        return <React.Fragment key={id}></React.Fragment>;
                       })}
+                      {toUsers.length > displayableUsers && (
+                        <AndMore>+{toUsers.length - displayableUsers}</AndMore>
+                      )}
                     </ToUsers>
                   }
                 />
@@ -137,6 +143,8 @@ const showDate = (
   const currentHistoryDay = dayjs(createdAt).format("DD");
   return lastHistoryDay !== currentHistoryDay;
 };
+
+const displayableUsers = 3;
 
 const HistoryList = styled(List)(
   ({ theme }) => `
@@ -202,6 +210,11 @@ const StyledListItemText = styled(ListItemText)`
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  padding: 0 8px;
+`;
+
+const AndMore = styled("span")`
+  margin-left: 8px;
 `;
 
 const ToUsers = styled("span")`
