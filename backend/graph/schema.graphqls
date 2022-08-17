@@ -42,6 +42,21 @@ type Group {
   deletedAt: String
 }
 
+type Expense {
+  id: ID!
+  createdAt: String!
+  updatedAt: String
+  deletedAt: String
+  expense: Int!
+  historyID: ID!
+  userID: ID!
+  groupID: ID!
+}
+
+type Expenses {
+  personalExpense: Int!
+}
+
 input HistoriesQuery {
   year: String!
   month: String!
@@ -52,9 +67,17 @@ input UsersQuery {
   groupID: ID!
 }
 
+input ExpensesQuery {
+  year: String!
+  month: String!
+  userID: ID
+  groupID: ID!
+}
+
 type Query {
   histories(input: HistoriesQuery!): [History!]!
   users(input: UsersQuery!): [User!]!
+  expenses(input: ExpensesQuery!): Expenses!
 }
 
 input NewHistory {

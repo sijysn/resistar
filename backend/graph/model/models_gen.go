@@ -8,6 +8,28 @@ import (
 	"strconv"
 )
 
+type Expense struct {
+	ID        string  `json:"id"`
+	CreatedAt string  `json:"createdAt"`
+	UpdatedAt *string `json:"updatedAt"`
+	DeletedAt *string `json:"deletedAt"`
+	Expense   int     `json:"expense"`
+	HistoryID string  `json:"historyID"`
+	UserID    string  `json:"userID"`
+	GroupID   string  `json:"groupID"`
+}
+
+type Expenses struct {
+	PersonalExpense int `json:"personalExpense"`
+}
+
+type ExpensesQuery struct {
+	Year    string  `json:"year"`
+	Month   string  `json:"month"`
+	UserID  *string `json:"userID"`
+	GroupID string  `json:"groupID"`
+}
+
 type Group struct {
 	ID        string  `json:"id"`
 	CreatedAt string  `json:"createdAt"`
