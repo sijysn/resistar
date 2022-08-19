@@ -49,7 +49,7 @@ const Overview: React.FC<Props> = ({
   return (
     <Wrapper>
       <OverviewHeader>
-        <Link href={`/history/${previousYearAndMonth}`}>
+        <Link href={`/histories/${previousYearAndMonth}`}>
           <IconButton size="large">
             <ChevronLeftIcon />
           </IconButton>
@@ -57,7 +57,7 @@ const Overview: React.FC<Props> = ({
         <div>
           {year}年{month}月
         </div>
-        <Link href={`/history/${nextYearAndMonth}`}>
+        <Link href={`/histories/${nextYearAndMonth}`}>
           <IconButton size="large">
             <ChevronRightIcon />
           </IconButton>
