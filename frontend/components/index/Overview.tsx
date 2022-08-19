@@ -6,8 +6,6 @@ import IconButton from "@mui/material/IconButton";
 import { styled } from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import AddIcon from "@mui/icons-material/Add";
-import RemoveIcon from "@mui/icons-material/Remove";
 import dayjs from "dayjs";
 import {
   getUsersProps,
@@ -15,27 +13,13 @@ import {
   GET_USERS,
 } from "../../lib/apollo/api/getUsers";
 import { getAmountsProps } from "../../lib/apollo/api/getAmounts";
+import { Sign } from "./Sign";
 
 type Props = {
   yearAndMonth: string;
   amountsData?: getAmountsProps;
   amountsLoading: boolean;
   amountsError?: ApolloError;
-};
-
-const getSign = (personalBalance: number) => {
-  if (personalBalance < 0) {
-    return (
-      <Sign>
-        <RemoveIcon />
-      </Sign>
-    );
-  }
-  return (
-    <Sign>
-      <AddIcon />
-    </Sign>
-  );
 };
 
 const Overview: React.FC<Props> = ({
@@ -85,7 +69,7 @@ const Overview: React.FC<Props> = ({
           amountsData &&
           amountsData.amounts.personalBalance ? (
             <>
-              {getSign(amountsData.amounts.personalBalance)}¥
+              <Sign personalBalance={amountsData.amounts.personalBalance} />¥
               {Math.abs(amountsData.amounts.personalBalance).toLocaleString()}
             </>
           ) : (
@@ -145,10 +129,6 @@ const Amounts = styled("div")`
 
 const PersonalBalance = styled("div")`
   font-size: 2rem;
-`;
-
-const Sign = styled("span")`
-  margin-right: 8px;
 `;
 
 const GroupTotal = styled("div")`
