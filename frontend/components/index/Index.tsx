@@ -12,6 +12,11 @@ import {
   getHistoriesVarsProps,
 } from "../../lib/api/getHistories";
 import dayjs from "dayjs";
+import {
+  GET_AMOUNTS,
+  getAmountsProps,
+  getAmountsVarsProps,
+} from "../../lib/api/getAmounts";
 
 type Props = {
   yearAndMonth: string;
@@ -29,31 +34,73 @@ const Index: React.FC<Props> = ({ yearAndMonth }) => {
     year: currentYear,
     month: currentMonth,
   };
-  const { loading, error, data, fetchMore, networkStatus } = useQuery<
-    getHistoriesProps,
-    getHistoriesVarsProps
-  >(GET_HISTORIES, {
+  const {
+    loading: historiesLoading,
+    error: historiesError,
+    data: historiesData,
+    fetchMore: fetchMoreHistories,
+    networkStatus: getHistoriesNetworkStatus,
+  } = useQuery<getHistoriesProps, getHistoriesVarsProps>(GET_HISTORIES, {
     variables: getHistoriesQueryVars,
     // networkStatusが変わるとコンポーネントが再レンダリングされる
     notifyOnNetworkStatusChange: true,
   });
 
-  const loadingMoreHistories = networkStatus === NetworkStatus.fetchMore;
+  const loadingMoreHistories =
+    getHistoriesNetworkStatus === NetworkStatus.fetchMore;
 
   const loadMoreHistories = () => {
-    fetchMore({
+    fetchMoreHistories({
       variables: getHistoriesQueryVars,
     });
+  };
+
+  const getAmountsQueryVars = {
+    year: currentYear,
+    month: currentMonth,
+    groupID: "1",
+    userID: "1",
+  };
+  const {
+    loading: amountsLoading,
+    error: amountsError,
+    data: amountsData,
+    fetchMore: fetchMoreamounts,
+    networkStatus: getAmountsNetworkStatus,
+  } = useQuery<getAmountsProps, getAmountsVarsProps>(GET_AMOUNTS, {
+    variables: getAmountsQueryVars,
+    notifyOnNetworkStatusChange: true,
+  });
+
+  const loadingMoreAmounts =
+    getAmountsNetworkStatus === NetworkStatus.fetchMore;
+
+  const loadMoreAmounts = () => {
+    fetchMoreamounts({
+      variables: getAmountsQueryVars,
+    });
+  };
+
+  const loadMore = () => {
+    loadMoreHistories();
+    loadMoreAmounts();
   };
 
   return (
     <div>
       <Main>
-        <Overview yearAndMonth={yearAndMonth} historiesData={data} />
+        <Overview
+          yearAndMonth={yearAndMonth}
+          historiesData={historiesData}
+          amountsLoading={amountsLoading}
+          amountsError={amountsError}
+          amountsData={amountsData}
+          loadingMoreAmounts={loadingMoreAmounts}
+        />
         <History
-          loading={loading}
-          error={error}
-          data={data}
+          loading={historiesLoading}
+          error={historiesError}
+          data={historiesData}
           loadingMoreHistories={loadingMoreHistories}
         />
         <AddButton aria-label="add" size="large" onClick={openModal}>
@@ -62,7 +109,7 @@ const Index: React.FC<Props> = ({ yearAndMonth }) => {
         <AddFormModal
           isOpen={isModalOpen}
           close={closeModal}
-          onAdd={loadMoreHistories}
+          onAdd={loadMore}
         />
       </Main>
 

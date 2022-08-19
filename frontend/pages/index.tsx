@@ -13,6 +13,11 @@ import {
   getUsersProps,
   getUsersVarsProps,
 } from "../lib/api/getUsers";
+import {
+  getAmountsProps,
+  getAmountsVarsProps,
+  GET_AMOUNTS,
+} from "../lib/api/getAmounts";
 
 export const getServerSideProps = async () => {
   const currentYear = dayjs().format("YYYY");
@@ -35,6 +40,17 @@ export const getServerSideProps = async () => {
   await apolloClient.query<getUsersProps, getUsersVarsProps>({
     query: GET_USERS,
     variables: getUsersQueryVars,
+  });
+
+  const getAmountsQueryVars = {
+    year: currentYear,
+    month: currentMonth,
+    groupID: "1",
+    userID: "1",
+  };
+  await apolloClient.query<getAmountsProps, getAmountsVarsProps>({
+    query: GET_AMOUNTS,
+    variables: getAmountsQueryVars,
   });
 
   return addApolloState(apolloClient, {
