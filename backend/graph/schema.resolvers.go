@@ -175,7 +175,7 @@ func (r *queryResolver) Amounts(ctx context.Context, input model.AmountsQuery) (
 		return nil, err
 	}
 
-	err = r.DB.Debug().Table("balances").Select("SUM(amount) as group_total").Where("group_id = ? AND date_part('year', created_at) = ? AND date_part('month', created_at) = ?", groupID, input.Year, input.Month).Scan(&amounts).Error
+	err = r.DB.Debug().Table("balances").Select("SUM(amount) as group_total").Where("group_id = ? AND date_part('year', created_at) = ? AND date_part('month', created_at) = ? AND amount > 0", groupID, input.Year, input.Month).Scan(&amounts).Error
 	if err != nil {
 		return nil, err
 	}

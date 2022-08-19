@@ -102,7 +102,10 @@ const Overview: React.FC<Props> = ({
             : "---"}
         </PersonalBalance>
         <GroupTotal>
-          グループ支出 ¥{getTotal(historiesData).toLocaleString()}
+          グループ支出 ¥
+          {amountsData && amountsData.amounts.groupTotal
+            ? amountsData.amounts.groupTotal.toLocaleString()
+            : "---"}
         </GroupTotal>
       </Amounts>
       <Members>

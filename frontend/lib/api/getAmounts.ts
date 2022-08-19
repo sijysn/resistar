@@ -6,6 +6,7 @@ export const GET_AMOUNTS = gql`
       input: { year: $year, month: $month, groupID: $groupID, userID: $userID }
     ) {
       personalBalance
+      groupTotal
     }
   }
 `;
@@ -23,4 +24,5 @@ export type getAmountsVarsProps = {
 
 type AmountsProps = {
   personalBalance: number;
+  groupTotal: number;
 };
