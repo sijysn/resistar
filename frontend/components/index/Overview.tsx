@@ -9,35 +9,25 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import dayjs from "dayjs";
-import { getHistoriesProps } from "../../lib/api/getHistories";
+import { getHistoriesProps } from "../../lib/apollo/api/getHistories";
 import {
-  GET_USERS,
   getUsersProps,
   getUsersVarsProps,
-} from "../../lib/api/getUsers";
-import { getAmountsProps } from "../../lib/api/getAmounts";
+  GET_USERS,
+} from "../../lib/apollo/api/getUsers";
+import { getAmountsProps } from "../../lib/apollo/api/getAmounts";
 
 type Props = {
   yearAndMonth: string;
-  historiesData?: getHistoriesProps;
+  usersData: getUsersProps;
+  amountsData: getAmountsProps;
   amountsLoading: boolean;
   amountsError?: ApolloError;
-  amountsData?: getAmountsProps;
   loadingMoreAmounts: boolean;
 };
 
-const getTotal = (historiesData?: getHistoriesProps) => {
-  if (historiesData) {
-    return historiesData.histories.reduce((prev, { price }) => prev + price, 0);
-  }
-  return 0;
-};
-
-const getSign = (amountsData?: getAmountsProps) => {
-  if (!amountsData) {
-    return "";
-  }
-  if (amountsData.amounts.personalBalance < 0) {
+const getSign = (personalBalance: number) => {
+  if (personalBalance < 0) {
     return (
       <Sign>
         <RemoveIcon />
@@ -53,10 +43,10 @@ const getSign = (amountsData?: getAmountsProps) => {
 
 const Overview: React.FC<Props> = ({
   yearAndMonth,
-  historiesData,
+  usersData,
+  amountsData,
   amountsLoading,
   amountsError,
-  amountsData,
   loadingMoreAmounts,
 }) => {
   const [year, month] = dayjs(yearAndMonth).format("YYYY-M").split("-");
@@ -70,7 +60,7 @@ const Overview: React.FC<Props> = ({
   const {
     loading: usersLoading,
     error: usersError,
-    data: usersData,
+    // data: usersData,
   } = useQuery<getUsersProps, getUsersVarsProps>(GET_USERS, {
     variables: getUsersQueryVars,
     notifyOnNetworkStatusChange: true,
@@ -96,10 +86,14 @@ const Overview: React.FC<Props> = ({
       </OverviewHeader>
       <Amounts>
         <PersonalBalance>
-          {getSign(amountsData)}¥
-          {amountsData && amountsData.amounts.personalBalance
-            ? Math.abs(amountsData.amounts.personalBalance).toLocaleString()
-            : "---"}
+          {amountsData && amountsData.amounts.personalBalance ? (
+            <>
+              {getSign(amountsData.amounts.personalBalance)}¥
+              {Math.abs(amountsData.amounts.personalBalance).toLocaleString()}
+            </>
+          ) : (
+            "¥---"
+          )}
         </PersonalBalance>
         <GroupTotal>
           グループ支出 ¥

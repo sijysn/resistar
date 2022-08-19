@@ -21,8 +21,8 @@ import {
   DisplayedTypes,
   DISPLAYED_TYPE_DIARY,
   TypesMaster,
-} from "../../lib/api/addHistory";
-import { UserProps } from "../../lib/api/getUsers";
+} from "../../lib/apollo/api/addHistory";
+import { UserProps } from "../../lib/apollo/api/getUsers";
 
 type ModalProps = {
   isOpen: boolean;
