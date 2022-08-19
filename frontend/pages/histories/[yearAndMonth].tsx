@@ -1,7 +1,7 @@
 import * as React from "react";
 import type { GetServerSideProps, NextPage } from "next";
 import dayjs from "dayjs";
-import { ServerSideProps } from "../../pages/index";
+import { ServerSideProps } from "../index";
 import Index from "../../components/index/Index";
 import {
   addApolloState,
