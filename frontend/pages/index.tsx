@@ -4,16 +4,8 @@ import Index from "../components/index/Index";
 import dayjs from "dayjs";
 import { addApolloState, initializeApollo } from "../lib/apollo/apollo-client";
 import { getHistoriesProps } from "../lib/apollo/api/getHistories";
-import {
-  getUsersProps,
-  getUsersVarsProps,
-  GET_USERS,
-} from "../lib/apollo/api/getUsers";
-import {
-  getAmountsProps,
-  getAmountsVarsProps,
-  GET_AMOUNTS,
-} from "../lib/apollo/api/getAmounts";
+import { getUsersProps } from "../lib/apollo/api/getUsers";
+import { getAmountsProps } from "../lib/apollo/api/getAmounts";
 import { getHistories } from "../lib/apollo/server/getHistories";
 import { getUsers } from "../lib/apollo/server/getUsers";
 import { getAmounts } from "../lib/apollo/server/getAmounts";
