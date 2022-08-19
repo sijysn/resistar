@@ -6,7 +6,6 @@ package graph
 import (
 	"context"
 	"strconv"
-	"time"
 
 	"github.com/sijysn/resistar/backend/graph/generated"
 	"github.com/sijysn/resistar/backend/graph/model"
@@ -56,7 +55,7 @@ func (r *mutationResolver) AddHistory(ctx context.Context, input model.NewHistor
 		return nil, err
 	}
 
-	err = addExpenses(r, input.Price, dbFromUsers, dbToUsers, historyForScan.CreatedAt, historyForScan.UpdatedAt, dbNewHistory.ID, uint(groupID))
+	err = r.addBalances(input.Price, dbFromUsers, dbToUsers, historyForScan.CreatedAt, historyForScan.UpdatedAt, dbNewHistory.ID, uint(groupID))
 	if err != nil {
 		return nil, err
 	}
@@ -158,25 +157,30 @@ func (r *queryResolver) Users(ctx context.Context, input model.UsersQuery) ([]*m
 	return users, nil
 }
 
-// Expenses is the resolver for the expenses field.
-func (r *queryResolver) Expenses(ctx context.Context, input model.ExpensesQuery) (*model.Expenses, error) {
-	var expenses *model.Expenses
+// Amounts is the resolver for the amounts field.
+func (r *queryResolver) Amounts(ctx context.Context, input model.AmountsQuery) (*model.Amounts, error) {
+	var amounts *model.Amounts
 
 	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
 	if err != nil {
 		return nil, err
 	}
-	userID, err := strconv.ParseUint(*input.UserID, 10, 64)
+	userID, err := strconv.ParseUint(input.UserID, 10, 64)
 	if err != nil {
 		return nil, err
 	}
 
-	err = r.DB.Debug().Table("expenses").Select("SUM(expense) as personal_expense").Where("group_id = ? AND user_id = ? AND date_part('year', created_at) = ? AND date_part('month', created_at) = ?", groupID, userID, input.Year, input.Month).Scan(&expenses).Error
+	err = r.DB.Debug().Table("balances").Select("SUM(amount) as personal_balance").Where("group_id = ? AND user_id = ? AND date_part('year', created_at) = ? AND date_part('month', created_at) = ?", groupID, userID, input.Year, input.Month).Scan(&amounts).Error
 	if err != nil {
 		return nil, err
 	}
 
-	return expenses, nil
+	err = r.DB.Debug().Table("balances").Select("SUM(amount) as group_total").Where("group_id = ? AND date_part('year', created_at) = ? AND date_part('month', created_at) = ? AND amount > 0", groupID, input.Year, input.Month).Scan(&amounts).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return amounts, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.
@@ -187,42 +191,3 @@ func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-func addExpenses(r *mutationResolver, price int, fromUsers []dbModel.User, toUsers []dbModel.User, createdAt time.Time, updatedAt time.Time, historyID uint, groupID uint) error {
-	fromUsersLength := len(fromUsers)
-	var expenses []dbModel.Expense
-	for _, v := range fromUsers {
-		expense := dbModel.Expense{
-			CreatedAt: createdAt,
-			UpdatedAt: updatedAt,
-			Expense:   price / fromUsersLength,
-			HistoryID: historyID,
-			UserID:    v.ID,
-			GroupID:   groupID,
-		}
-		expenses = append(expenses, expense)
-	}
-	toUsersLength := len(toUsers)
-	for _, v := range toUsers {
-		expense := dbModel.Expense{
-			CreatedAt: createdAt,
-			UpdatedAt: updatedAt,
-			Expense:   -(price / toUsersLength),
-			HistoryID: historyID,
-			UserID:    v.ID,
-			GroupID:   groupID,
-		}
-		expenses = append(expenses, expense)
-	}
-	err := r.DB.Create(&expenses).Error
-	if err != nil {
-		return err
-	}
-	return nil
-}

@@ -1,11 +1,13 @@
 import * as React from "react";
 import Link from "next/link";
-import { useQuery } from "@apollo/client";
+import { ApolloError, useQuery } from "@apollo/client";
 import Avatar from "@mui/material/Avatar";
 import IconButton from "@mui/material/IconButton";
 import { styled } from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import AddIcon from "@mui/icons-material/Add";
+import RemoveIcon from "@mui/icons-material/Remove";
 import dayjs from "dayjs";
 import { getHistoriesProps } from "../../lib/api/getHistories";
 import {
@@ -13,10 +15,15 @@ import {
   getUsersProps,
   getUsersVarsProps,
 } from "../../lib/api/getUsers";
+import { getAmountsProps } from "../../lib/api/getAmounts";
 
 type Props = {
   yearAndMonth: string;
   historiesData?: getHistoriesProps;
+  amountsLoading: boolean;
+  amountsError?: ApolloError;
+  amountsData?: getAmountsProps;
+  loadingMoreAmounts: boolean;
 };
 
 const getTotal = (historiesData?: getHistoriesProps) => {
@@ -26,9 +33,32 @@ const getTotal = (historiesData?: getHistoriesProps) => {
   return 0;
 };
 
-const userTotal = 3000;
+const getSign = (amountsData?: getAmountsProps) => {
+  if (!amountsData) {
+    return "";
+  }
+  if (amountsData.amounts.personalBalance < 0) {
+    return (
+      <Sign>
+        <RemoveIcon />
+      </Sign>
+    );
+  }
+  return (
+    <Sign>
+      <AddIcon />
+    </Sign>
+  );
+};
 
-const Overview: React.FC<Props> = ({ yearAndMonth, historiesData }) => {
+const Overview: React.FC<Props> = ({
+  yearAndMonth,
+  historiesData,
+  amountsLoading,
+  amountsError,
+  amountsData,
+  loadingMoreAmounts,
+}) => {
   const [year, month] = dayjs(yearAndMonth).format("YYYY-M").split("-");
   const previousYearAndMonth = dayjs(yearAndMonth)
     .subtract(1, "M")
@@ -37,16 +67,16 @@ const Overview: React.FC<Props> = ({ yearAndMonth, historiesData }) => {
   const getUsersQueryVars = {
     groupID: "1",
   };
-  const { loading, error, data } = useQuery<getUsersProps, getUsersVarsProps>(
-    GET_USERS,
-    {
-      variables: getUsersQueryVars,
-      notifyOnNetworkStatusChange: true,
-    }
-  );
-  if (loading || !data) return <div>loading</div>;
-  if (error) return <div>{error.message}</div>;
-  if (data.users.length === 0) return <div>メンバーがいません</div>;
+  const {
+    loading: usersLoading,
+    error: usersError,
+    data: usersData,
+  } = useQuery<getUsersProps, getUsersVarsProps>(GET_USERS, {
+    variables: getUsersQueryVars,
+    notifyOnNetworkStatusChange: true,
+  });
+  if (usersError) return <div>{usersError.message}</div>;
+  if (amountsError) return <div>{amountsError.message}</div>;
   return (
     <Wrapper>
       <OverviewHeader>
@@ -56,7 +86,7 @@ const Overview: React.FC<Props> = ({ yearAndMonth, historiesData }) => {
           </IconButton>
         </Link>
         <div>
-          {year}年{month}月のあなたの支払い
+          {year}年{month}月
         </div>
         <Link href={`/history/${nextYearAndMonth}`}>
           <IconButton size="large">
@@ -64,16 +94,32 @@ const Overview: React.FC<Props> = ({ yearAndMonth, historiesData }) => {
           </IconButton>
         </Link>
       </OverviewHeader>
-      <Total>
-        ¥{userTotal.toLocaleString()}
-        <GroupTotal> / ¥{getTotal(historiesData).toLocaleString()}</GroupTotal>
-      </Total>
+      <Amounts>
+        <PersonalBalance>
+          {getSign(amountsData)}¥
+          {amountsData && amountsData.amounts.personalBalance
+            ? Math.abs(amountsData.amounts.personalBalance).toLocaleString()
+            : "---"}
+        </PersonalBalance>
+        <GroupTotal>
+          グループ支出 ¥
+          {amountsData && amountsData.amounts.groupTotal
+            ? amountsData.amounts.groupTotal.toLocaleString()
+            : "---"}
+        </GroupTotal>
+      </Amounts>
       <Members>
-        <MembersCount>メンバー({data.users.length})</MembersCount>
+        <MembersCount>
+          メンバー({!usersLoading && usersData ? usersData.users.length : 0})
+        </MembersCount>
         <MemberList>
-          {data.users.map(({ id, imageURL }) => (
-            <Member key={id} src={imageURL} />
-          ))}
+          {!usersLoading && usersData ? (
+            usersData.users.map(({ id, imageURL }) => (
+              <Member key={id} src={imageURL} />
+            ))
+          ) : (
+            <Member src="" />
+          )}
         </MemberList>
       </Members>
     </Wrapper>
@@ -83,13 +129,13 @@ const Overview: React.FC<Props> = ({ yearAndMonth, historiesData }) => {
 const Wrapper = styled("div")(
   ({ theme }) => `
   background-color: ${theme.palette.primary.main};
-  height: 200px;
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  margin: 0 auto;
   color: #fff;
+  padding: 8px;
 `
 );
 
@@ -98,18 +144,27 @@ const OverviewHeader = styled("div")`
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 0 10px;
 `;
 
-const Total = styled("div")`
+const Amounts = styled("div")`
+  text-align: center;
+  padding: 16px 0;
+`;
+
+const PersonalBalance = styled("div")`
   font-size: 2rem;
 `;
 
-const GroupTotal = styled("span")`
+const Sign = styled("span")`
+  margin-right: 8px;
+`;
+
+const GroupTotal = styled("div")`
   font-size: 1rem;
 `;
 
 const Members = styled("div")`
+  padding-top: 8px;
   display: flex;
   flex-direction: column;
 `;

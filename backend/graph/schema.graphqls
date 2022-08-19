@@ -42,19 +42,20 @@ type Group {
   deletedAt: String
 }
 
-type Expense {
+type Balance {
   id: ID!
   createdAt: String!
   updatedAt: String
   deletedAt: String
-  expense: Int!
+  amount: Int!
   historyID: ID!
   userID: ID!
   groupID: ID!
 }
 
-type Expenses {
-  personalExpense: Int!
+type Amounts {
+  personalBalance: Int!
+  groupTotal: Int!
 }
 
 input HistoriesQuery {
@@ -67,17 +68,17 @@ input UsersQuery {
   groupID: ID!
 }
 
-input ExpensesQuery {
+input AmountsQuery {
   year: String!
   month: String!
-  userID: ID
+  userID: ID!
   groupID: ID!
 }
 
 type Query {
   histories(input: HistoriesQuery!): [History!]!
   users(input: UsersQuery!): [User!]!
-  expenses(input: ExpensesQuery!): Expenses!
+  amounts(input: AmountsQuery!): Amounts!
 }
 
 input NewHistory {

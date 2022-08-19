@@ -6,5 +6,5 @@ import (
 )
 
 func Migrate(db *gorm.DB) {
-	db.AutoMigrate(&model.History{}, &model.User{}, &model.Group{}, &model.Expense{})
+	db.AutoMigrate(&model.History{}, &model.User{}, &model.Group{}, &model.Balance{})
 }

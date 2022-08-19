@@ -6,12 +6,12 @@ import (
 	"gorm.io/gorm"
 )
 
-type Expense struct {
+type Balance struct {
 	ID        uint           `gorm:"primaryKey"`
   CreatedAt time.Time
   UpdatedAt time.Time
 	DeletedAt gorm.DeletedAt `gorm:"index"`
-	Expense int
+	Amount int
 	HistoryID uint
   UserID uint
 	GroupID uint
