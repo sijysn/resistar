@@ -31,17 +31,17 @@ export const getServerSideProps: GetServerSideProps<ServerSideProps> = async (
   const yearAndMonth = datetime.format("YYYY-MM");
   const apolloClient = initializeApollo();
 
-  const { data: historiesData } = await getHistories(apolloClient, {
+  await getHistories(apolloClient, {
     groupID: "1",
     year,
     month,
   });
 
-  const { data: usersData } = await getUsers(apolloClient, {
+  await getUsers(apolloClient, {
     groupID: "1",
   });
 
-  const { data: amountsData } = await getAmounts(apolloClient, {
+  await getAmounts(apolloClient, {
     year,
     month,
     groupID: "1",
@@ -51,9 +51,6 @@ export const getServerSideProps: GetServerSideProps<ServerSideProps> = async (
   return addApolloState(apolloClient, {
     props: {
       yearAndMonth,
-      historiesData,
-      usersData,
-      amountsData,
     },
   });
 };

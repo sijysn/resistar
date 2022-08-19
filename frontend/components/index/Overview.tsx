@@ -9,7 +9,6 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import dayjs from "dayjs";
-import { getHistoriesProps } from "../../lib/apollo/api/getHistories";
 import {
   getUsersProps,
   getUsersVarsProps,
@@ -19,11 +18,9 @@ import { getAmountsProps } from "../../lib/apollo/api/getAmounts";
 
 type Props = {
   yearAndMonth: string;
-  usersData: getUsersProps;
-  amountsData: getAmountsProps;
+  amountsData?: getAmountsProps;
   amountsLoading: boolean;
   amountsError?: ApolloError;
-  loadingMoreAmounts: boolean;
 };
 
 const getSign = (personalBalance: number) => {
@@ -43,11 +40,9 @@ const getSign = (personalBalance: number) => {
 
 const Overview: React.FC<Props> = ({
   yearAndMonth,
-  usersData,
   amountsData,
   amountsLoading,
   amountsError,
-  loadingMoreAmounts,
 }) => {
   const [year, month] = dayjs(yearAndMonth).format("YYYY-M").split("-");
   const previousYearAndMonth = dayjs(yearAndMonth)
@@ -60,7 +55,7 @@ const Overview: React.FC<Props> = ({
   const {
     loading: usersLoading,
     error: usersError,
-    // data: usersData,
+    data: usersData,
   } = useQuery<getUsersProps, getUsersVarsProps>(GET_USERS, {
     variables: getUsersQueryVars,
     notifyOnNetworkStatusChange: true,
@@ -86,7 +81,9 @@ const Overview: React.FC<Props> = ({
       </OverviewHeader>
       <Amounts>
         <PersonalBalance>
-          {amountsData && amountsData.amounts.personalBalance ? (
+          {!amountsLoading &&
+          amountsData &&
+          amountsData.amounts.personalBalance ? (
             <>
               {getSign(amountsData.amounts.personalBalance)}¥
               {Math.abs(amountsData.amounts.personalBalance).toLocaleString()}
@@ -97,14 +94,15 @@ const Overview: React.FC<Props> = ({
         </PersonalBalance>
         <GroupTotal>
           グループ支出 ¥
-          {amountsData && amountsData.amounts.groupTotal
+          {!amountsLoading && amountsData && amountsData.amounts.groupTotal
             ? amountsData.amounts.groupTotal.toLocaleString()
             : "---"}
         </GroupTotal>
       </Amounts>
       <Members>
         <MembersCount>
-          メンバー({!usersLoading && usersData ? usersData.users.length : 0})
+          メンバー(
+          {!usersLoading && usersData ? usersData.users.length : 0})
         </MembersCount>
         <MemberList>
           {!usersLoading && usersData ? (

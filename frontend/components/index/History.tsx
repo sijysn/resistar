@@ -25,17 +25,11 @@ type Props = {
   loading: boolean;
   error?: ApolloError;
   data?: getHistoriesProps;
-  loadingMoreHistories: boolean;
 };
 
-const History: React.FC<Props> = ({
-  loading,
-  error,
-  data,
-  loadingMoreHistories,
-}) => {
+const History: React.FC<Props> = ({ loading, error, data }) => {
   if (error) return <div>Error</div>;
-  if ((loading && !loadingMoreHistories) || !data) return <div>Loading</div>;
+  if (loading || !data) return <div>Loading</div>;
   if (data.histories.length === 0) return <div>データがありません。</div>;
   return (
     <HistoryList>

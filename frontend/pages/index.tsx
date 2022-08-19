@@ -3,9 +3,6 @@ import type { GetServerSideProps, NextPage } from "next";
 import Index from "../components/index/Index";
 import dayjs from "dayjs";
 import { addApolloState, initializeApollo } from "../lib/apollo/apollo-client";
-import { getHistoriesProps } from "../lib/apollo/api/getHistories";
-import { getUsersProps } from "../lib/apollo/api/getUsers";
-import { getAmountsProps } from "../lib/apollo/api/getAmounts";
 import { getHistories } from "../lib/apollo/server/getHistories";
 import { getUsers } from "../lib/apollo/server/getUsers";
 import { getAmounts } from "../lib/apollo/server/getAmounts";
@@ -21,17 +18,17 @@ export const getServerSideProps: GetServerSideProps<ServerSideProps> = async () 
   const currentYearAndMonth = now.format("YYYY-MM");
   const apolloClient = initializeApollo();
 
-  const { data: historiesData } = await getHistories(apolloClient, {
+  await getHistories(apolloClient, {
     groupID: "1",
     year: currentYear,
     month: currentMonth,
   });
 
-  const { data: usersData } = await getUsers(apolloClient, {
+  await getUsers(apolloClient, {
     groupID: "1",
   });
 
-  const { data: amountsData } = await getAmounts(apolloClient, {
+  await getAmounts(apolloClient, {
     year: currentYear,
     month: currentMonth,
     groupID: "1",
@@ -41,18 +38,12 @@ export const getServerSideProps: GetServerSideProps<ServerSideProps> = async () 
   return addApolloState(apolloClient, {
     props: {
       yearAndMonth: currentYearAndMonth,
-      historiesData,
-      usersData,
-      amountsData,
     },
   });
 };
 
 export type ServerSideProps = {
   yearAndMonth: string;
-  historiesData: getHistoriesProps;
-  usersData: getUsersProps;
-  amountsData: getAmountsProps;
 };
 
 export default Home;

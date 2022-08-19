@@ -19,12 +19,7 @@ import {
   getAmountsVarsProps,
 } from "../../lib/apollo/api/getAmounts";
 
-const Index: React.FC<ServerSideProps> = ({
-  yearAndMonth,
-  historiesData,
-  usersData,
-  amountsData,
-}) => {
+const Index: React.FC<ServerSideProps> = ({ yearAndMonth }) => {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
@@ -39,7 +34,7 @@ const Index: React.FC<ServerSideProps> = ({
   const {
     loading: historiesLoading,
     error: historiesError,
-    // data: historiesData,
+    data: historiesData,
     fetchMore: fetchMoreHistories,
     networkStatus: getHistoriesNetworkStatus,
   } = useQuery<getHistoriesProps, getHistoriesVarsProps>(GET_HISTORIES, {
@@ -66,8 +61,8 @@ const Index: React.FC<ServerSideProps> = ({
   const {
     loading: amountsLoading,
     error: amountsError,
-    // data: amountsData,
-    fetchMore: fetchMoreamounts,
+    data: amountsData,
+    fetchMore: fetchMoreAmounts,
     networkStatus: getAmountsNetworkStatus,
   } = useQuery<getAmountsProps, getAmountsVarsProps>(GET_AMOUNTS, {
     variables: getAmountsQueryVars,
@@ -78,7 +73,7 @@ const Index: React.FC<ServerSideProps> = ({
     getAmountsNetworkStatus === NetworkStatus.fetchMore;
 
   const loadMoreAmounts = () => {
-    fetchMoreamounts({
+    fetchMoreAmounts({
       variables: getAmountsQueryVars,
     });
   };
@@ -93,17 +88,14 @@ const Index: React.FC<ServerSideProps> = ({
       <Main>
         <Overview
           yearAndMonth={yearAndMonth}
-          usersData={usersData}
           amountsData={amountsData}
-          amountsLoading={amountsLoading}
+          amountsLoading={amountsLoading || loadingMoreAmounts}
           amountsError={amountsError}
-          loadingMoreAmounts={loadingMoreAmounts}
         />
         <History
-          loading={historiesLoading}
+          loading={historiesLoading || loadingMoreHistories}
           error={historiesError}
           data={historiesData}
-          loadingMoreHistories={loadingMoreHistories}
         />
         <AddButton size="large" onClick={openModal}>
           <AddIcon />
