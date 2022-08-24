@@ -6,58 +6,27 @@ import IconButton from "@mui/material/IconButton";
 import { styled } from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import AddIcon from "@mui/icons-material/Add";
-import RemoveIcon from "@mui/icons-material/Remove";
 import dayjs from "dayjs";
-import { getHistoriesProps } from "../../lib/api/getHistories";
 import {
-  GET_USERS,
   getUsersProps,
   getUsersVarsProps,
-} from "../../lib/api/getUsers";
-import { getAmountsProps } from "../../lib/api/getAmounts";
+  GET_USERS,
+} from "../../lib/apollo/api/getUsers";
+import { getAmountsProps } from "../../lib/apollo/api/getAmounts";
+import { Sign } from "./Sign";
 
 type Props = {
   yearAndMonth: string;
-  historiesData?: getHistoriesProps;
+  amountsData?: getAmountsProps;
   amountsLoading: boolean;
   amountsError?: ApolloError;
-  amountsData?: getAmountsProps;
-  loadingMoreAmounts: boolean;
-};
-
-const getTotal = (historiesData?: getHistoriesProps) => {
-  if (historiesData) {
-    return historiesData.histories.reduce((prev, { price }) => prev + price, 0);
-  }
-  return 0;
-};
-
-const getSign = (amountsData?: getAmountsProps) => {
-  if (!amountsData) {
-    return "";
-  }
-  if (amountsData.amounts.personalBalance < 0) {
-    return (
-      <Sign>
-        <RemoveIcon />
-      </Sign>
-    );
-  }
-  return (
-    <Sign>
-      <AddIcon />
-    </Sign>
-  );
 };
 
 const Overview: React.FC<Props> = ({
   yearAndMonth,
-  historiesData,
+  amountsData,
   amountsLoading,
   amountsError,
-  amountsData,
-  loadingMoreAmounts,
 }) => {
   const [year, month] = dayjs(yearAndMonth).format("YYYY-M").split("-");
   const previousYearAndMonth = dayjs(yearAndMonth)
@@ -80,7 +49,7 @@ const Overview: React.FC<Props> = ({
   return (
     <Wrapper>
       <OverviewHeader>
-        <Link href={`/history/${previousYearAndMonth}`}>
+        <Link href={`/histories/${previousYearAndMonth}`}>
           <IconButton size="large">
             <ChevronLeftIcon />
           </IconButton>
@@ -88,7 +57,7 @@ const Overview: React.FC<Props> = ({
         <div>
           {year}年{month}月
         </div>
-        <Link href={`/history/${nextYearAndMonth}`}>
+        <Link href={`/histories/${nextYearAndMonth}`}>
           <IconButton size="large">
             <ChevronRightIcon />
           </IconButton>
@@ -96,21 +65,28 @@ const Overview: React.FC<Props> = ({
       </OverviewHeader>
       <Amounts>
         <PersonalBalance>
-          {getSign(amountsData)}¥
-          {amountsData && amountsData.amounts.personalBalance
-            ? Math.abs(amountsData.amounts.personalBalance).toLocaleString()
-            : "---"}
+          {!amountsLoading &&
+          amountsData &&
+          amountsData.amounts.personalBalance ? (
+            <>
+              <Sign personalBalance={amountsData.amounts.personalBalance} />¥
+              {Math.abs(amountsData.amounts.personalBalance).toLocaleString()}
+            </>
+          ) : (
+            "¥---"
+          )}
         </PersonalBalance>
         <GroupTotal>
           グループ支出 ¥
-          {amountsData && amountsData.amounts.groupTotal
+          {!amountsLoading && amountsData && amountsData.amounts.groupTotal
             ? amountsData.amounts.groupTotal.toLocaleString()
             : "---"}
         </GroupTotal>
       </Amounts>
       <Members>
         <MembersCount>
-          メンバー({!usersLoading && usersData ? usersData.users.length : 0})
+          メンバー(
+          {!usersLoading && usersData ? usersData.users.length : 0})
         </MembersCount>
         <MemberList>
           {!usersLoading && usersData ? (
@@ -153,10 +129,6 @@ const Amounts = styled("div")`
 
 const PersonalBalance = styled("div")`
   font-size: 2rem;
-`;
-
-const Sign = styled("span")`
-  margin-right: 8px;
 `;
 
 const GroupTotal = styled("div")`

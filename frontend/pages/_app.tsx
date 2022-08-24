@@ -3,7 +3,7 @@ import type { AppProps } from "next/app";
 import { ApolloProvider } from "@apollo/client";
 import CssBaseline from "@mui/material/CssBaseline";
 import { ThemeProvider } from "@mui/material/styles";
-import { useApollo } from "../lib/apollo-client";
+import { useApollo } from "../lib/apollo/apollo-client";
 import { theme } from "../lib/theme";
 import "../styles/globals.css";
 

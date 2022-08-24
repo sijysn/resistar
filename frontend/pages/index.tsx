@@ -1,66 +1,49 @@
 import * as React from "react";
-import type { NextPage } from "next";
+import type { GetServerSideProps, NextPage } from "next";
 import Index from "../components/index/Index";
 import dayjs from "dayjs";
-import { addApolloState, initializeApollo } from "../lib/apollo-client";
-import {
-  GET_HISTORIES,
-  getHistoriesProps,
-  getHistoriesVarsProps,
-} from "../lib/api/getHistories";
-import {
-  GET_USERS,
-  getUsersProps,
-  getUsersVarsProps,
-} from "../lib/api/getUsers";
-import {
-  getAmountsProps,
-  getAmountsVarsProps,
-  GET_AMOUNTS,
-} from "../lib/api/getAmounts";
+import { addApolloState, initializeApollo } from "../lib/apollo/apollo-client";
+import { getHistories } from "../lib/apollo/server/getHistories";
+import { getUsers } from "../lib/apollo/server/getUsers";
+import { getAmounts } from "../lib/apollo/server/getAmounts";
 
-export const getServerSideProps = async () => {
-  const currentYear = dayjs().format("YYYY");
-  const currentMonth = dayjs().format("MM");
+const Home: NextPage<ServerSideProps> = (props) => {
+  return <Index {...props} />;
+};
+
+export const getServerSideProps: GetServerSideProps<ServerSideProps> = async () => {
+  const now = dayjs();
+  const currentYear = now.format("YYYY");
+  const currentMonth = now.format("MM");
+  const currentYearAndMonth = now.format("YYYY-MM");
   const apolloClient = initializeApollo();
 
-  const getHistoriesQueryVars = {
+  await getHistories(apolloClient, {
     groupID: "1",
     year: currentYear,
     month: currentMonth,
-  };
-  await apolloClient.query<getHistoriesProps, getHistoriesVarsProps>({
-    query: GET_HISTORIES,
-    variables: getHistoriesQueryVars,
   });
 
-  const getUsersQueryVars = {
+  await getUsers(apolloClient, {
     groupID: "1",
-  };
-  await apolloClient.query<getUsersProps, getUsersVarsProps>({
-    query: GET_USERS,
-    variables: getUsersQueryVars,
   });
 
-  const getAmountsQueryVars = {
+  await getAmounts(apolloClient, {
     year: currentYear,
     month: currentMonth,
     groupID: "1",
     userID: "1",
-  };
-  await apolloClient.query<getAmountsProps, getAmountsVarsProps>({
-    query: GET_AMOUNTS,
-    variables: getAmountsQueryVars,
   });
 
   return addApolloState(apolloClient, {
-    props: {},
+    props: {
+      yearAndMonth: currentYearAndMonth,
+    },
   });
 };
 
-const Home: NextPage = () => {
-  const currentYearAndMonth = dayjs().format("YYYY-MM");
-  return <Index yearAndMonth={currentYearAndMonth} />;
+export type ServerSideProps = {
+  yearAndMonth: string;
 };
 
 export default Home;

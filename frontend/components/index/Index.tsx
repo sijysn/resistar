@@ -3,6 +3,7 @@ import { useQuery, NetworkStatus } from "@apollo/client";
 import IconButton from "@mui/material/IconButton";
 import AddIcon from "@mui/icons-material/Add";
 import { styled } from "@mui/material";
+import { ServerSideProps } from "../../pages/index";
 import History from "./History";
 import Overview from "./Overview";
 import AddFormModal from "./AddFormModal";
@@ -10,19 +11,15 @@ import {
   GET_HISTORIES,
   getHistoriesProps,
   getHistoriesVarsProps,
-} from "../../lib/api/getHistories";
+} from "../../lib/apollo/api/getHistories";
 import dayjs from "dayjs";
 import {
   GET_AMOUNTS,
   getAmountsProps,
   getAmountsVarsProps,
-} from "../../lib/api/getAmounts";
+} from "../../lib/apollo/api/getAmounts";
 
-type Props = {
-  yearAndMonth: string;
-};
-
-const Index: React.FC<Props> = ({ yearAndMonth }) => {
+const Index: React.FC<ServerSideProps> = ({ yearAndMonth }) => {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
@@ -65,7 +62,7 @@ const Index: React.FC<Props> = ({ yearAndMonth }) => {
     loading: amountsLoading,
     error: amountsError,
     data: amountsData,
-    fetchMore: fetchMoreamounts,
+    fetchMore: fetchMoreAmounts,
     networkStatus: getAmountsNetworkStatus,
   } = useQuery<getAmountsProps, getAmountsVarsProps>(GET_AMOUNTS, {
     variables: getAmountsQueryVars,
@@ -76,7 +73,7 @@ const Index: React.FC<Props> = ({ yearAndMonth }) => {
     getAmountsNetworkStatus === NetworkStatus.fetchMore;
 
   const loadMoreAmounts = () => {
-    fetchMoreamounts({
+    fetchMoreAmounts({
       variables: getAmountsQueryVars,
     });
   };
@@ -91,19 +88,16 @@ const Index: React.FC<Props> = ({ yearAndMonth }) => {
       <Main>
         <Overview
           yearAndMonth={yearAndMonth}
-          historiesData={historiesData}
-          amountsLoading={amountsLoading}
-          amountsError={amountsError}
           amountsData={amountsData}
-          loadingMoreAmounts={loadingMoreAmounts}
+          amountsLoading={amountsLoading || loadingMoreAmounts}
+          amountsError={amountsError}
         />
         <History
-          loading={historiesLoading}
+          loading={historiesLoading || loadingMoreHistories}
           error={historiesError}
           data={historiesData}
-          loadingMoreHistories={loadingMoreHistories}
         />
-        <AddButton aria-label="add" size="large" onClick={openModal}>
+        <AddButton size="large" onClick={openModal}>
           <AddIcon />
         </AddButton>
         <AddFormModal

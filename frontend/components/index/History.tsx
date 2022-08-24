@@ -7,7 +7,7 @@ import ListItemAvatar from "@mui/material/ListItemAvatar";
 import Typography from "@mui/material/Typography";
 import Avatar from "@mui/material/Avatar";
 import { css, Divider, styled } from "@mui/material";
-import { getHistoriesProps } from "../../lib/api/getHistories";
+import { getHistoriesProps } from "../../lib/apollo/api/getHistories";
 import {
   QueryType,
   QUERY_TYPE_DIARY,
@@ -17,7 +17,7 @@ import {
   QUERY_TYPE_COMMUNICATION,
   QUERY_TYPE_FOOD,
   QUERY_TYPE_OTHERS,
-} from "../../lib/api/addHistory";
+} from "../../lib/apollo/api/addHistory";
 import { COLOR } from "../../lib/color";
 import dayjs from "dayjs";
 
@@ -25,17 +25,11 @@ type Props = {
   loading: boolean;
   error?: ApolloError;
   data?: getHistoriesProps;
-  loadingMoreHistories: boolean;
 };
 
-const History: React.FC<Props> = ({
-  loading,
-  error,
-  data,
-  loadingMoreHistories,
-}) => {
+const History: React.FC<Props> = ({ loading, error, data }) => {
   if (error) return <div>Error</div>;
-  if ((loading && !loadingMoreHistories) || !data) return <div>Loading</div>;
+  if (loading || !data) return <div>Loading</div>;
   if (data.histories.length === 0) return <div>データがありません。</div>;
   return (
     <HistoryList>
