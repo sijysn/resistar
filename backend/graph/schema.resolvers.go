@@ -122,7 +122,7 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (*m
 	}
 
 	responseAccess := ctx.Value(auth.ResponseAccessKey).(*auth.ResponseAccess)
-	responseAccess.SetCookie("jwt-token", jwtToken, true, time.Now().Add(24*time.Hour))
+	responseAccess.SetCookie("jwt-token", jwtToken, false, time.Now().Add(24*time.Hour))
 
 	var user *model.User
 	var dbUser dbModel.User
