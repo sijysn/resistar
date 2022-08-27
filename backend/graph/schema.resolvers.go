@@ -6,10 +6,15 @@ package graph
 import (
 	"context"
 	"strconv"
+	"time"
 
+	"github.com/golang-jwt/jwt"
 	"github.com/sijysn/resistar/backend/graph/generated"
 	"github.com/sijysn/resistar/backend/graph/model"
+	"github.com/sijysn/resistar/backend/internal/auth"
+	"github.com/sijysn/resistar/backend/internal/digest"
 	dbModel "github.com/sijysn/resistar/backend/internal/model"
+	"github.com/sijysn/resistar/backend/internal/sql"
 )
 
 // AddHistory is the resolver for the addHistory field.
@@ -55,7 +60,7 @@ func (r *mutationResolver) AddHistory(ctx context.Context, input model.NewHistor
 		return nil, err
 	}
 
-	err = r.addBalances(input.Price, dbFromUsers, dbToUsers, historyForScan.CreatedAt, historyForScan.UpdatedAt, dbNewHistory.ID, uint(groupID))
+	err = sql.AddBalances(r.DB, input.Price, dbFromUsers, dbToUsers, historyForScan.CreatedAt, historyForScan.UpdatedAt, dbNewHistory.ID, uint(groupID))
 	if err != nil {
 		return nil, err
 	}
@@ -80,10 +85,13 @@ func (r *mutationResolver) AddUser(ctx context.Context, input model.NewUser) (*m
 	if err != nil {
 		return nil, err
 	}
-	err = r.DB.Create(&dbModel.User{Name: input.Name, GroupID: uint(groupID)}).Scan(&newUser).Error
+	password := digest.GenerateToken()
+
+	err = r.DB.Create(&dbModel.User{Email: input.Email, Password: digest.SHA512(password), GroupID: uint(groupID)}).Scan(&newUser).Error
 	if err != nil {
 		return nil, err
 	}
+	newUser.Password = password
 	return newUser, nil
 }
 
@@ -95,6 +103,38 @@ func (r *mutationResolver) AddGroup(ctx context.Context) (*model.Group, error) {
 		return nil, err
 	}
 	return newGroup, nil
+}
+
+// Login is the resolver for the login field.
+func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (*model.User, error) {
+	sessionToken := digest.GenerateToken()
+	r.Session.Put(ctx, "session_token", sessionToken)
+
+	signKey := digest.GenerateSignKey()
+	claims := jwt.MapClaims{
+		"session_token": sessionToken,
+		"exp":           time.Now().Add(24 * time.Hour).Unix(),
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	jwtToken, err := token.SignedString(signKey)
+	if err != nil {
+		return nil, err
+	}
+
+	responseAccess := ctx.Value(auth.ResponseAccessKey).(*auth.ResponseAccess)
+	responseAccess.SetCookie("jwt-token", jwtToken, true, time.Now().Add(24*time.Hour))
+
+	var user *model.User
+	var dbUser dbModel.User
+	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	err = r.DB.Where("email = ? AND password = ? AND group_id = ?", input.Email, digest.SHA512(input.Password), uint(groupID)).Find(&dbUser).Scan(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }
 
 // Histories is the resolver for the histories field.

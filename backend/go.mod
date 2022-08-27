@@ -3,10 +3,13 @@ module github.com/sijysn/resistar/backend
 go 1.17
 
 require (
-	github.com/99designs/gqlgen v0.17.13
+	github.com/99designs/gqlgen v0.17.16
+	github.com/alexedwards/scs/v2 v2.5.0
 	github.com/go-chi/chi v1.5.4
+	github.com/golang-jwt/jwt v3.2.2+incompatible
+	github.com/joho/godotenv v1.4.0
 	github.com/rs/cors v1.8.2
-	github.com/vektah/gqlparser/v2 v2.4.6
+	github.com/vektah/gqlparser/v2 v2.5.0
 	gorm.io/driver/postgres v1.3.8
 	gorm.io/gorm v1.23.8
 )

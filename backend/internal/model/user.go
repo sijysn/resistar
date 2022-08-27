@@ -12,6 +12,8 @@ type User struct {
   UpdatedAt time.Time
   DeletedAt gorm.DeletedAt `gorm:"index"`
 	Name string `json:"name"`
+	Email string `json:"email"`
+	Password string `json:"password"`
 	ImageURL string `json:"imageUrl"`
 	GroupID uint
 }
