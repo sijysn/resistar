@@ -19,6 +19,7 @@ import (
 	"github.com/sijysn/resistar/backend/internal/config"
 	"github.com/sijysn/resistar/backend/internal/driver"
 	"github.com/sijysn/resistar/backend/internal/migrate"
+	"gorm.io/gorm"
 )
 
 const defaultPort = "8080"
@@ -38,7 +39,14 @@ func run() {
 	dbPassword := os.Getenv("DB_PASSWORD")
 
 	log.Println("Connecting to database...")
-	db, err := driver.ConnectDB(fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s", dbHost, dbPort, dbName, dbUser, dbPassword))
+
+	url := os.Getenv("DATABASE_URL")
+	var db *gorm.DB
+	if (url == "") {
+		db, err = driver.ConnectDB("pgx", fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s", dbHost, dbPort, dbName, dbUser, dbPassword))
+	} else {
+		db, err = driver.ConnectDB("postgres", url)
+	}
 	if err != nil {
 		log.Fatal("cannot connect to database!")
 	}
