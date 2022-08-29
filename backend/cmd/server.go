@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -19,7 +18,6 @@ import (
 	"github.com/sijysn/resistar/backend/internal/config"
 	"github.com/sijysn/resistar/backend/internal/driver"
 	"github.com/sijysn/resistar/backend/internal/migrate"
-	"gorm.io/gorm"
 )
 
 const defaultPort = "8080"
@@ -32,21 +30,10 @@ func run() {
 	if err != nil {
 		log.Fatal("cannot load env file!")
 	}
-	dbHost := os.Getenv("DB_HOST")
-	dbPort := os.Getenv("DB_PORT")
-	dbName := os.Getenv("DB_NAME")
-	dbUser := os.Getenv("DB_USER")
-	dbPassword := os.Getenv("DB_PASSWORD")
 
 	log.Println("Connecting to database...")
-
 	url := os.Getenv("DATABASE_URL")
-	var db *gorm.DB
-	if (url == "") {
-		db, err = driver.ConnectDB("pgx", fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s", dbHost, dbPort, dbName, dbUser, dbPassword))
-	} else {
-		db, err = driver.ConnectDB("pgx", url)
-	}
+	db, err := driver.ConnectDB(url)
 	if err != nil {
 		log.Fatal("cannot connect to database!")
 	}

@@ -7,8 +7,8 @@ import (
 	"gorm.io/gorm"
 )
 
-func ConnectDB(driverName string, dsn string) (*gorm.DB, error) {
-	db, err := NewDatabase(driverName, dsn)
+func ConnectDB(dsn string) (*gorm.DB, error) {
+	db, err := NewDatabase(dsn)
 	if err != nil {
 		panic(err)
 	}
@@ -18,8 +18,8 @@ func ConnectDB(driverName string, dsn string) (*gorm.DB, error) {
 }
 
 // NewDatabase creates a new database for the application
-func NewDatabase(driverName string, dsn string) (*gorm.DB, error) {
-	sqlDB, err := sql.Open(driverName, dsn)
+func NewDatabase(dsn string) (*gorm.DB, error) {
+	sqlDB, err := sql.Open("pgx", dsn)
 	if err != nil {
 		return nil, err
 	}
