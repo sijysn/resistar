@@ -45,7 +45,7 @@ func run() {
 	if (url == "") {
 		db, err = driver.ConnectDB("pgx", fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s", dbHost, dbPort, dbName, dbUser, dbPassword))
 	} else {
-		db, err = driver.ConnectDB("postgres", url)
+		db, err = driver.ConnectDB("pgx", url)
 	}
 	if err != nil {
 		log.Fatal("cannot connect to database!")
