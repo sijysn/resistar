@@ -26,8 +26,8 @@ const errorLink = onError(({ graphQLErrors, networkError }) => {
 });
 
 const httpLink = new HttpLink({
-  uri: "http://localhost:8080/query",
-  credentials: "same-origin",
+  uri: process.env.NEXT_PUBLIC_API_URL,
+  credentials: "include",
 });
 
 const createApolloClient = () => {

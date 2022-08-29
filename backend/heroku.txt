@@ -1,0 +1,2 @@
+データベースを作成
+heroku addons:create heroku-postgresql:hobby-dev

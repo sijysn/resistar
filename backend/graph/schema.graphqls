@@ -28,6 +28,8 @@ enum Type {
 type User {
   id: ID!
   name: String!
+  email: String!
+  password: String!
   imageURL: String!
   createdAt: String!
   updatedAt: String
@@ -37,6 +39,7 @@ type User {
 
 type Group {
   id: ID!
+  name: String!
   createdAt: String!
   updatedAt: String
   deletedAt: String
@@ -91,8 +94,14 @@ input NewHistory {
 }
 
 input NewUser {
-  name: String!
-  imageURL: String
+  email: String!
+  password: String!
+  groupID: ID!
+}
+
+input LoginUser {
+  email: String!
+  password: String!
   groupID: ID!
 }
 
@@ -100,4 +109,5 @@ type Mutation {
   addHistory(input: NewHistory!): History!
   addUser(input: NewUser!): User!
   addGroup: Group!
+  login(input: LoginUser!): User!
 }

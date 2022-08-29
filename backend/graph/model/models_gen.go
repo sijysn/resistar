@@ -33,6 +33,7 @@ type Balance struct {
 
 type Group struct {
 	ID        string  `json:"id"`
+	Name      string  `json:"name"`
 	CreatedAt string  `json:"createdAt"`
 	UpdatedAt *string `json:"updatedAt"`
 	DeletedAt *string `json:"deletedAt"`
@@ -57,6 +58,12 @@ type History struct {
 	GroupID   string  `json:"groupID"`
 }
 
+type LoginUser struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	GroupID  string `json:"groupID"`
+}
+
 type NewHistory struct {
 	Title       string   `json:"title"`
 	Type        Type     `json:"type"`
@@ -67,14 +74,16 @@ type NewHistory struct {
 }
 
 type NewUser struct {
-	Name     string  `json:"name"`
-	ImageURL *string `json:"imageURL"`
-	GroupID  string  `json:"groupID"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	GroupID  string `json:"groupID"`
 }
 
 type User struct {
 	ID        string  `json:"id"`
 	Name      string  `json:"name"`
+	Email     string  `json:"email"`
+	Password  string  `json:"password"`
 	ImageURL  string  `json:"imageURL"`
 	CreatedAt string  `json:"createdAt"`
 	UpdatedAt *string `json:"updatedAt"`
