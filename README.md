@@ -15,3 +15,7 @@ yarn docker
 ```
 yarn docker-stop
 ```
+
+## DNS
+ネームサーバー・プロキシはcloudflareを使用している
+ドメイン管理はムームードメインを使用している
