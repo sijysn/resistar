@@ -1,2 +1,5 @@
 データベースを作成
 heroku addons:create heroku-postgresql:hobby-dev
+
+ENVを追加
+heroku config:set ENV=production
