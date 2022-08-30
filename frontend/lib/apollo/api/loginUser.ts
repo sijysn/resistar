@@ -5,7 +5,6 @@ export const LOGIN_USER = gql`
     login(input: { email: $email, password: $password, groupID: $groupID }) {
       id
       email
-      name
     }
   }
 `;
@@ -13,7 +12,7 @@ export const LOGIN_USER = gql`
 export type UserProps = {
   id: string;
   email: string;
-  name: string;
+  // name: string;
 };
 
 export type loginUserProps = {

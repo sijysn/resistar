@@ -6,12 +6,9 @@ package graph
 import (
 	"context"
 	"strconv"
-	"time"
 
-	"github.com/golang-jwt/jwt"
 	"github.com/sijysn/resistar/backend/graph/generated"
 	"github.com/sijysn/resistar/backend/graph/model"
-	"github.com/sijysn/resistar/backend/internal/auth"
 	"github.com/sijysn/resistar/backend/internal/digest"
 	dbModel "github.com/sijysn/resistar/backend/internal/model"
 	"github.com/sijysn/resistar/backend/internal/sql"
@@ -107,22 +104,22 @@ func (r *mutationResolver) AddGroup(ctx context.Context) (*model.Group, error) {
 
 // Login is the resolver for the login field.
 func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (*model.User, error) {
-	sessionToken := digest.GenerateToken()
-	r.Session.Put(ctx, "session_token", sessionToken)
+	// sessionToken := digest.GenerateToken()
+	// r.Session.Put(ctx, "session_token", sessionToken)
 
-	signKey := digest.GenerateSignKey()
-	claims := jwt.MapClaims{
-		"session_token": sessionToken,
-		"exp":           time.Now().Add(24 * time.Hour).Unix(),
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	jwtToken, err := token.SignedString(signKey)
-	if err != nil {
-		return nil, err
-	}
+	// signKey := digest.GenerateSignKey()
+	// claims := jwt.MapClaims{
+	// 	"session_token": sessionToken,
+	// 	"exp":           time.Now().Add(24 * time.Hour).Unix(),
+	// }
+	// token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	// jwtToken, err := token.SignedString(signKey)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	responseAccess := ctx.Value(auth.ResponseAccessKey).(*auth.ResponseAccess)
-	responseAccess.SetCookie("jwt-token", jwtToken, false, time.Now().Add(24*time.Hour))
+	// responseAccess := ctx.Value(auth.ResponseAccessKey).(*auth.ResponseAccess)
+	// responseAccess.SetCookie("jwt-token", jwtToken, false, time.Now().Add(24*time.Hour))
 
 	var user *model.User
 	var dbUser dbModel.User
