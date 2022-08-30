@@ -23,7 +23,6 @@ func (r *ResponseAccess) SetCookie(name string, value string, httpOnly bool, exp
 		HttpOnly: httpOnly,
 		Secure: true,
 		SameSite: http.SameSiteNoneMode,
-		Domain: "resistar.net",
     Expires: time.Now().Add(24 * time.Hour),
 	}
 	env := os.Getenv("ENV")
