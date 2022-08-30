@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"net/http"
+	"os"
 	"time"
 
 	"gorm.io/gorm"
@@ -16,13 +17,12 @@ type ResponseAccess struct {
 }
 
 func (r *ResponseAccess) SetCookie(name string, value string, httpOnly bool, expires time.Time) {
-	// env := os.Getenv("ENV")
+	env := os.Getenv("ENV")
 	http.SetCookie(r.Writer, &http.Cookie{
 		Name: name,
 		Value: value,
 		HttpOnly: httpOnly,
-		// Secure: env == "production" || env == "staging",
-		Secure: false,
+		Secure: env == "production" || env == "staging",
     Expires: time.Now().Add(24 * time.Hour),
 	})
 }
