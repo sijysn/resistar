@@ -82,9 +82,9 @@ func (r *mutationResolver) AddUser(ctx context.Context, input model.NewUser) (*m
 	if err != nil {
 		return nil, err
 	}
-	password := digest.GenerateToken()
+	password := digest.SHA512(input.Password)
 
-	err = r.DB.Create(&dbModel.User{Email: input.Email, Password: digest.SHA512(password), GroupID: uint(groupID)}).Scan(&newUser).Error
+	err = r.DB.Create(&dbModel.User{Email: input.Email, Password: password, GroupID: uint(groupID)}).Scan(&newUser).Error
 	if err != nil {
 		return nil, err
 	}
