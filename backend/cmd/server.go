@@ -55,7 +55,7 @@ func run() {
 	router := chi.NewRouter()
 
 	router.Use(cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:8080", "https://www.resistar.net"},
+		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:8080", "https://web.resistar.net"},
 		AllowCredentials: true,
 		Debug:            true,
 	}).Handler)
