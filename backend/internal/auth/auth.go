@@ -24,7 +24,6 @@ func (r *ResponseAccess) SetCookie(name string, value string, httpOnly bool, exp
 		// Secure: env == "production" || env == "staging",
 		Secure: true,
 		SameSite: http.SameSiteNoneMode,
-		Domain: "resistar.net",
     Expires: time.Now().Add(24 * time.Hour),
 	})
 }
