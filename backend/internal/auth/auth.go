@@ -22,7 +22,7 @@ func (r *ResponseAccess) SetCookie(name string, value string, httpOnly bool, exp
 		HttpOnly: httpOnly,
 		Secure: true,
 		SameSite: http.SameSiteNoneMode,
-		Domain: "web.resistar.net",
+		Domain: "resistar.net",
     Expires: time.Now().Add(24 * time.Hour),
 	})
 }
