@@ -47,7 +47,7 @@ func run() {
 	session.Cookie.Secure = true
 	env := os.Getenv("ENV")
 	if env == "production" {
-		session.Cookie.Domain = "resistar.net"
+		session.Cookie.Domain = "web.resistar.net"
 	}
 
 	port := os.Getenv("PORT")

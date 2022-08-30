@@ -27,7 +27,7 @@ func (r *ResponseAccess) SetCookie(name string, value string, httpOnly bool, exp
     Expires: time.Now().Add(24 * time.Hour),
 	}
 	if env == "production" {
-		cookie.Domain = "resistar.net"
+		cookie.Domain = "web.resistar.net"
 	}
 	http.SetCookie(r.Writer, cookie)
 }
