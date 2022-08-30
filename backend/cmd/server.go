@@ -43,7 +43,7 @@ func run() {
 
 	session = scs.New()
 	session.Lifetime = 24 * time.Hour
-	session.Cookie.SameSite = http.SameSiteLaxMode
+	session.Cookie.SameSite = http.SameSiteNoneMode
 
 	port := os.Getenv("PORT")
 	if port == "" {
