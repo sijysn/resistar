@@ -45,6 +45,10 @@ func run() {
 	session.Lifetime = 24 * time.Hour
 	session.Cookie.SameSite = http.SameSiteNoneMode
 	session.Cookie.Secure = true
+	env := os.Getenv("ENV")
+	if env == "production" {
+		session.Cookie.Domain = "resistar.net"
+	}
 
 	port := os.Getenv("PORT")
 	if port == "" {

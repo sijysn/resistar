@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"net/http"
+	"os"
 	"time"
 
 	"gorm.io/gorm"
@@ -16,14 +17,19 @@ type ResponseAccess struct {
 }
 
 func (r *ResponseAccess) SetCookie(name string, value string, httpOnly bool, expires time.Time) {
-	http.SetCookie(r.Writer, &http.Cookie{
+	env := os.Getenv("ENV")
+	cookie := &http.Cookie{
 		Name: name,
 		Value: value,
 		HttpOnly: httpOnly,
 		Secure: true,
 		SameSite: http.SameSiteNoneMode,
     Expires: time.Now().Add(24 * time.Hour),
-	})
+	}
+	if env == "production" {
+		cookie.Domain = "resistar.net"
+	}
+	http.SetCookie(r.Writer, cookie)
 }
 func Middleware(db *gorm.DB) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
