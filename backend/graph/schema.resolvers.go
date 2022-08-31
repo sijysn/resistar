@@ -212,16 +212,16 @@ func (r *queryResolver) Histories(ctx context.Context, input model.HistoriesQuer
 // Users is the resolver for the users field.
 func (r *queryResolver) Users(ctx context.Context, input model.UsersQuery) ([]*model.User, error) {
 	var users []*model.User
-	var dbUsers []dbModel.User
+	var dbGroup *dbModel.Group
 	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
 	if err != nil {
 		return nil, err
 	}
-	err = r.DB.Preload("Groups", "id = ?", uint(groupID)).Find(&dbUsers).Error
+	err = r.DB.Debug().Where("id = ?", uint(groupID)).Preload("Users").First(&dbGroup).Error
 	if err != nil {
 		return nil, err
 	}
-	for _, dbUser := range dbUsers {
+	for _, dbUser := range dbGroup.Users {
 		users = append(users, &model.User{
 			ID: strconv.FormatUint(uint64(dbUser.ID), 10),
 			Email: dbUser.Email,
