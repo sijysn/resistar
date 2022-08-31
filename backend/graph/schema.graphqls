@@ -73,6 +73,10 @@ input UsersQuery {
   groupID: ID!
 }
 
+input GroupsQuery {
+  userID: ID!
+}
+
 input AmountsQuery {
   year: String!
   month: String!
@@ -83,6 +87,7 @@ input AmountsQuery {
 type Query {
   histories(input: HistoriesQuery!): [History!]!
   users(input: UsersQuery!): [User!]!
+  groups(input: GroupsQuery!): [Group!]!
   amounts(input: AmountsQuery!): Amounts!
 }
 

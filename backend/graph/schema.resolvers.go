@@ -5,6 +5,7 @@ package graph
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -88,7 +89,7 @@ func (r *mutationResolver) AddUser(ctx context.Context, input model.NewUser) (*m
 			ErrorMessage: &errorMessage,
 		}, nil
 	}
-	
+
 	var userForScan *dbModel.UserForScan
 	password := digest.SHA512(input.Password)
 	err := r.DB.Create(&dbModel.User{Email: input.Email, Password: password}).Scan(&userForScan).Error
@@ -223,13 +224,51 @@ func (r *queryResolver) Users(ctx context.Context, input model.UsersQuery) ([]*m
 	}
 	for _, dbUser := range dbGroup.Users {
 		users = append(users, &model.User{
-			ID: strconv.FormatUint(uint64(dbUser.ID), 10),
-			Email: dbUser.Email,
-			Name: dbUser.Name,
+			ID:       strconv.FormatUint(uint64(dbUser.ID), 10),
+			Email:    dbUser.Email,
+			Name:     dbUser.Name,
 			ImageURL: dbUser.ImageURL,
 		})
 	}
 	return users, nil
+}
+
+// Groups is the resolver for the groups field.
+func (r *queryResolver) Groups(ctx context.Context, input model.GroupsQuery) ([]*model.Group, error) {
+	var groups []*model.Group
+	var dbUser *dbModel.User
+	userID, err := strconv.ParseUint(input.UserID, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	err = r.DB.Debug().Where("id = ?", uint(userID)).Preload("Groups").First(&dbUser).Error
+	if err != nil {
+		return nil, err
+	}
+
+	for _, dbGroup := range dbUser.Groups {
+		var myGroupUsers []*model.User
+		var dbMyGroup *dbModel.Group
+		err = r.DB.Debug().Where("id = ?", uint(dbGroup.ID)).Preload("Users").First(&dbMyGroup).Error
+		fmt.Println(dbMyGroup)
+		if err != nil {
+			return nil, err
+		}
+		for _, dbMyGroupUser := range dbMyGroup.Users {
+			myGroupUsers = append(myGroupUsers, &model.User{
+				ID:       strconv.FormatUint(uint64(dbMyGroupUser.ID), 10),
+				Email: dbMyGroupUser.Email,
+				Name: dbMyGroupUser.Name,
+			})
+		}
+
+		groups = append(groups, &model.Group{
+			ID:       strconv.FormatUint(uint64(dbGroup.ID), 10),
+			Name:     dbGroup.Name,
+			Users:    myGroupUsers,
+		})
+	}
+	return groups, nil
 }
 
 // Amounts is the resolver for the amounts field.

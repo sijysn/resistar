@@ -40,6 +40,10 @@ type Group struct {
 	Users     []*User `json:"users"`
 }
 
+type GroupsQuery struct {
+	UserID string `json:"userID"`
+}
+
 type HistoriesQuery struct {
 	Year    string `json:"year"`
 	Month   string `json:"month"`
