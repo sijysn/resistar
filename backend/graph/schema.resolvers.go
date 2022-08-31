@@ -80,27 +80,54 @@ func (r *mutationResolver) AddHistory(ctx context.Context, input model.NewHistor
 
 // AddUser is the resolver for the addUser field.
 func (r *mutationResolver) AddUser(ctx context.Context, input model.NewUser) (*model.User, error) {
-	var newUser *model.User
-	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
-	if err != nil {
-		return nil, err
+	var dbUsers []dbModel.User
+	count := r.DB.Where("email = ?", input.Email).Find(&dbUsers).RowsAffected
+	if count != 0 {
+		errorMessage := "このメールアドレスは既に登録されています"
+		return &model.User{
+			ErrorMessage: &errorMessage,
+		}, nil
 	}
+	
+	var userForScan *dbModel.UserForScan
 	password := digest.SHA512(input.Password)
-
-	err = r.DB.Create(&dbModel.User{Email: input.Email, Password: password, GroupID: uint(groupID)}).Scan(&newUser).Error
+	err := r.DB.Create(&dbModel.User{Email: input.Email, Password: password}).Scan(&userForScan).Error
 	if err != nil {
 		return nil, err
 	}
-	newUser.Password = password
+
+	newUser := &model.User{
+		ID:       strconv.FormatUint(uint64(userForScan.ID), 10),
+		Email:    userForScan.Email,
+		Password: password,
+	}
 	return newUser, nil
 }
 
 // AddGroup is the resolver for the addGroup field.
-func (r *mutationResolver) AddGroup(ctx context.Context) (*model.Group, error) {
-	var newGroup *model.Group
-	err := r.DB.Create(&dbModel.Group{}).Scan(&newGroup).Error
+func (r *mutationResolver) AddGroup(ctx context.Context, input model.InitGroup) (*model.Group, error) {
+	var groupForScan *dbModel.GroupForScan
+	var dbUsers []dbModel.User
+
+	err := r.DB.Debug().Preload("Groups").Where("id = ?", input.UserID).Find(&dbUsers).Error
 	if err != nil {
 		return nil, err
+	}
+	dbNewGroup := &dbModel.Group{
+		Name: input.GroupName,
+	}
+	err = r.DB.Create(dbNewGroup).Scan(&groupForScan).Error
+	if err != nil {
+		return nil, err
+	}
+	err = r.DB.Model(dbNewGroup).Association("Users").Append(dbUsers)
+	if err != nil {
+		return nil, err
+	}
+	newGroup := &model.Group{
+		ID:        strconv.FormatUint(uint64(groupForScan.ID), 10),
+		Name:      groupForScan.Name,
+		CreatedAt: groupForScan.CreatedAt.Format("2006-01-02 15:04:05"),
 	}
 	return newGroup, nil
 }
