@@ -251,6 +251,7 @@ func (r *queryResolver) Groups(ctx context.Context, input model.GroupsQuery) ([]
 	}
 
 	for _, dbGroup := range dbUser.Groups {
+		// 所属しているグループのメンバーを取得する
 		var myGroupUsers []*model.User
 		var dbMyGroup *dbModel.Group
 		err = r.DB.Debug().Where("id = ?", uint(dbGroup.ID)).Preload("Users").First(&dbMyGroup).Error
