@@ -90,16 +90,19 @@ func (r *mutationResolver) AddUser(ctx context.Context, input model.NewUser) (*m
 		}, nil
 	}
 
-	var userForScan *dbModel.UserForScan
 	password := digest.SHA512(input.Password)
-	err := r.DB.Create(&dbModel.User{Email: input.Email, Password: password}).Scan(&userForScan).Error
+	dbNewUser := &dbModel.User {
+		Email:    input.Email,
+		Password: password,
+	}
+	err := r.DB.Create(dbNewUser).Error
 	if err != nil {
 		return nil, err
 	}
 
 	newUser := &model.User{
-		ID:       strconv.FormatUint(uint64(userForScan.ID), 10),
-		Email:    userForScan.Email,
+		ID:       strconv.FormatUint(uint64(dbNewUser.ID), 10),
+		Email:    dbNewUser.Email,
 		Password: password,
 	}
 	return newUser, nil
@@ -107,7 +110,6 @@ func (r *mutationResolver) AddUser(ctx context.Context, input model.NewUser) (*m
 
 // AddGroup is the resolver for the addGroup field.
 func (r *mutationResolver) AddGroup(ctx context.Context, input model.InitGroup) (*model.Group, error) {
-	var groupForScan *dbModel.GroupForScan
 	var dbUsers []dbModel.User
 
 	err := r.DB.Debug().Preload("Groups").Where("id = ?", input.UserID).Find(&dbUsers).Error
@@ -117,7 +119,7 @@ func (r *mutationResolver) AddGroup(ctx context.Context, input model.InitGroup) 
 	dbNewGroup := &dbModel.Group{
 		Name: input.GroupName,
 	}
-	err = r.DB.Create(dbNewGroup).Scan(&groupForScan).Error
+	err = r.DB.Create(dbNewGroup).Error
 	if err != nil {
 		return nil, err
 	}
@@ -126,9 +128,9 @@ func (r *mutationResolver) AddGroup(ctx context.Context, input model.InitGroup) 
 		return nil, err
 	}
 	newGroup := &model.Group{
-		ID:        strconv.FormatUint(uint64(groupForScan.ID), 10),
-		Name:      groupForScan.Name,
-		CreatedAt: groupForScan.CreatedAt.Format("2006-01-02 15:04:05"),
+		ID:        strconv.FormatUint(uint64(dbNewGroup.ID), 10),
+		Name:      dbNewGroup.Name,
+		CreatedAt: dbNewGroup.CreatedAt.Format("2006-01-02 15:04:05"),
 	}
 	return newGroup, nil
 }
@@ -141,6 +143,7 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (*m
 	signKey := digest.GenerateSignKey()
 	claims := jwt.MapClaims{
 		"session_token": sessionToken,
+		"groupID":       input.GroupID,
 		"exp":           time.Now().Add(24 * time.Hour).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -152,15 +155,16 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (*m
 	responseAccess := ctx.Value(auth.ResponseAccessKey).(*auth.ResponseAccess)
 	responseAccess.SetCookie("jwt-token", jwtToken, false, time.Now().Add(24*time.Hour))
 
-	var user *model.User
 	var dbUser dbModel.User
-	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
+	err = r.DB.Where("email = ? AND password = ?", input.Email, digest.SHA512(input.Password)).Find(&dbUser).Error
 	if err != nil {
 		return nil, err
 	}
-	err = r.DB.Where("email = ? AND password = ? AND group_id = ?", input.Email, digest.SHA512(input.Password), uint(groupID)).Find(&dbUser).Scan(&user).Error
-	if err != nil {
-		return nil, err
+	user := &model.User {
+		ID: strconv.FormatUint(uint64(dbUser.ID), 10),
+		Email: dbUser.Email,
+		Name: dbUser.Name,
+		ImageURL: dbUser.ImageURL,
 	}
 	return user, nil
 }
