@@ -21,15 +21,13 @@ import (
 // AddHistory is the resolver for the addHistory field.
 func (r *mutationResolver) AddHistory(ctx context.Context, input model.NewHistory) (*model.History, error) {
 	var dbFromUsers []dbModel.User
-	var fromUsers []*model.User
-	err := r.DB.Where(input.FromUserIds).Find(&dbFromUsers).Scan(&fromUsers).Error
+	err := r.DB.Where(input.FromUserIds).Find(&dbFromUsers).Error
 	if err != nil {
 		return nil, err
 	}
 
 	var dbToUsers []dbModel.User
-	var toUsers []*model.User
-	err = r.DB.Where(input.ToUserIds).Find(&dbToUsers).Scan(&toUsers).Error
+	err = r.DB.Where(input.ToUserIds).Find(&dbToUsers).Error
 	if err != nil {
 		return nil, err
 	}
@@ -47,8 +45,7 @@ func (r *mutationResolver) AddHistory(ctx context.Context, input model.NewHistor
 	}
 
 	var newHistory *model.History
-	var historyForScan *dbModel.HistoryForScan
-	err = r.DB.Create(dbNewHistory).Scan(&historyForScan).Error
+	err = r.DB.Create(dbNewHistory).Error
 	if err != nil {
 		return nil, err
 	}
@@ -61,19 +58,17 @@ func (r *mutationResolver) AddHistory(ctx context.Context, input model.NewHistor
 		return nil, err
 	}
 
-	err = sql.AddBalances(r.DB, input.Price, dbFromUsers, dbToUsers, historyForScan.CreatedAt, historyForScan.UpdatedAt, dbNewHistory.ID, uint(groupID))
+	err = sql.AddBalances(r.DB, input.Price, dbFromUsers, dbToUsers, dbNewHistory.CreatedAt, dbNewHistory.UpdatedAt, dbNewHistory.ID, uint(groupID))
 	if err != nil {
 		return nil, err
 	}
 
 	newHistory = &model.History{
-		ID:        strconv.FormatUint(uint64(historyForScan.ID), 10),
-		Title:     historyForScan.Title,
-		Type:      historyForScan.Type,
-		Price:     historyForScan.Price,
-		FromUsers: fromUsers,
-		ToUsers:   toUsers,
-		CreatedAt: historyForScan.CreatedAt.Format("2006-01-02 15:04:05"),
+		ID:        strconv.FormatUint(uint64(dbNewHistory.ID), 10),
+		Title:     dbNewHistory.Title,
+		Type:      dbNewHistory.Type,
+		Price:     dbNewHistory.Price,
+		CreatedAt: dbNewHistory.CreatedAt.Format("2006-01-02 15:04:05"),
 	}
 
 	return newHistory, nil
@@ -186,6 +181,7 @@ func (r *queryResolver) Histories(ctx context.Context, input model.HistoriesQuer
 		for _, fromUser := range v.FromUsers {
 			fromUsers = append(fromUsers, &model.User{
 				ID:       strconv.FormatUint(uint64(fromUser.ID), 10),
+				Email:    fromUser.Email,
 				Name:     fromUser.Name,
 				ImageURL: fromUser.ImageURL,
 			})
@@ -193,6 +189,7 @@ func (r *queryResolver) Histories(ctx context.Context, input model.HistoriesQuer
 		for _, toUser := range v.ToUsers {
 			toUsers = append(toUsers, &model.User{
 				ID:       strconv.FormatUint(uint64(toUser.ID), 10),
+				Email:    toUser.Email,
 				Name:     toUser.Name,
 				ImageURL: toUser.ImageURL,
 			})
