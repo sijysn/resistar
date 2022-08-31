@@ -217,9 +217,17 @@ func (r *queryResolver) Users(ctx context.Context, input model.UsersQuery) ([]*m
 	if err != nil {
 		return nil, err
 	}
-	err = r.DB.Where("group_id = ?", uint(groupID)).Find(&dbUsers).Scan(&users).Error
+	err = r.DB.Preload("Groups", "id = ?", uint(groupID)).Find(&dbUsers).Error
 	if err != nil {
 		return nil, err
+	}
+	for _, dbUser := range dbUsers {
+		users = append(users, &model.User{
+			ID: strconv.FormatUint(uint64(dbUser.ID), 10),
+			Email: dbUser.Email,
+			Name: dbUser.Name,
+			ImageURL: dbUser.ImageURL,
+		})
 	}
 	return users, nil
 }
