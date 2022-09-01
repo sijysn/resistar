@@ -341,6 +341,7 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (*m
 	responseAccess.SetCookie("jwtToken", jwtToken, false, time.Now().Add(24*time.Hour))
 	id := strconv.FormatUint(uint64(userID), 10)
 	responseAccess.SetCookie("userID", id, false, time.Now().Add(24*time.Hour))
+	responseAccess.SetCookie("groupID", input.GroupID, false, time.Now().Add(24*time.Hour))
 
 	user := &model.User{
 		ID:       id,
