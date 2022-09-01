@@ -1,7 +1,6 @@
 import * as React from "react";
 import Link from "next/link";
 import { ApolloError, useQuery } from "@apollo/client";
-import { parseCookies } from "nookies";
 import Avatar from "@mui/material/Avatar";
 import IconButton from "@mui/material/IconButton";
 import { styled } from "@mui/material";
@@ -21,6 +20,7 @@ type Props = {
   amountsData?: getAmountsProps;
   amountsLoading: boolean;
   amountsError?: ApolloError;
+  cookies: { [key: string]: string };
 };
 
 const Overview: React.FC<Props> = ({
@@ -28,8 +28,8 @@ const Overview: React.FC<Props> = ({
   amountsData,
   amountsLoading,
   amountsError,
+  cookies,
 }) => {
-  const cookies = parseCookies();
   const [year, month] = dayjs(yearAndMonth).format("YYYY-M").split("-");
   const previousYearAndMonth = dayjs(yearAndMonth)
     .subtract(1, "M")

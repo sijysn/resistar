@@ -1,6 +1,5 @@
 import * as React from "react";
 import { useQuery, NetworkStatus } from "@apollo/client";
-import { parseCookies } from "nookies";
 import IconButton from "@mui/material/IconButton";
 import AddIcon from "@mui/icons-material/Add";
 import { styled } from "@mui/material";
@@ -20,12 +19,10 @@ import {
   getAmountsVarsProps,
 } from "../../lib/apollo/api/getAmounts";
 
-const Index: React.FC<ServerSideProps> = ({ yearAndMonth }) => {
+const Index: React.FC<ServerSideProps> = ({ yearAndMonth, cookies }) => {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
-
-  const cookies = parseCookies();
 
   const currentYear = dayjs(yearAndMonth).format("YYYY");
   const currentMonth = dayjs(yearAndMonth).format("MM");
@@ -91,6 +88,7 @@ const Index: React.FC<ServerSideProps> = ({ yearAndMonth }) => {
       <Main>
         <Overview
           yearAndMonth={yearAndMonth}
+          cookies={cookies}
           amountsData={amountsData}
           amountsLoading={amountsLoading || loadingMoreAmounts}
           amountsError={amountsError}
@@ -107,6 +105,7 @@ const Index: React.FC<ServerSideProps> = ({ yearAndMonth }) => {
           isOpen={isModalOpen}
           close={closeModal}
           onAdd={loadMore}
+          cookies={cookies}
         />
       </Main>
 

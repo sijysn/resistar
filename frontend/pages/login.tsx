@@ -1,7 +1,7 @@
 import * as React from "react";
-import type { GetServerSideProps, NextPage } from "next";
+import type { NextPage } from "next";
 import { useMutation } from "@apollo/client";
-import nookies, { parseCookies } from "nookies";
+import { parseCookies } from "nookies";
 import {
   LOGIN_USER,
   loginUserProps,

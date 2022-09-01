@@ -43,12 +43,14 @@ export const getServerSideProps: GetServerSideProps<ServerSideProps> = async (
   return addApolloState(apolloClient, {
     props: {
       yearAndMonth: currentYearAndMonth,
+      cookies: cookies,
     },
   });
 };
 
 export type ServerSideProps = {
   yearAndMonth: string;
+  cookies: { [key: string]: string };
 };
 
 export default Home;

@@ -1,6 +1,5 @@
 import * as React from "react";
 import { useQuery, useMutation } from "@apollo/client";
-import { parseCookies } from "nookies";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
@@ -34,6 +33,7 @@ type ModalProps = {
   isOpen: boolean;
   close: () => void;
   onAdd: () => void;
+  cookies: { [key: string]: string };
 };
 
 const Transition = React.forwardRef(function TransitionComponent(
@@ -61,7 +61,12 @@ const initialValues: initializeValuesProps = {
   toUsers: [],
 };
 
-const AddFormModal: React.FC<ModalProps> = ({ isOpen, close, onAdd }) => {
+const AddFormModal: React.FC<ModalProps> = ({
+  isOpen,
+  close,
+  onAdd,
+  cookies,
+}) => {
   const [title, setTitle] = React.useState(initialValues["title"]);
   const [type, setType] = React.useState(initialValues["type"]);
   const handleSelectorChange = (e: SelectChangeEvent<string>) => {
@@ -74,8 +79,6 @@ const AddFormModal: React.FC<ModalProps> = ({ isOpen, close, onAdd }) => {
   const [toUsers, setToUsers] = React.useState<UserProps[]>(
     initialValues["toUsers"]
   );
-
-  const cookies = parseCookies();
 
   const [add, { loading, error }] = useMutation<
     addHistoryProps,
@@ -108,7 +111,7 @@ const AddFormModal: React.FC<ModalProps> = ({ isOpen, close, onAdd }) => {
   };
 
   const getUsersQueryVars = {
-    groupID: cookies["groupID"],
+    groupID: "1",
   };
   const {
     loading: usersLoading,
