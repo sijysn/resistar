@@ -5,7 +5,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"time"
 
@@ -158,7 +157,7 @@ func (r *mutationResolver) InviteUserToGroup(ctx context.Context, input model.In
 		return nil, err
 	}
 	if len(dbGroups) == 0 {
-		errorMessage := "このグループは存在しません"
+		errorMessage := "無効なグループです"
 		return &model.Invited{
 			Message: errorMessage,
 			Success: false,
@@ -211,18 +210,103 @@ func (r *mutationResolver) InviteUserToGroup(ctx context.Context, input model.In
 
 // JoinGroup is the resolver for the joinGroup field.
 func (r *mutationResolver) JoinGroup(ctx context.Context, input model.JoinGroupInput) (*model.User, error) {
-	panic(fmt.Errorf("not implemented: JoinGroup - joinGroup"))
+		// ユーザーが存在するかチェックする
+		var dbUsers []dbModel.User
+		err := r.DB.Where("email = ? AND password = ?", input.Email, digest.SHA512(input.Password)).Limit(1).Find(&dbUsers).Error
+		if err != nil {
+			return nil, err
+		}
+		if len(dbUsers) == 0 {
+			errorMessage := "メールアドレスまたはパスワードが違います"
+			return &model.User{
+				ErrorMessage: &errorMessage,
+			}, nil 
+		}
+	
+		groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+	
+		// グループが存在するかチェックする
+		var dbGroups []dbModel.Group
+		err = r.DB.Where("id = ?", uint(groupID)).Limit(1).Find(&dbGroups).Error
+		if err != nil {
+			return nil, err
+		}
+		if len(dbGroups) == 0 {
+			errorMessage := "無効なグループです"
+			return &model.User{
+				ErrorMessage: &errorMessage,
+			}, nil 
+		}
+	
+		// ユーザーがグループに参加しているかチェックする
+		var dbGroup *dbModel.Group
+		err = r.DB.Debug().Where("id = ?", uint(groupID)).Preload("Users", "email = ?", input.Email).Limit(1).Find(&dbGroup).Error
+		if err != nil {
+			return nil, err
+		}
+		if len(dbGroup.Users) == 1 {
+			errorMessage := "このメールアドレスに対してこの操作はできません"
+			return &model.User{
+				ErrorMessage: &errorMessage,
+			}, nil 
+		}
+	
+		var dbInvitedUsers []dbModel.InvitedUser
+		dbUser := dbUsers[0]
+		err = r.DB.Debug().Where("group_id = ? AND user_id = ?", uint(groupID), dbUser.ID).Order("created_at DESC").Limit(1).Find(&dbInvitedUsers).Error
+		if err != nil {
+			return nil, err
+		}
+		if len(dbInvitedUsers) == 1 && !dbInvitedUsers[0].Joined {
+			err = r.DB.Model(dbGroup).Association("Users").Append(&dbUsers)
+			if err != nil {
+				return nil, err
+			}
+			dbInvitedUsers[0].Joined = true
+			err = r.DB.Save(dbInvitedUsers[0]).Error
+			if err != nil {
+				return nil, err
+			}
+			user := &model.User{
+				ID:       strconv.FormatUint(uint64(dbUser.ID), 10),
+				Email:    dbUser.Email,
+				Name:     dbUser.Name,
+				ImageURL: dbUser.ImageURL,
+			}
+			return user, nil 
+		}
+		errorMessage := "無効なメールアドレスです"
+		return &model.User{
+			ErrorMessage: &errorMessage,
+		}, nil
 }
 
 // Login is the resolver for the login field.
 func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (*model.User, error) {
-	// グループのメンバーかどうかチェックする
-	var dbGroup *dbModel.Group
 	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
 	if err != nil {
 		return nil, err
 	}
-	err = r.DB.Debug().Where("id = ?", uint(groupID)).Preload("Users", "email = ?", input.Email).Limit(1).Find(&dbGroup).Error
+
+	// グループが存在するかチェックする
+	var dbGroups []dbModel.Group
+	err = r.DB.Where("id = ?", uint(groupID)).Limit(1).Find(&dbGroups).Error
+	if err != nil {
+		return nil, err
+	}
+	if len(dbGroups) == 0 {
+		errorMessage := "無効なグループです"
+		return &model.User{
+			ErrorMessage: &errorMessage,
+		}, nil 
+	}
+
+	// グループのメンバーかどうかチェックする
+	var dbGroup *dbModel.Group
+	err = r.DB.Debug().Where("id = ?", uint(groupID)).Preload("Users", "email = ? AND password = ?", input.Email, digest.SHA512(input.Password)).Limit(1).Find(&dbGroup).Error
 	if err != nil {
 		return nil, err
 	}
@@ -234,7 +318,8 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (*m
 	}
 
 	sessionToken := digest.GenerateToken()
-	userID := dbGroup.Users[0].ID
+	dbUser := dbGroup.Users[0]
+	userID := dbUser.ID
 	r.Session.Put(ctx, "session_token", sessionToken)
 	r.Session.Put(ctx, "user_id", uint(userID))
 	r.Session.Put(ctx, "group_id", uint(groupID))
@@ -255,13 +340,8 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (*m
 	responseAccess := ctx.Value(auth.ResponseAccessKey).(*auth.ResponseAccess)
 	responseAccess.SetCookie("jwt-token", jwtToken, false, time.Now().Add(24*time.Hour))
 
-	var dbUser dbModel.User
-	err = r.DB.Where("email = ? AND password = ?", input.Email, digest.SHA512(input.Password)).Find(&dbUser).Error
-	if err != nil {
-		return nil, err
-	}
 	user := &model.User{
-		ID:       strconv.FormatUint(uint64(dbUser.ID), 10),
+		ID:       strconv.FormatUint(uint64(userID), 10),
 		Email:    dbUser.Email,
 		Name:     dbUser.Name,
 		ImageURL: dbUser.ImageURL,
