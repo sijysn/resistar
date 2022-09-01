@@ -34,12 +34,6 @@ func (r *ResponseAccess) SetCookie(name string, value string, httpOnly bool, exp
 func Middleware(db *gorm.DB) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// jwtToken, err := r.Cookie("jwt-token")
-			// if err != nil || jwtToken == nil {
-			// 	next.ServeHTTP(w, r)
-			// 	return
-			// }
-			
 			responseAccess := ResponseAccess{
 				Writer: w,
 			}
