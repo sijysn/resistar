@@ -37,6 +37,11 @@ type Group struct {
 	CreatedAt string  `json:"createdAt"`
 	UpdatedAt *string `json:"updatedAt"`
 	DeletedAt *string `json:"deletedAt"`
+	Users     []*User `json:"users"`
+}
+
+type GroupsQuery struct {
+	UserID string `json:"userID"`
 }
 
 type HistoriesQuery struct {
@@ -58,6 +63,27 @@ type History struct {
 	GroupID   string  `json:"groupID"`
 }
 
+type InitGroup struct {
+	UserID    string `json:"userID"`
+	GroupName string `json:"groupName"`
+}
+
+type InviteUserToGroupInput struct {
+	Email   string `json:"email"`
+	GroupID string `json:"groupID"`
+}
+
+type Invited struct {
+	Message string `json:"message"`
+	Success bool   `json:"success"`
+}
+
+type JoinGroupInput struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	GroupID  string `json:"groupID"`
+}
+
 type LoginUser struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
@@ -76,19 +102,19 @@ type NewHistory struct {
 type NewUser struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
-	GroupID  string `json:"groupID"`
 }
 
 type User struct {
-	ID        string  `json:"id"`
-	Name      string  `json:"name"`
-	Email     string  `json:"email"`
-	Password  string  `json:"password"`
-	ImageURL  string  `json:"imageURL"`
-	CreatedAt string  `json:"createdAt"`
-	UpdatedAt *string `json:"updatedAt"`
-	DeletedAt *string `json:"deletedAt"`
-	GroupID   string  `json:"groupID"`
+	ID           string   `json:"id"`
+	Name         string   `json:"name"`
+	Email        string   `json:"email"`
+	Password     string   `json:"password"`
+	ImageURL     string   `json:"imageURL"`
+	CreatedAt    string   `json:"createdAt"`
+	UpdatedAt    *string  `json:"updatedAt"`
+	DeletedAt    *string  `json:"deletedAt"`
+	Groups       []*Group `json:"groups"`
+	ErrorMessage *string  `json:"errorMessage"`
 }
 
 type UsersQuery struct {

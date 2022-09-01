@@ -34,7 +34,8 @@ type User {
   createdAt: String!
   updatedAt: String
   deletedAt: String
-  groupID: ID!
+  groups: [Group!]
+  errorMessage: String
 }
 
 type Group {
@@ -43,6 +44,7 @@ type Group {
   createdAt: String!
   updatedAt: String
   deletedAt: String
+  users: [User!]!
 }
 
 type Balance {
@@ -61,6 +63,11 @@ type Amounts {
   groupTotal: Int!
 }
 
+type Invited {
+  message: String!
+  success: Boolean!
+}
+
 input HistoriesQuery {
   year: String!
   month: String!
@@ -69,6 +76,10 @@ input HistoriesQuery {
 
 input UsersQuery {
   groupID: ID!
+}
+
+input GroupsQuery {
+  userID: ID!
 }
 
 input AmountsQuery {
@@ -81,6 +92,7 @@ input AmountsQuery {
 type Query {
   histories(input: HistoriesQuery!): [History!]!
   users(input: UsersQuery!): [User!]!
+  groups(input: GroupsQuery!): [Group!]!
   amounts(input: AmountsQuery!): Amounts!
 }
 
@@ -96,6 +108,21 @@ input NewHistory {
 input NewUser {
   email: String!
   password: String!
+}
+
+input InitGroup {
+  userID: ID!
+  groupName: String!
+}
+
+input InviteUserToGroupInput {
+  email: String!
+  groupID: ID!
+}
+
+input JoinGroupInput {
+  email: String!
+  password: String!
   groupID: ID!
 }
 
@@ -108,6 +135,8 @@ input LoginUser {
 type Mutation {
   addHistory(input: NewHistory!): History!
   addUser(input: NewUser!): User!
-  addGroup: Group!
+  addGroup(input: InitGroup!): Group!
+  inviteUserToGroup(input: InviteUserToGroupInput!): Invited!
+  joinGroup(input: JoinGroupInput!): User!
   login(input: LoginUser!): User!
 }

@@ -20,15 +20,13 @@ import (
 // AddHistory is the resolver for the addHistory field.
 func (r *mutationResolver) AddHistory(ctx context.Context, input model.NewHistory) (*model.History, error) {
 	var dbFromUsers []dbModel.User
-	var fromUsers []*model.User
-	err := r.DB.Where(input.FromUserIds).Find(&dbFromUsers).Scan(&fromUsers).Error
+	err := r.DB.Where(input.FromUserIds).Find(&dbFromUsers).Error
 	if err != nil {
 		return nil, err
 	}
 
 	var dbToUsers []dbModel.User
-	var toUsers []*model.User
-	err = r.DB.Where(input.ToUserIds).Find(&dbToUsers).Scan(&toUsers).Error
+	err = r.DB.Where(input.ToUserIds).Find(&dbToUsers).Error
 	if err != nil {
 		return nil, err
 	}
@@ -46,8 +44,7 @@ func (r *mutationResolver) AddHistory(ctx context.Context, input model.NewHistor
 	}
 
 	var newHistory *model.History
-	var historyForScan *dbModel.HistoryForScan
-	err = r.DB.Create(dbNewHistory).Scan(&historyForScan).Error
+	err = r.DB.Create(dbNewHistory).Error
 	if err != nil {
 		return nil, err
 	}
@@ -60,19 +57,17 @@ func (r *mutationResolver) AddHistory(ctx context.Context, input model.NewHistor
 		return nil, err
 	}
 
-	err = sql.AddBalances(r.DB, input.Price, dbFromUsers, dbToUsers, historyForScan.CreatedAt, historyForScan.UpdatedAt, dbNewHistory.ID, uint(groupID))
+	err = sql.AddBalances(r.DB, input.Price, dbFromUsers, dbToUsers, dbNewHistory.CreatedAt, dbNewHistory.UpdatedAt, dbNewHistory.ID, uint(groupID))
 	if err != nil {
 		return nil, err
 	}
 
 	newHistory = &model.History{
-		ID:        strconv.FormatUint(uint64(historyForScan.ID), 10),
-		Title:     historyForScan.Title,
-		Type:      historyForScan.Type,
-		Price:     historyForScan.Price,
-		FromUsers: fromUsers,
-		ToUsers:   toUsers,
-		CreatedAt: historyForScan.CreatedAt.Format("2006-01-02 15:04:05"),
+		ID:        strconv.FormatUint(uint64(dbNewHistory.ID), 10),
+		Title:     dbNewHistory.Title,
+		Type:      dbNewHistory.Type,
+		Price:     dbNewHistory.Price,
+		CreatedAt: dbNewHistory.CreatedAt.Format("2006-01-02 15:04:05"),
 	}
 
 	return newHistory, nil
@@ -80,40 +75,261 @@ func (r *mutationResolver) AddHistory(ctx context.Context, input model.NewHistor
 
 // AddUser is the resolver for the addUser field.
 func (r *mutationResolver) AddUser(ctx context.Context, input model.NewUser) (*model.User, error) {
-	var newUser *model.User
-	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
-	if err != nil {
-		return nil, err
+	var dbUsers []dbModel.User
+	count := r.DB.Where("email = ?", input.Email).Find(&dbUsers).RowsAffected
+	if count != 0 {
+		errorMessage := "このメールアドレスは既に登録されています"
+		return &model.User{
+			ErrorMessage: &errorMessage,
+		}, nil
 	}
-	password := digest.SHA512(input.Password)
 
-	err = r.DB.Create(&dbModel.User{Email: input.Email, Password: password, GroupID: uint(groupID)}).Scan(&newUser).Error
+	password := digest.SHA512(input.Password)
+	dbNewUser := &dbModel.User{
+		Email:    input.Email,
+		Password: password,
+	}
+	err := r.DB.Create(dbNewUser).Error
 	if err != nil {
 		return nil, err
 	}
-	newUser.Password = password
+
+	newUser := &model.User{
+		ID:       strconv.FormatUint(uint64(dbNewUser.ID), 10),
+		Email:    dbNewUser.Email,
+		Password: password,
+	}
 	return newUser, nil
 }
 
 // AddGroup is the resolver for the addGroup field.
-func (r *mutationResolver) AddGroup(ctx context.Context) (*model.Group, error) {
-	var newGroup *model.Group
-	err := r.DB.Create(&dbModel.Group{}).Scan(&newGroup).Error
+func (r *mutationResolver) AddGroup(ctx context.Context, input model.InitGroup) (*model.Group, error) {
+	var dbUsers []dbModel.User
+
+	err := r.DB.Debug().Preload("Groups").Where("id = ?", input.UserID).Find(&dbUsers).Error
 	if err != nil {
 		return nil, err
+	}
+	dbNewGroup := &dbModel.Group{
+		Name: input.GroupName,
+	}
+	err = r.DB.Create(dbNewGroup).Error
+	if err != nil {
+		return nil, err
+	}
+	err = r.DB.Model(dbNewGroup).Association("Users").Append(dbUsers)
+	if err != nil {
+		return nil, err
+	}
+	newGroup := &model.Group{
+		ID:        strconv.FormatUint(uint64(dbNewGroup.ID), 10),
+		Name:      dbNewGroup.Name,
+		CreatedAt: dbNewGroup.CreatedAt.Format("2006-01-02 15:04:05"),
 	}
 	return newGroup, nil
 }
 
+// InviteUserToGroup is the resolver for the inviteUserToGroup field.
+func (r *mutationResolver) InviteUserToGroup(ctx context.Context, input model.InviteUserToGroupInput) (*model.Invited, error) {
+	// ユーザーが存在するかチェックする
+	var dbUsers []dbModel.User
+	err := r.DB.Where("email = ?", input.Email).Limit(1).Find(&dbUsers).Error
+	if err != nil {
+		return nil, err
+	}
+	if len(dbUsers) == 0 {
+		errorMessage := "このメールアドレスは登録されていません"
+		return &model.Invited{
+			Message: errorMessage,
+			Success: false,
+		}, nil 
+	}
+
+	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+
+	// グループが存在するかチェックする
+	var dbGroups []dbModel.Group
+	err = r.DB.Where("id = ?", uint(groupID)).Limit(1).Find(&dbGroups).Error
+	if err != nil {
+		return nil, err
+	}
+	if len(dbGroups) == 0 {
+		errorMessage := "無効なグループです"
+		return &model.Invited{
+			Message: errorMessage,
+			Success: false,
+		}, nil
+	}
+
+	// ユーザーがグループに参加しているかチェックする
+	var dbGroup *dbModel.Group
+	err = r.DB.Debug().Where("id = ?", uint(groupID)).Preload("Users", "email = ?", input.Email).Limit(1).Find(&dbGroup).Error
+	if err != nil {
+		return nil, err
+	}
+	if len(dbGroup.Users) == 1 {
+		errorMessage := "このメールアドレスのユーザーは招待できません"
+		return &model.Invited{
+			Message: errorMessage,
+			Success: false,
+		}, nil
+	}
+
+	var dbInvitedUsers []dbModel.InvitedUser
+	userID := dbUsers[0].ID
+	err = r.DB.Debug().Where("group_id = ? AND user_id = ?", uint(groupID), userID).Order("created_at DESC").Limit(1).Find(&dbInvitedUsers).Error
+	if err != nil {
+		return nil, err
+	}
+	// まだ招待されてないか、退会済みの場合
+	if len(dbInvitedUsers) == 0 || dbInvitedUsers[0].Joined {
+		dbNewInvitedUser := &dbModel.InvitedUser{
+			GroupID: uint(groupID),
+			UserID:  userID,
+			Joined:  false,
+		}
+		err = r.DB.Create(dbNewInvitedUser).Error
+		if err != nil {
+			return nil, err
+		}
+		message := "招待メールを送りました"
+		return &model.Invited{
+			Message: message,
+			Success: true,
+		}, nil
+	}
+	errorMessage := "このメールアドレスのユーザーは招待できません"
+	return &model.Invited{
+		Message: errorMessage,
+		Success: false,
+	}, nil
+}
+
+// JoinGroup is the resolver for the joinGroup field.
+func (r *mutationResolver) JoinGroup(ctx context.Context, input model.JoinGroupInput) (*model.User, error) {
+		// ユーザーが存在するかチェックする
+		var dbUsers []dbModel.User
+		err := r.DB.Where("email = ? AND password = ?", input.Email, digest.SHA512(input.Password)).Limit(1).Find(&dbUsers).Error
+		if err != nil {
+			return nil, err
+		}
+		if len(dbUsers) == 0 {
+			errorMessage := "メールアドレスまたはパスワードが違います"
+			return &model.User{
+				ErrorMessage: &errorMessage,
+			}, nil 
+		}
+	
+		groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+	
+		// グループが存在するかチェックする
+		var dbGroups []dbModel.Group
+		err = r.DB.Where("id = ?", uint(groupID)).Limit(1).Find(&dbGroups).Error
+		if err != nil {
+			return nil, err
+		}
+		if len(dbGroups) == 0 {
+			errorMessage := "無効なグループです"
+			return &model.User{
+				ErrorMessage: &errorMessage,
+			}, nil 
+		}
+	
+		// ユーザーがグループに参加しているかチェックする
+		var dbGroup *dbModel.Group
+		err = r.DB.Debug().Where("id = ?", uint(groupID)).Preload("Users", "email = ?", input.Email).Limit(1).Find(&dbGroup).Error
+		if err != nil {
+			return nil, err
+		}
+		if len(dbGroup.Users) == 1 {
+			errorMessage := "このメールアドレスに対してこの操作はできません"
+			return &model.User{
+				ErrorMessage: &errorMessage,
+			}, nil 
+		}
+	
+		var dbInvitedUsers []dbModel.InvitedUser
+		dbUser := dbUsers[0]
+		err = r.DB.Debug().Where("group_id = ? AND user_id = ?", uint(groupID), dbUser.ID).Order("created_at DESC").Limit(1).Find(&dbInvitedUsers).Error
+		if err != nil {
+			return nil, err
+		}
+		if len(dbInvitedUsers) == 1 && !dbInvitedUsers[0].Joined {
+			err = r.DB.Model(dbGroup).Association("Users").Append(&dbUsers)
+			if err != nil {
+				return nil, err
+			}
+			dbInvitedUsers[0].Joined = true
+			err = r.DB.Save(dbInvitedUsers[0]).Error
+			if err != nil {
+				return nil, err
+			}
+			user := &model.User{
+				ID:       strconv.FormatUint(uint64(dbUser.ID), 10),
+				Email:    dbUser.Email,
+				Name:     dbUser.Name,
+				ImageURL: dbUser.ImageURL,
+			}
+			return user, nil 
+		}
+		errorMessage := "無効なメールアドレスです"
+		return &model.User{
+			ErrorMessage: &errorMessage,
+		}, nil
+}
+
 // Login is the resolver for the login field.
 func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (*model.User, error) {
+	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+
+	// グループが存在するかチェックする
+	var dbGroups []dbModel.Group
+	err = r.DB.Where("id = ?", uint(groupID)).Limit(1).Find(&dbGroups).Error
+	if err != nil {
+		return nil, err
+	}
+	if len(dbGroups) == 0 {
+		errorMessage := "無効なグループです"
+		return &model.User{
+			ErrorMessage: &errorMessage,
+		}, nil 
+	}
+
+	// グループのメンバーかどうかチェックする
+	var dbGroup *dbModel.Group
+	err = r.DB.Debug().Where("id = ?", uint(groupID)).Preload("Users", "email = ? AND password = ?", input.Email, digest.SHA512(input.Password)).Limit(1).Find(&dbGroup).Error
+	if err != nil {
+		return nil, err
+	}
+	if len(dbGroup.Users) != 1 {
+		errorMessage := "メールアドレスまたはパスワードが違います"
+		return &model.User{
+			ErrorMessage: &errorMessage,
+		}, nil
+	}
+
 	sessionToken := digest.GenerateToken()
+	dbUser := dbGroup.Users[0]
+	userID := dbUser.ID
 	r.Session.Put(ctx, "session_token", sessionToken)
+	r.Session.Put(ctx, "user_id", uint(userID))
+	r.Session.Put(ctx, "group_id", uint(groupID))
 
 	signKey := digest.GenerateSignKey()
 	claims := jwt.MapClaims{
 		"session_token": sessionToken,
-		"exp":           time.Now().Add(24 * time.Hour).Unix(),
+		"groupID":       uint(groupID),
+		"userID":        uint(userID),
+		"exp":           time.Now().AddDate(0, 1, 0).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	jwtToken, err := token.SignedString(signKey)
@@ -124,15 +340,11 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (*m
 	responseAccess := ctx.Value(auth.ResponseAccessKey).(*auth.ResponseAccess)
 	responseAccess.SetCookie("jwt-token", jwtToken, false, time.Now().Add(24*time.Hour))
 
-	var user *model.User
-	var dbUser dbModel.User
-	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
-	if err != nil {
-		return nil, err
-	}
-	err = r.DB.Where("email = ? AND password = ? AND group_id = ?", input.Email, digest.SHA512(input.Password), uint(groupID)).Find(&dbUser).Scan(&user).Error
-	if err != nil {
-		return nil, err
+	user := &model.User{
+		ID:       strconv.FormatUint(uint64(userID), 10),
+		Email:    dbUser.Email,
+		Name:     dbUser.Name,
+		ImageURL: dbUser.ImageURL,
 	}
 	return user, nil
 }
@@ -154,6 +366,7 @@ func (r *queryResolver) Histories(ctx context.Context, input model.HistoriesQuer
 		for _, fromUser := range v.FromUsers {
 			fromUsers = append(fromUsers, &model.User{
 				ID:       strconv.FormatUint(uint64(fromUser.ID), 10),
+				Email:    fromUser.Email,
 				Name:     fromUser.Name,
 				ImageURL: fromUser.ImageURL,
 			})
@@ -161,6 +374,7 @@ func (r *queryResolver) Histories(ctx context.Context, input model.HistoriesQuer
 		for _, toUser := range v.ToUsers {
 			toUsers = append(toUsers, &model.User{
 				ID:       strconv.FormatUint(uint64(toUser.ID), 10),
+				Email:    toUser.Email,
 				Name:     toUser.Name,
 				ImageURL: toUser.ImageURL,
 			})
@@ -185,16 +399,62 @@ func (r *queryResolver) Histories(ctx context.Context, input model.HistoriesQuer
 // Users is the resolver for the users field.
 func (r *queryResolver) Users(ctx context.Context, input model.UsersQuery) ([]*model.User, error) {
 	var users []*model.User
-	var dbUsers []dbModel.User
+	var dbGroup *dbModel.Group
 	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
 	if err != nil {
 		return nil, err
 	}
-	err = r.DB.Where("group_id = ?", uint(groupID)).Find(&dbUsers).Scan(&users).Error
+	err = r.DB.Debug().Where("id = ?", uint(groupID)).Preload("Users").Limit(1).Find(&dbGroup).Error
 	if err != nil {
 		return nil, err
 	}
+	for _, dbUser := range dbGroup.Users {
+		users = append(users, &model.User{
+			ID:       strconv.FormatUint(uint64(dbUser.ID), 10),
+			Email:    dbUser.Email,
+			Name:     dbUser.Name,
+			ImageURL: dbUser.ImageURL,
+		})
+	}
 	return users, nil
+}
+
+// Groups is the resolver for the groups field.
+func (r *queryResolver) Groups(ctx context.Context, input model.GroupsQuery) ([]*model.Group, error) {
+	var groups []*model.Group
+	var dbUser *dbModel.User
+	userID, err := strconv.ParseUint(input.UserID, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	err = r.DB.Debug().Where("id = ?", uint(userID)).Preload("Groups").Limit(1).Find(&dbUser).Error
+	if err != nil {
+		return nil, err
+	}
+
+	for _, dbGroup := range dbUser.Groups {
+		// 所属しているグループのメンバーを取得する
+		var myGroupUsers []*model.User
+		var dbMyGroup *dbModel.Group
+		err = r.DB.Debug().Where("id = ?", uint(dbGroup.ID)).Preload("Users").Limit(1).Find(&dbMyGroup).Error
+		if err != nil {
+			return nil, err
+		}
+		for _, dbMyGroupUser := range dbMyGroup.Users {
+			myGroupUsers = append(myGroupUsers, &model.User{
+				ID:    strconv.FormatUint(uint64(dbMyGroupUser.ID), 10),
+				Email: dbMyGroupUser.Email,
+				Name:  dbMyGroupUser.Name,
+			})
+		}
+
+		groups = append(groups, &model.Group{
+			ID:    strconv.FormatUint(uint64(dbGroup.ID), 10),
+			Name:  dbGroup.Name,
+			Users: myGroupUsers,
+		})
+	}
+	return groups, nil
 }
 
 // Amounts is the resolver for the amounts field.

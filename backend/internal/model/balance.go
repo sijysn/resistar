@@ -11,8 +11,8 @@ type Balance struct {
   CreatedAt time.Time
   UpdatedAt time.Time
 	DeletedAt gorm.DeletedAt `gorm:"index"`
-	Amount int
+	Amount    int
 	HistoryID uint
-  UserID uint
-	GroupID uint
+  UserID    uint
+	GroupID   uint
 }
