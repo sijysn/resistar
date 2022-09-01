@@ -1,5 +1,6 @@
 import * as React from "react";
 import type { GetServerSideProps, NextPage } from "next";
+import { parseCookies } from "nookies";
 import dayjs from "dayjs";
 import { ServerSideProps } from "../index";
 import Index from "../../components/index/Index";
@@ -41,11 +42,12 @@ export const getServerSideProps: GetServerSideProps<ServerSideProps> = async (
     groupID: "1",
   });
 
+  const cookies = parseCookies();
   await getAmounts(apolloClient, {
     year,
     month,
     groupID: "1",
-    userID: "1",
+    userID: cookies["userID"],
   });
 
   return addApolloState(apolloClient, {

@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useQuery, NetworkStatus } from "@apollo/client";
+import { parseCookies } from "nookies";
 import IconButton from "@mui/material/IconButton";
 import AddIcon from "@mui/icons-material/Add";
 import { styled } from "@mui/material";
@@ -52,11 +53,12 @@ const Index: React.FC<ServerSideProps> = ({ yearAndMonth }) => {
     });
   };
 
+  const cookies = parseCookies();
   const getAmountsQueryVars = {
     year: currentYear,
     month: currentMonth,
     groupID: "1",
-    userID: "1",
+    userID: cookies["userID"],
   };
   const {
     loading: amountsLoading,

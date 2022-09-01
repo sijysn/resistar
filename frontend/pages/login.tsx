@@ -54,7 +54,7 @@ const LoginPage: NextPage = () => {
 
   const cookies = parseCookies();
   React.useEffect(() => {
-    if (cookies["jwt-token"]) {
+    if (cookies["jwtToken"]) {
       router.push("/");
     }
   });
