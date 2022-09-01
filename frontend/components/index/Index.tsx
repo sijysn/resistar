@@ -78,10 +78,10 @@ const Index: React.FC<ServerSideProps> = ({ yearAndMonth }) => {
     });
   };
 
-  const loadMore = () => {
+  const loadMore = React.useCallback(() => {
     loadMoreHistories();
     loadMoreAmounts();
-  };
+  }, [loadMoreHistories, loadMoreAmounts]);
 
   return (
     <div>
