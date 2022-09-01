@@ -82,11 +82,18 @@ type ComplexityRoot struct {
 		UpdatedAt func(childComplexity int) int
 	}
 
+	Invited struct {
+		Message func(childComplexity int) int
+		Success func(childComplexity int) int
+	}
+
 	Mutation struct {
-		AddGroup   func(childComplexity int, input model.InitGroup) int
-		AddHistory func(childComplexity int, input model.NewHistory) int
-		AddUser    func(childComplexity int, input model.NewUser) int
-		Login      func(childComplexity int, input model.LoginUser) int
+		AddGroup          func(childComplexity int, input model.InitGroup) int
+		AddHistory        func(childComplexity int, input model.NewHistory) int
+		AddUser           func(childComplexity int, input model.NewUser) int
+		InviteUserToGroup func(childComplexity int, input model.InviteUserToGroupInput) int
+		JoinGroup         func(childComplexity int, input model.JoinGroupInput) int
+		Login             func(childComplexity int, input model.LoginUser) int
 	}
 
 	Query struct {
@@ -114,6 +121,8 @@ type MutationResolver interface {
 	AddHistory(ctx context.Context, input model.NewHistory) (*model.History, error)
 	AddUser(ctx context.Context, input model.NewUser) (*model.User, error)
 	AddGroup(ctx context.Context, input model.InitGroup) (*model.Group, error)
+	InviteUserToGroup(ctx context.Context, input model.InviteUserToGroupInput) (*model.Invited, error)
+	JoinGroup(ctx context.Context, input model.JoinGroupInput) (*model.User, error)
 	Login(ctx context.Context, input model.LoginUser) (*model.User, error)
 }
 type QueryResolver interface {
@@ -320,6 +329,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.History.UpdatedAt(childComplexity), true
 
+	case "Invited.message":
+		if e.complexity.Invited.Message == nil {
+			break
+		}
+
+		return e.complexity.Invited.Message(childComplexity), true
+
+	case "Invited.success":
+		if e.complexity.Invited.Success == nil {
+			break
+		}
+
+		return e.complexity.Invited.Success(childComplexity), true
+
 	case "Mutation.addGroup":
 		if e.complexity.Mutation.AddGroup == nil {
 			break
@@ -355,6 +378,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.AddUser(childComplexity, args["input"].(model.NewUser)), true
+
+	case "Mutation.inviteUserToGroup":
+		if e.complexity.Mutation.InviteUserToGroup == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_inviteUserToGroup_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.InviteUserToGroup(childComplexity, args["input"].(model.InviteUserToGroupInput)), true
+
+	case "Mutation.joinGroup":
+		if e.complexity.Mutation.JoinGroup == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_joinGroup_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.JoinGroup(childComplexity, args["input"].(model.JoinGroupInput)), true
 
 	case "Mutation.login":
 		if e.complexity.Mutation.Login == nil {
@@ -498,6 +545,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputGroupsQuery,
 		ec.unmarshalInputHistoriesQuery,
 		ec.unmarshalInputInitGroup,
+		ec.unmarshalInputInviteUserToGroupInput,
+		ec.unmarshalInputJoinGroupInput,
 		ec.unmarshalInputLoginUser,
 		ec.unmarshalInputNewHistory,
 		ec.unmarshalInputNewUser,
@@ -627,6 +676,11 @@ type Amounts {
   groupTotal: Int!
 }
 
+type Invited {
+  message: String!
+  success: Boolean!
+}
+
 input HistoriesQuery {
   year: String!
   month: String!
@@ -674,6 +728,17 @@ input InitGroup {
   groupName: String!
 }
 
+input InviteUserToGroupInput {
+  email: String!
+  groupID: ID!
+}
+
+input JoinGroupInput {
+  email: String!
+  password: String!
+  groupID: ID!
+}
+
 input LoginUser {
   email: String!
   password: String!
@@ -684,6 +749,8 @@ type Mutation {
   addHistory(input: NewHistory!): History!
   addUser(input: NewUser!): User!
   addGroup(input: InitGroup!): Group!
+  inviteUserToGroup(input: InviteUserToGroupInput!): Invited!
+  joinGroup(input: JoinGroupInput!): User!
   login(input: LoginUser!): User!
 }
 `, BuiltIn: false},
@@ -731,6 +798,36 @@ func (ec *executionContext) field_Mutation_addUser_args(ctx context.Context, raw
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNNewUser2githubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐNewUser(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_inviteUserToGroup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.InviteUserToGroupInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNInviteUserToGroupInput2githubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐInviteUserToGroupInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_joinGroup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.JoinGroupInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNJoinGroupInput2githubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐJoinGroupInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2059,6 +2156,94 @@ func (ec *executionContext) fieldContext_History_groupID(ctx context.Context, fi
 	return fc, nil
 }
 
+func (ec *executionContext) _Invited_message(ctx context.Context, field graphql.CollectedField, obj *model.Invited) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Invited_message(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Message, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Invited_message(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Invited",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Invited_success(ctx context.Context, field graphql.CollectedField, obj *model.Invited) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Invited_success(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Success, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Invited_success(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Invited",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_addHistory(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_addHistory(ctx, field)
 	if err != nil {
@@ -2276,6 +2461,144 @@ func (ec *executionContext) fieldContext_Mutation_addGroup(ctx context.Context, 
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_addGroup_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_inviteUserToGroup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_inviteUserToGroup(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().InviteUserToGroup(rctx, fc.Args["input"].(model.InviteUserToGroupInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Invited)
+	fc.Result = res
+	return ec.marshalNInvited2ᚖgithubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐInvited(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_inviteUserToGroup(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "message":
+				return ec.fieldContext_Invited_message(ctx, field)
+			case "success":
+				return ec.fieldContext_Invited_success(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Invited", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_inviteUserToGroup_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_joinGroup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_joinGroup(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().JoinGroup(rctx, fc.Args["input"].(model.JoinGroupInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖgithubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_joinGroup(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "email":
+				return ec.fieldContext_User_email(ctx, field)
+			case "password":
+				return ec.fieldContext_User_password(ctx, field)
+			case "imageURL":
+				return ec.fieldContext_User_imageURL(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_User_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_User_updatedAt(ctx, field)
+			case "deletedAt":
+				return ec.fieldContext_User_deletedAt(ctx, field)
+			case "groups":
+				return ec.fieldContext_User_groups(ctx, field)
+			case "errorMessage":
+				return ec.fieldContext_User_errorMessage(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_joinGroup_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -5147,6 +5470,86 @@ func (ec *executionContext) unmarshalInputInitGroup(ctx context.Context, obj int
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputInviteUserToGroupInput(ctx context.Context, obj interface{}) (model.InviteUserToGroupInput, error) {
+	var it model.InviteUserToGroupInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"email", "groupID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "email":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
+			it.Email, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "groupID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("groupID"))
+			it.GroupID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputJoinGroupInput(ctx context.Context, obj interface{}) (model.JoinGroupInput, error) {
+	var it model.JoinGroupInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"email", "password", "groupID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "email":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
+			it.Email, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "password":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
+			it.Password, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "groupID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("groupID"))
+			it.GroupID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputLoginUser(ctx context.Context, obj interface{}) (model.LoginUser, error) {
 	var it model.LoginUser
 	asMap := map[string]interface{}{}
@@ -5579,6 +5982,41 @@ func (ec *executionContext) _History(ctx context.Context, sel ast.SelectionSet, 
 	return out
 }
 
+var invitedImplementors = []string{"Invited"}
+
+func (ec *executionContext) _Invited(ctx context.Context, sel ast.SelectionSet, obj *model.Invited) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, invitedImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Invited")
+		case "message":
+
+			out.Values[i] = ec._Invited_message(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "success":
+
+			out.Values[i] = ec._Invited_success(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var mutationImplementors = []string{"Mutation"}
 
 func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -5620,6 +6058,24 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_addGroup(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "inviteUserToGroup":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_inviteUserToGroup(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "joinGroup":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_joinGroup(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {
@@ -6401,6 +6857,30 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNInviteUserToGroupInput2githubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐInviteUserToGroupInput(ctx context.Context, v interface{}) (model.InviteUserToGroupInput, error) {
+	res, err := ec.unmarshalInputInviteUserToGroupInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNInvited2githubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐInvited(ctx context.Context, sel ast.SelectionSet, v model.Invited) graphql.Marshaler {
+	return ec._Invited(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNInvited2ᚖgithubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐInvited(ctx context.Context, sel ast.SelectionSet, v *model.Invited) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Invited(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNJoinGroupInput2githubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐJoinGroupInput(ctx context.Context, v interface{}) (model.JoinGroupInput, error) {
+	res, err := ec.unmarshalInputJoinGroupInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNLoginUser2githubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐLoginUser(ctx context.Context, v interface{}) (model.LoginUser, error) {

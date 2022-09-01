@@ -86,7 +86,7 @@ func (r *mutationResolver) AddUser(ctx context.Context, input model.NewUser) (*m
 	}
 
 	password := digest.SHA512(input.Password)
-	dbNewUser := &dbModel.User {
+	dbNewUser := &dbModel.User{
 		Email:    input.Email,
 		Password: password,
 	}
@@ -130,6 +130,90 @@ func (r *mutationResolver) AddGroup(ctx context.Context, input model.InitGroup) 
 	return newGroup, nil
 }
 
+// InviteUserToGroup is the resolver for the inviteUserToGroup field.
+func (r *mutationResolver) InviteUserToGroup(ctx context.Context, input model.InviteUserToGroupInput) (*model.Invited, error) {
+	// ユーザーが存在するかチェックする
+	var dbUsers []dbModel.User
+	err := r.DB.Where("email = ?", input.Email).Limit(1).Find(&dbUsers).Error
+	if err != nil {
+		return nil, err
+	}
+	if len(dbUsers) == 0 {
+		errorMessage := "このメールアドレスは登録されていません"
+		return &model.Invited{
+			Message: errorMessage,
+			Success: false,
+		}, nil 
+	}
+
+	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+
+	// グループが存在するかチェックする
+	var dbGroups []dbModel.Group
+	err = r.DB.Where("id = ?", uint(groupID)).Limit(1).Find(&dbGroups).Error
+	if err != nil {
+		return nil, err
+	}
+	if len(dbGroups) == 0 {
+		errorMessage := "このグループは存在しません"
+		return &model.Invited{
+			Message: errorMessage,
+			Success: false,
+		}, nil
+	}
+
+	// ユーザーがグループに参加しているかチェックする
+	var dbGroup *dbModel.Group
+	err = r.DB.Debug().Where("id = ?", uint(groupID)).Preload("Users", "email = ?", input.Email).Limit(1).Find(&dbGroup).Error
+	if err != nil {
+		return nil, err
+	}
+	if len(dbGroup.Users) == 1 {
+		errorMessage := "このメールアドレスのユーザーは招待できません"
+		return &model.Invited{
+			Message: errorMessage,
+			Success: false,
+		}, nil
+	}
+
+	var dbInvitedUsers []dbModel.InvitedUser
+	userID := dbUsers[0].ID
+	err = r.DB.Debug().Where("group_id = ? AND user_id = ?", uint(groupID), userID).Order("created_at DESC").Limit(1).Find(&dbInvitedUsers).Error
+	if err != nil {
+		return nil, err
+	}
+	// まだ招待されてないか、退会済みの場合
+	if len(dbInvitedUsers) == 0 || dbInvitedUsers[0].Joined {
+		dbNewInvitedUser := &dbModel.InvitedUser{
+			GroupID: uint(groupID),
+			UserID:  userID,
+			Joined:  false,
+		}
+		err = r.DB.Create(dbNewInvitedUser).Error
+		if err != nil {
+			return nil, err
+		}
+		message := "招待メールを送りました"
+		return &model.Invited{
+			Message: message,
+			Success: true,
+		}, nil
+	}
+	errorMessage := "このメールアドレスのユーザーは招待できません"
+	return &model.Invited{
+		Message: errorMessage,
+		Success: false,
+	}, nil
+}
+
+// JoinGroup is the resolver for the joinGroup field.
+func (r *mutationResolver) JoinGroup(ctx context.Context, input model.JoinGroupInput) (*model.User, error) {
+	panic(fmt.Errorf("not implemented: JoinGroup - joinGroup"))
+}
+
 // Login is the resolver for the login field.
 func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (*model.User, error) {
 	// グループのメンバーかどうかチェックする
@@ -138,7 +222,7 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (*m
 	if err != nil {
 		return nil, err
 	}
-	err = r.DB.Debug().Where("id = ?", uint(groupID)).Preload("Users", "email = ?", input.Email).First(&dbGroup).Error
+	err = r.DB.Debug().Where("id = ?", uint(groupID)).Preload("Users", "email = ?", input.Email).Limit(1).Find(&dbGroup).Error
 	if err != nil {
 		return nil, err
 	}
@@ -150,13 +234,17 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (*m
 	}
 
 	sessionToken := digest.GenerateToken()
+	userID := dbGroup.Users[0].ID
 	r.Session.Put(ctx, "session_token", sessionToken)
+	r.Session.Put(ctx, "user_id", uint(userID))
+	r.Session.Put(ctx, "group_id", uint(groupID))
 
 	signKey := digest.GenerateSignKey()
 	claims := jwt.MapClaims{
 		"session_token": sessionToken,
-		"groupID":       input.GroupID,
-		"exp":           time.Now().Add(24 * time.Hour).Unix(),
+		"groupID":       uint(groupID),
+		"userID":        uint(userID),
+		"exp":           time.Now().AddDate(0, 1, 0).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	jwtToken, err := token.SignedString(signKey)
@@ -172,10 +260,10 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (*m
 	if err != nil {
 		return nil, err
 	}
-	user := &model.User {
-		ID: strconv.FormatUint(uint64(dbUser.ID), 10),
-		Email: dbUser.Email,
-		Name: dbUser.Name,
+	user := &model.User{
+		ID:       strconv.FormatUint(uint64(dbUser.ID), 10),
+		Email:    dbUser.Email,
+		Name:     dbUser.Name,
 		ImageURL: dbUser.ImageURL,
 	}
 	return user, nil
@@ -236,7 +324,7 @@ func (r *queryResolver) Users(ctx context.Context, input model.UsersQuery) ([]*m
 	if err != nil {
 		return nil, err
 	}
-	err = r.DB.Debug().Where("id = ?", uint(groupID)).Preload("Users").First(&dbGroup).Error
+	err = r.DB.Debug().Where("id = ?", uint(groupID)).Preload("Users").Limit(1).Find(&dbGroup).Error
 	if err != nil {
 		return nil, err
 	}
@@ -259,7 +347,7 @@ func (r *queryResolver) Groups(ctx context.Context, input model.GroupsQuery) ([]
 	if err != nil {
 		return nil, err
 	}
-	err = r.DB.Debug().Where("id = ?", uint(userID)).Preload("Groups").First(&dbUser).Error
+	err = r.DB.Debug().Where("id = ?", uint(userID)).Preload("Groups").Limit(1).Find(&dbUser).Error
 	if err != nil {
 		return nil, err
 	}
@@ -268,23 +356,22 @@ func (r *queryResolver) Groups(ctx context.Context, input model.GroupsQuery) ([]
 		// 所属しているグループのメンバーを取得する
 		var myGroupUsers []*model.User
 		var dbMyGroup *dbModel.Group
-		err = r.DB.Debug().Where("id = ?", uint(dbGroup.ID)).Preload("Users").First(&dbMyGroup).Error
-		fmt.Println(dbMyGroup)
+		err = r.DB.Debug().Where("id = ?", uint(dbGroup.ID)).Preload("Users").Limit(1).Find(&dbMyGroup).Error
 		if err != nil {
 			return nil, err
 		}
 		for _, dbMyGroupUser := range dbMyGroup.Users {
 			myGroupUsers = append(myGroupUsers, &model.User{
-				ID:       strconv.FormatUint(uint64(dbMyGroupUser.ID), 10),
+				ID:    strconv.FormatUint(uint64(dbMyGroupUser.ID), 10),
 				Email: dbMyGroupUser.Email,
-				Name: dbMyGroupUser.Name,
+				Name:  dbMyGroupUser.Name,
 			})
 		}
 
 		groups = append(groups, &model.Group{
-			ID:       strconv.FormatUint(uint64(dbGroup.ID), 10),
-			Name:     dbGroup.Name,
-			Users:    myGroupUsers,
+			ID:    strconv.FormatUint(uint64(dbGroup.ID), 10),
+			Name:  dbGroup.Name,
+			Users: myGroupUsers,
 		})
 	}
 	return groups, nil

@@ -68,6 +68,22 @@ type InitGroup struct {
 	GroupName string `json:"groupName"`
 }
 
+type InviteUserToGroupInput struct {
+	Email   string `json:"email"`
+	GroupID string `json:"groupID"`
+}
+
+type Invited struct {
+	Message string `json:"message"`
+	Success bool   `json:"success"`
+}
+
+type JoinGroupInput struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	GroupID  string `json:"groupID"`
+}
+
 type LoginUser struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
