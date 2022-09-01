@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useQuery, useMutation } from "@apollo/client";
+import { parseCookies } from "nookies";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
@@ -74,6 +75,8 @@ const AddFormModal: React.FC<ModalProps> = ({ isOpen, close, onAdd }) => {
     initialValues["toUsers"]
   );
 
+  const cookies = parseCookies();
+
   const [add, { loading, error }] = useMutation<
     addHistoryProps,
     addHistoryVarsProps
@@ -81,7 +84,7 @@ const AddFormModal: React.FC<ModalProps> = ({ isOpen, close, onAdd }) => {
 
   const addHistory = () => {
     const addHistoryQueryVars: addHistoryVarsProps = {
-      groupID: "1",
+      groupID: cookies["groupID"],
       title: title,
       type: TypesMaster[type],
       price: Number(price),
@@ -105,7 +108,7 @@ const AddFormModal: React.FC<ModalProps> = ({ isOpen, close, onAdd }) => {
   };
 
   const getUsersQueryVars = {
-    groupID: "1",
+    groupID: cookies["groupID"],
   };
   const {
     loading: usersLoading,

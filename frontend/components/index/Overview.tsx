@@ -1,6 +1,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { ApolloError, useQuery } from "@apollo/client";
+import { parseCookies } from "nookies";
 import Avatar from "@mui/material/Avatar";
 import IconButton from "@mui/material/IconButton";
 import { styled } from "@mui/material";
@@ -28,13 +29,14 @@ const Overview: React.FC<Props> = ({
   amountsLoading,
   amountsError,
 }) => {
+  const cookies = parseCookies();
   const [year, month] = dayjs(yearAndMonth).format("YYYY-M").split("-");
   const previousYearAndMonth = dayjs(yearAndMonth)
     .subtract(1, "M")
     .format("YYYY-MM");
   const nextYearAndMonth = dayjs(yearAndMonth).add(1, "M").format("YYYY-MM");
   const getUsersQueryVars = {
-    groupID: "1",
+    groupID: cookies["groupID"],
   };
   const {
     loading: usersLoading,

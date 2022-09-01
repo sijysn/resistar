@@ -25,10 +25,12 @@ const Index: React.FC<ServerSideProps> = ({ yearAndMonth }) => {
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
+  const cookies = parseCookies();
+
   const currentYear = dayjs(yearAndMonth).format("YYYY");
   const currentMonth = dayjs(yearAndMonth).format("MM");
   const getHistoriesQueryVars = {
-    groupID: "1",
+    groupID: cookies["groupID"],
     year: currentYear,
     month: currentMonth,
   };
@@ -53,11 +55,10 @@ const Index: React.FC<ServerSideProps> = ({ yearAndMonth }) => {
     });
   };
 
-  const cookies = parseCookies();
   const getAmountsQueryVars = {
     year: currentYear,
     month: currentMonth,
-    groupID: "1",
+    groupID: cookies["groupID"],
     userID: cookies["userID"],
   };
   const {

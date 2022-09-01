@@ -1,6 +1,6 @@
 import * as React from "react";
 import type { GetServerSideProps, NextPage } from "next";
-import { parseCookies } from "nookies";
+import nookies from "nookies";
 import dayjs from "dayjs";
 import { ServerSideProps } from "../index";
 import Index from "../../components/index/Index";
@@ -32,21 +32,22 @@ export const getServerSideProps: GetServerSideProps<ServerSideProps> = async (
   const yearAndMonth = datetime.format("YYYY-MM");
   const apolloClient = initializeApollo();
 
+  const cookies = nookies.get(context);
+
   await getHistories(apolloClient, {
-    groupID: "1",
+    groupID: cookies["groupID"],
     year,
     month,
   });
 
   await getUsers(apolloClient, {
-    groupID: "1",
+    groupID: cookies["groupID"],
   });
 
-  const cookies = parseCookies();
   await getAmounts(apolloClient, {
     year,
     month,
-    groupID: "1",
+    groupID: cookies["groupID"],
     userID: cookies["userID"],
   });
 
