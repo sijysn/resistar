@@ -132,6 +132,23 @@ func (r *mutationResolver) AddGroup(ctx context.Context, input model.InitGroup) 
 
 // Login is the resolver for the login field.
 func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (*model.User, error) {
+	// グループのメンバーかどうかチェックする
+	var dbGroup *dbModel.Group
+	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	err = r.DB.Debug().Where("id = ?", uint(groupID)).Preload("Users", "email = ?", input.Email).First(&dbGroup).Error
+	if err != nil {
+		return nil, err
+	}
+	if len(dbGroup.Users) != 1 {
+		errorMessage := "メールアドレスまたはパスワードが違います"
+		return &model.User{
+			ErrorMessage: &errorMessage,
+		}, nil
+	}
+
 	sessionToken := digest.GenerateToken()
 	r.Session.Put(ctx, "session_token", sessionToken)
 
