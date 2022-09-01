@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useMutation } from "@apollo/client";
+import { useQuery, useMutation } from "@apollo/client";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
@@ -22,19 +22,18 @@ import {
   DISPLAYED_TYPE_DIARY,
   TypesMaster,
 } from "../../lib/apollo/api/addHistory";
-import { UserProps } from "../../lib/apollo/api/getUsers";
+import {
+  getUsersProps,
+  getUsersVarsProps,
+  GET_USERS,
+  UserProps,
+} from "../../lib/apollo/api/getUsers";
 
 type ModalProps = {
   isOpen: boolean;
   close: () => void;
   onAdd: () => void;
 };
-
-const users = [
-  { id: "1", name: "せーじ" },
-  { id: "2", name: "もつ" },
-  { id: "3", name: "かんた" },
-];
 
 const Transition = React.forwardRef(function TransitionComponent(
   props: TransitionProps & {
@@ -105,6 +104,18 @@ const AddFormModal: React.FC<ModalProps> = ({ isOpen, close, onAdd }) => {
     setToUsers(initialValues["toUsers"]);
   };
 
+  const getUsersQueryVars = {
+    groupID: "1",
+  };
+  const {
+    loading: usersLoading,
+    error: usersError,
+    data: usersData,
+  } = useQuery<getUsersProps, getUsersVarsProps>(GET_USERS, {
+    variables: getUsersQueryVars,
+    notifyOnNetworkStatusChange: true,
+  });
+
   if (loading) return <div>Submitting...</div>;
   if (error) return <div>Submission error! {error.message}</div>;
 
@@ -146,13 +157,13 @@ const AddFormModal: React.FC<ModalProps> = ({ isOpen, close, onAdd }) => {
         />
         <StyledUsersSelector
           label="購入者"
-          selectableUsers={users}
+          selectableUsers={usersData ? usersData.users : []}
           setSelectedUsers={setFromUsers}
           selectedUsers={fromUsers}
         />
         <UsersSelector
           label="負担者"
-          selectableUsers={users}
+          selectableUsers={usersData ? usersData.users : []}
           setSelectedUsers={setToUsers}
           selectedUsers={toUsers}
         />
