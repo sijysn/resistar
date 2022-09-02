@@ -43,7 +43,7 @@ export const getServerSideProps: GetServerSideProps<ServerSideProps> = async (
   return addApolloState(apolloClient, {
     props: {
       yearAndMonth: currentYearAndMonth,
-      cookies: cookies,
+      cookies,
     },
   });
 };
