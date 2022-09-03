@@ -13,6 +13,7 @@ type History {
   updatedAt: String
   deletedAt: String
   groupID: ID!
+  errorMessage: String
 }
 
 enum Type {
@@ -45,6 +46,7 @@ type Group {
   updatedAt: String
   deletedAt: String
   users: [User!]!
+  errorMessage: String
 }
 
 type Balance {
@@ -56,11 +58,13 @@ type Balance {
   historyID: ID!
   userID: ID!
   groupID: ID!
+  errorMessage: String
 }
 
 type Amounts {
   personalBalance: Int!
   groupTotal: Int!
+  errorMessage: String
 }
 
 type Invited {

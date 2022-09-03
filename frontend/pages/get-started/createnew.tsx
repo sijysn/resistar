@@ -6,7 +6,7 @@ import {
   LOGIN_USER,
   loginUserProps,
   loginUserVarsProps,
-} from "../lib/apollo/api/loginUser";
+} from "../../lib/apollo/api/loginUser";
 import { useRouter } from "next/router";
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
@@ -21,7 +21,7 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 
-const LoginPage: NextPage = () => {
+const CreateNewPage: NextPage = () => {
   const router = useRouter();
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -55,9 +55,9 @@ const LoginPage: NextPage = () => {
   const cookies = parseCookies();
   React.useEffect(() => {
     if (cookies["jwtToken"]) {
-      router.reload();
+      router.push("/");
     }
-  }, [cookies["jwtToken"]]);
+  });
 
   return (
     <Container component="main" maxWidth="xs">
@@ -155,4 +155,4 @@ const LoginPage: NextPage = () => {
   );
 };
 
-export default LoginPage;
+export default CreateNewPage;

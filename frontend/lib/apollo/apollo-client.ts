@@ -8,6 +8,7 @@ import {
   gql,
 } from "@apollo/client";
 import { onError } from "@apollo/client/link/error";
+import { setContext } from "@apollo/client/link/context";
 import merge from "deepmerge";
 import isEqual from "lodash/isEqual";
 
@@ -30,11 +31,34 @@ const httpLink = new HttpLink({
   credentials: "include",
 });
 
-const createApolloClient = () => {
+const getAuthLink = (jwtToken: string) => {
+  return setContext((_, { headers }) => {
+    return {
+      headers: {
+        ...headers,
+        Authorization: jwtToken ? `Bearer ${jwtToken}` : "dddd",
+      },
+    };
+  }).concat(httpLink);
+};
+
+const createApolloClient = (jwtToken: string) => {
   return new ApolloClient({
     ssrMode: typeof window === "undefined",
-    link: from([errorLink, httpLink]),
-    cache: new InMemoryCache(),
+    link: from([errorLink, getAuthLink(jwtToken)]),
+    cache: new InMemoryCache({
+      typePolicies: {
+        Query: {
+          fields: {
+            histories: {
+              merge(_, incoming) {
+                return incoming;
+              },
+            },
+          },
+        },
+      },
+    }),
     typeDefs: gql`
       # graphqlのクエリ内で独自の型を使用する場合はここに定義する
       enum Type {
@@ -50,8 +74,11 @@ const createApolloClient = () => {
   });
 };
 
-export const initializeApollo = (initialState?: Partial<unknown>) => {
-  const _apolloClient = apolloClient ?? createApolloClient();
+export const initializeApollo = (
+  jwtToken: string,
+  initialState?: Partial<unknown>
+) => {
+  const _apolloClient = apolloClient ?? createApolloClient(jwtToken);
   if (initialState) {
     const existingCache = _apolloClient.extract();
 
@@ -85,8 +112,11 @@ export const addApolloState = (
   return pageProps;
 };
 
-export const useApollo = (pageProps: any) => {
+export const useApollo = (pageProps: any, jwtToken: string) => {
   const state = pageProps[APOLLO_STATE];
-  const store = useMemo(() => initializeApollo(state), [state]);
+  const store = useMemo(() => initializeApollo(jwtToken, state), [
+    jwtToken,
+    state,
+  ]);
   return store;
 };

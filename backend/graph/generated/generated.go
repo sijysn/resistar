@@ -45,41 +45,45 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Amounts struct {
+		ErrorMessage    func(childComplexity int) int
 		GroupTotal      func(childComplexity int) int
 		PersonalBalance func(childComplexity int) int
 	}
 
 	Balance struct {
-		Amount    func(childComplexity int) int
-		CreatedAt func(childComplexity int) int
-		DeletedAt func(childComplexity int) int
-		GroupID   func(childComplexity int) int
-		HistoryID func(childComplexity int) int
-		ID        func(childComplexity int) int
-		UpdatedAt func(childComplexity int) int
-		UserID    func(childComplexity int) int
+		Amount       func(childComplexity int) int
+		CreatedAt    func(childComplexity int) int
+		DeletedAt    func(childComplexity int) int
+		ErrorMessage func(childComplexity int) int
+		GroupID      func(childComplexity int) int
+		HistoryID    func(childComplexity int) int
+		ID           func(childComplexity int) int
+		UpdatedAt    func(childComplexity int) int
+		UserID       func(childComplexity int) int
 	}
 
 	Group struct {
-		CreatedAt func(childComplexity int) int
-		DeletedAt func(childComplexity int) int
-		ID        func(childComplexity int) int
-		Name      func(childComplexity int) int
-		UpdatedAt func(childComplexity int) int
-		Users     func(childComplexity int) int
+		CreatedAt    func(childComplexity int) int
+		DeletedAt    func(childComplexity int) int
+		ErrorMessage func(childComplexity int) int
+		ID           func(childComplexity int) int
+		Name         func(childComplexity int) int
+		UpdatedAt    func(childComplexity int) int
+		Users        func(childComplexity int) int
 	}
 
 	History struct {
-		CreatedAt func(childComplexity int) int
-		DeletedAt func(childComplexity int) int
-		FromUsers func(childComplexity int) int
-		GroupID   func(childComplexity int) int
-		ID        func(childComplexity int) int
-		Price     func(childComplexity int) int
-		Title     func(childComplexity int) int
-		ToUsers   func(childComplexity int) int
-		Type      func(childComplexity int) int
-		UpdatedAt func(childComplexity int) int
+		CreatedAt    func(childComplexity int) int
+		DeletedAt    func(childComplexity int) int
+		ErrorMessage func(childComplexity int) int
+		FromUsers    func(childComplexity int) int
+		GroupID      func(childComplexity int) int
+		ID           func(childComplexity int) int
+		Price        func(childComplexity int) int
+		Title        func(childComplexity int) int
+		ToUsers      func(childComplexity int) int
+		Type         func(childComplexity int) int
+		UpdatedAt    func(childComplexity int) int
 	}
 
 	Invited struct {
@@ -147,6 +151,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
+	case "Amounts.errorMessage":
+		if e.complexity.Amounts.ErrorMessage == nil {
+			break
+		}
+
+		return e.complexity.Amounts.ErrorMessage(childComplexity), true
+
 	case "Amounts.groupTotal":
 		if e.complexity.Amounts.GroupTotal == nil {
 			break
@@ -181,6 +192,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Balance.DeletedAt(childComplexity), true
+
+	case "Balance.errorMessage":
+		if e.complexity.Balance.ErrorMessage == nil {
+			break
+		}
+
+		return e.complexity.Balance.ErrorMessage(childComplexity), true
 
 	case "Balance.groupID":
 		if e.complexity.Balance.GroupID == nil {
@@ -231,6 +249,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Group.DeletedAt(childComplexity), true
 
+	case "Group.errorMessage":
+		if e.complexity.Group.ErrorMessage == nil {
+			break
+		}
+
+		return e.complexity.Group.ErrorMessage(childComplexity), true
+
 	case "Group.id":
 		if e.complexity.Group.ID == nil {
 			break
@@ -272,6 +297,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.History.DeletedAt(childComplexity), true
+
+	case "History.errorMessage":
+		if e.complexity.History.ErrorMessage == nil {
+			break
+		}
+
+		return e.complexity.History.ErrorMessage(childComplexity), true
 
 	case "History.fromUsers":
 		if e.complexity.History.FromUsers == nil {
@@ -626,6 +658,7 @@ type History {
   updatedAt: String
   deletedAt: String
   groupID: ID!
+  errorMessage: String
 }
 
 enum Type {
@@ -658,6 +691,7 @@ type Group {
   updatedAt: String
   deletedAt: String
   users: [User!]!
+  errorMessage: String
 }
 
 type Balance {
@@ -669,11 +703,13 @@ type Balance {
   historyID: ID!
   userID: ID!
   groupID: ID!
+  errorMessage: String
 }
 
 type Amounts {
   personalBalance: Int!
   groupTotal: Int!
+  errorMessage: String
 }
 
 type Invited {
@@ -1052,6 +1088,47 @@ func (ec *executionContext) fieldContext_Amounts_groupTotal(ctx context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _Amounts_errorMessage(ctx context.Context, field graphql.CollectedField, obj *model.Amounts) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Amounts_errorMessage(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ErrorMessage, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Amounts_errorMessage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Amounts",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Balance_id(ctx context.Context, field graphql.CollectedField, obj *model.Balance) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Balance_id(ctx, field)
 	if err != nil {
@@ -1398,6 +1475,47 @@ func (ec *executionContext) fieldContext_Balance_groupID(ctx context.Context, fi
 	return fc, nil
 }
 
+func (ec *executionContext) _Balance_errorMessage(ctx context.Context, field graphql.CollectedField, obj *model.Balance) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Balance_errorMessage(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ErrorMessage, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Balance_errorMessage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Balance",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Group_id(ctx context.Context, field graphql.CollectedField, obj *model.Group) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Group_id(ctx, field)
 	if err != nil {
@@ -1673,6 +1791,47 @@ func (ec *executionContext) fieldContext_Group_users(ctx context.Context, field 
 				return ec.fieldContext_User_errorMessage(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Group_errorMessage(ctx context.Context, field graphql.CollectedField, obj *model.Group) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Group_errorMessage(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ErrorMessage, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Group_errorMessage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Group",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2156,6 +2315,47 @@ func (ec *executionContext) fieldContext_History_groupID(ctx context.Context, fi
 	return fc, nil
 }
 
+func (ec *executionContext) _History_errorMessage(ctx context.Context, field graphql.CollectedField, obj *model.History) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_History_errorMessage(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ErrorMessage, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_History_errorMessage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "History",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Invited_message(ctx context.Context, field graphql.CollectedField, obj *model.Invited) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Invited_message(ctx, field)
 	if err != nil {
@@ -2303,6 +2503,8 @@ func (ec *executionContext) fieldContext_Mutation_addHistory(ctx context.Context
 				return ec.fieldContext_History_deletedAt(ctx, field)
 			case "groupID":
 				return ec.fieldContext_History_groupID(ctx, field)
+			case "errorMessage":
+				return ec.fieldContext_History_errorMessage(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type History", field.Name)
 		},
@@ -2449,6 +2651,8 @@ func (ec *executionContext) fieldContext_Mutation_addGroup(ctx context.Context, 
 				return ec.fieldContext_Group_deletedAt(ctx, field)
 			case "users":
 				return ec.fieldContext_Group_users(ctx, field)
+			case "errorMessage":
+				return ec.fieldContext_Group_errorMessage(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Group", field.Name)
 		},
@@ -2741,6 +2945,8 @@ func (ec *executionContext) fieldContext_Query_histories(ctx context.Context, fi
 				return ec.fieldContext_History_deletedAt(ctx, field)
 			case "groupID":
 				return ec.fieldContext_History_groupID(ctx, field)
+			case "errorMessage":
+				return ec.fieldContext_History_errorMessage(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type History", field.Name)
 		},
@@ -2887,6 +3093,8 @@ func (ec *executionContext) fieldContext_Query_groups(ctx context.Context, field
 				return ec.fieldContext_Group_deletedAt(ctx, field)
 			case "users":
 				return ec.fieldContext_Group_users(ctx, field)
+			case "errorMessage":
+				return ec.fieldContext_Group_errorMessage(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Group", field.Name)
 		},
@@ -2948,6 +3156,8 @@ func (ec *executionContext) fieldContext_Query_amounts(ctx context.Context, fiel
 				return ec.fieldContext_Amounts_personalBalance(ctx, field)
 			case "groupTotal":
 				return ec.fieldContext_Amounts_groupTotal(ctx, field)
+			case "errorMessage":
+				return ec.fieldContext_Amounts_errorMessage(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Amounts", field.Name)
 		},
@@ -3489,6 +3699,8 @@ func (ec *executionContext) fieldContext_User_groups(ctx context.Context, field 
 				return ec.fieldContext_Group_deletedAt(ctx, field)
 			case "users":
 				return ec.fieldContext_Group_users(ctx, field)
+			case "errorMessage":
+				return ec.fieldContext_Group_errorMessage(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Group", field.Name)
 		},
@@ -5758,6 +5970,10 @@ func (ec *executionContext) _Amounts(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "errorMessage":
+
+			out.Values[i] = ec._Amounts_errorMessage(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -5829,6 +6045,10 @@ func (ec *executionContext) _Balance(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "errorMessage":
+
+			out.Values[i] = ec._Balance_errorMessage(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -5886,6 +6106,10 @@ func (ec *executionContext) _Group(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "errorMessage":
+
+			out.Values[i] = ec._Group_errorMessage(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -5971,6 +6195,10 @@ func (ec *executionContext) _History(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "errorMessage":
+
+			out.Values[i] = ec._History_errorMessage(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

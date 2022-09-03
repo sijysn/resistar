@@ -19,9 +19,9 @@ export const getServerSideProps: GetServerSideProps<ServerSideProps> = async (
   const currentYear = now.format("YYYY");
   const currentMonth = now.format("MM");
   const currentYearAndMonth = now.format("YYYY-MM");
-  const apolloClient = initializeApollo();
 
   const cookies = nookies.get(context);
+  const apolloClient = initializeApollo(cookies["jwtToken"]);
 
   await getHistories(apolloClient, {
     groupID: cookies["groupID"],
