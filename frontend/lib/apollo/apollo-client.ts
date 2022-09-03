@@ -36,7 +36,7 @@ const getAuthLink = (jwtToken: string) => {
     return {
       headers: {
         ...headers,
-        authorization: jwtToken ? `Bearer ${jwtToken}` : "dddd",
+        Authorization: jwtToken ? `Bearer ${jwtToken}` : "dddd",
       },
     };
   }).concat(httpLink);
