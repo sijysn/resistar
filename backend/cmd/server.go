@@ -21,6 +21,7 @@ import (
 )
 
 const defaultPort = "8080"
+const timezone = "Asia/Tokyo"
 
 var app *config.AppConfig
 var session *scs.SessionManager
@@ -30,6 +31,12 @@ func run() {
 	if err != nil {
 		log.Fatal("cannot load env file!")
 	}
+
+	loc, err := time.LoadLocation(timezone)
+	if err != nil {
+			loc = time.FixedZone(timezone, 9*60*60)
+	}
+	time.Local = loc
 
 	log.Println("Connecting to database...")
 	url := os.Getenv("DATABASE_URL")
