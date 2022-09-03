@@ -62,7 +62,7 @@ func run() {
 	router.Use(cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:8080", "https://web.resistar.net"},
 		AllowCredentials: true,
-		AllowedHeaders: []string{"Access-Control-Allow-Headers", "Authorization", "Content-Type"},
+		AllowedHeaders:   []string{"Access-Control-Allow-Headers", "Authorization", "Content-Type"},
 		Debug:            true,
 	}).Handler)
 	router.Use(middleware.Middleware())
