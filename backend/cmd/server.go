@@ -62,9 +62,10 @@ func run() {
 	router.Use(cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:8080", "https://web.resistar.net"},
 		AllowCredentials: true,
+		AllowedHeaders: []string{"Access-Control-Allow-Headers", "Authorization", "Content-Type"},
 		Debug:            true,
 	}).Handler)
-	router.Use(middleware.Middleware(session))
+	router.Use(middleware.Middleware())
 
 	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	router.Handle("/query", srv)

@@ -7,10 +7,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/alexedwards/scs/v2"
 	"github.com/golang-jwt/jwt"
 	"github.com/golang-jwt/jwt/request"
 	"github.com/sijysn/resistar/backend/internal/auth"
+	"github.com/sijysn/resistar/backend/internal/session"
 )
 
 var ResponseAccessKey string
@@ -36,7 +36,7 @@ func (r *ResponseAccess) SetCookie(name string, value string, httpOnly bool, exp
 	http.SetCookie(r.Writer, cookie)
 }
 
-func Middleware(session *scs.SessionManager) func(http.Handler) http.Handler {
+func Middleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			token, err := request.ParseFromRequest(r, request.AuthorizationHeaderExtractor, func(token *jwt.Token) (interface{}, error) {
@@ -47,7 +47,7 @@ func Middleware(session *scs.SessionManager) func(http.Handler) http.Handler {
 			})
 			responseAccess := ResponseAccess{
 				Writer: w,
-				Status: getStatus(token, session, r, err),
+				Status: getStatus(token, r, err),
 			}
 			ctx := context.WithValue(r.Context(), ResponseAccessKey, &responseAccess)
 			r = r.WithContext(ctx)
@@ -56,7 +56,7 @@ func Middleware(session *scs.SessionManager) func(http.Handler) http.Handler {
 	}
 }
 
-func getStatus(token *jwt.Token, session *scs.SessionManager, r *http.Request, err error) int {
+func getStatus(token *jwt.Token, r *http.Request, err error) int {
 	if err != nil  {
 		return http.StatusUnauthorized
 	}
@@ -64,9 +64,9 @@ func getStatus(token *jwt.Token, session *scs.SessionManager, r *http.Request, e
 	if !ok {
 		return http.StatusInternalServerError
 	}
-	sessionValid := session.Get(r.Context(), "session_token") == claims["sessionToken"]
-	userIDValid := session.Get(r.Context(), "user_id").(uint) == uint(claims["userID"].(float64))
-	groupIDValid := session.Get(r.Context(), "group_id").(uint) == uint(claims["groupID"].(float64))
+	sessionValid :=	session.Session.SessionToken == claims["sessionToken"]
+	userIDValid := session.Session.UserID == uint(claims["userID"].(float64))
+	groupIDValid := session.Session.GroupID == uint(claims["groupID"].(float64))
 	if sessionValid && userIDValid && groupIDValid {
 		return http.StatusOK
 	} 

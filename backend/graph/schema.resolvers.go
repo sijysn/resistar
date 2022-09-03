@@ -17,6 +17,7 @@ import (
 	"github.com/sijysn/resistar/backend/internal/digest"
 	"github.com/sijysn/resistar/backend/internal/middleware"
 	dbModel "github.com/sijysn/resistar/backend/internal/model"
+	"github.com/sijysn/resistar/backend/internal/session"
 	"github.com/sijysn/resistar/backend/internal/sql"
 )
 
@@ -27,7 +28,7 @@ func (r *mutationResolver) AddHistory(ctx context.Context, input model.NewHistor
 		return nil, fmt.Errorf("サーバーエラーが発生しました")
 	}
 	if responseAccess.Status == http.StatusUnauthorized {
-		responseAccess.Writer.WriteHeader(responseAccess.Status)
+		// responseAccess.Writer.WriteHeader(responseAccess.Status)
 		errorMessage := "認証されていません"
 		return &model.History{
 			ErrorMessage: &errorMessage,
@@ -95,7 +96,7 @@ func (r *mutationResolver) AddUser(ctx context.Context, input model.NewUser) (*m
 		return nil, fmt.Errorf("サーバーエラーが発生しました")
 	}
 	if responseAccess.Status == http.StatusUnauthorized {
-		responseAccess.Writer.WriteHeader(responseAccess.Status)
+		// responseAccess.Writer.WriteHeader(responseAccess.Status)
 		errorMessage := "認証されていません"
 		return &model.User{
 			ErrorMessage: &errorMessage,
@@ -135,7 +136,7 @@ func (r *mutationResolver) AddGroup(ctx context.Context, input model.InitGroup) 
 		return nil, fmt.Errorf("サーバーエラーが発生しました")
 	}
 	if responseAccess.Status == http.StatusUnauthorized {
-		responseAccess.Writer.WriteHeader(responseAccess.Status)
+		// responseAccess.Writer.WriteHeader(responseAccess.Status)
 		errorMessage := "認証されていません"
 		return &model.Group{
 			ErrorMessage: &errorMessage,
@@ -174,7 +175,7 @@ func (r *mutationResolver) InviteUserToGroup(ctx context.Context, input model.In
 		return nil, fmt.Errorf("サーバーエラーが発生しました")
 	}
 	if responseAccess.Status == http.StatusUnauthorized {
-		responseAccess.Writer.WriteHeader(responseAccess.Status)
+		// responseAccess.Writer.WriteHeader(responseAccess.Status)
 		errorMessage := "認証されていません"
 		return &model.Invited{
 			Message: errorMessage,
@@ -265,7 +266,7 @@ func (r *mutationResolver) JoinGroup(ctx context.Context, input model.JoinGroupI
 		return nil, fmt.Errorf("サーバーエラーが発生しました")
 	}
 	if responseAccess.Status == http.StatusUnauthorized {
-		responseAccess.Writer.WriteHeader(responseAccess.Status)
+		// responseAccess.Writer.WriteHeader(responseAccess.Status)
 		errorMessage := "認証されていません"
 		return &model.User{
 			ErrorMessage: &errorMessage,
@@ -387,9 +388,9 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (*m
 	sessionToken := digest.GenerateToken()
 	dbUser := dbGroup.Users[0]
 	userID := dbUser.ID
-	r.Session.Put(ctx, "session_token", sessionToken)
-	r.Session.Put(ctx, "user_id", uint(userID))
-	r.Session.Put(ctx, "group_id", uint(groupID))
+	session.Session.SessionToken = sessionToken
+	session.Session.UserID = uint(userID)
+	session.Session.GroupID = uint(groupID)
 
 	auth.SignKey = digest.GenerateSignKey()
 	claims := jwt.MapClaims{
@@ -399,7 +400,6 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (*m
 		"exp":           time.Now().AddDate(0, 1, 0).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	fmt.Println(token.Valid)
 	jwtToken, err := token.SignedString(auth.SignKey)
 	if err != nil {
 		return nil, err
@@ -428,7 +428,7 @@ func (r *queryResolver) Histories(ctx context.Context, input model.HistoriesQuer
 	}
 	var histories []*model.History
 	if responseAccess.Status == http.StatusUnauthorized {
-		responseAccess.Writer.WriteHeader(responseAccess.Status)
+		// responseAccess.Writer.WriteHeader(responseAccess.Status)
 		errorMessage := "認証されていません"
 		histories = append(histories, &model.History{
 			ErrorMessage: &errorMessage,
@@ -488,7 +488,7 @@ func (r *queryResolver) Users(ctx context.Context, input model.UsersQuery) ([]*m
 	}
 	var users []*model.User
 	if responseAccess.Status == http.StatusUnauthorized {
-		responseAccess.Writer.WriteHeader(responseAccess.Status)
+		// responseAccess.Writer.WriteHeader(responseAccess.Status)
 		errorMessage := "認証されていません"
 		users = append(users, &model.User{
 			ErrorMessage: &errorMessage,
@@ -523,7 +523,7 @@ func (r *queryResolver) Groups(ctx context.Context, input model.GroupsQuery) ([]
 	}
 	var groups []*model.Group
 	if responseAccess.Status == http.StatusUnauthorized {
-		responseAccess.Writer.WriteHeader(responseAccess.Status)
+		// responseAccess.Writer.WriteHeader(responseAccess.Status)
 		errorMessage := "認証されていません"
 		groups = append(groups, &model.Group{
 			ErrorMessage: &errorMessage,
@@ -573,7 +573,7 @@ func (r *queryResolver) Amounts(ctx context.Context, input model.AmountsQuery) (
 		return nil, fmt.Errorf("サーバーエラーが発生しました")
 	}
 	if responseAccess.Status == http.StatusUnauthorized {
-		responseAccess.Writer.WriteHeader(responseAccess.Status)
+		// responseAccess.Writer.WriteHeader(responseAccess.Status)
 		errorMessage := "認証されていません"
 		return &model.Amounts{
 			ErrorMessage: &errorMessage,
