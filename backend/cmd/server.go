@@ -14,9 +14,9 @@ import (
 	"github.com/rs/cors"
 	"github.com/sijysn/resistar/backend/graph"
 	"github.com/sijysn/resistar/backend/graph/generated"
-	"github.com/sijysn/resistar/backend/internal/auth"
 	"github.com/sijysn/resistar/backend/internal/config"
 	"github.com/sijysn/resistar/backend/internal/driver"
+	"github.com/sijysn/resistar/backend/internal/middleware"
 	"github.com/sijysn/resistar/backend/internal/migrate"
 )
 
@@ -55,7 +55,7 @@ func run() {
 		port = defaultPort
 	}
 
-	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{DB: db, Session: session}}))
+	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{DB: db, Session: session }}))
 
 	router := chi.NewRouter()
 
@@ -64,7 +64,7 @@ func run() {
 		AllowCredentials: true,
 		Debug:            true,
 	}).Handler)
-	router.Use(auth.Middleware(db))
+	router.Use(middleware.Middleware(session))
 
 	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	router.Handle("/query", srv)

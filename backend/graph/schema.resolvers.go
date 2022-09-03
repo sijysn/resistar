@@ -5,6 +5,8 @@ package graph
 
 import (
 	"context"
+	"fmt"
+	"net/http"
 	"strconv"
 	"time"
 
@@ -13,12 +15,25 @@ import (
 	"github.com/sijysn/resistar/backend/graph/model"
 	"github.com/sijysn/resistar/backend/internal/auth"
 	"github.com/sijysn/resistar/backend/internal/digest"
+	"github.com/sijysn/resistar/backend/internal/middleware"
 	dbModel "github.com/sijysn/resistar/backend/internal/model"
 	"github.com/sijysn/resistar/backend/internal/sql"
 )
 
 // AddHistory is the resolver for the addHistory field.
 func (r *mutationResolver) AddHistory(ctx context.Context, input model.NewHistory) (*model.History, error) {
+	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
+	if responseAccess.Status == http.StatusInternalServerError {
+		return nil, fmt.Errorf("サーバーエラーが発生しました")
+	}
+	if responseAccess.Status == http.StatusUnauthorized {
+		responseAccess.Writer.WriteHeader(responseAccess.Status)
+		errorMessage := "認証されていません"
+		return &model.History{
+			ErrorMessage: &errorMessage,
+		}, nil
+	}
+
 	var dbFromUsers []dbModel.User
 	err := r.DB.Where(input.FromUserIds).Find(&dbFromUsers).Error
 	if err != nil {
@@ -75,6 +90,17 @@ func (r *mutationResolver) AddHistory(ctx context.Context, input model.NewHistor
 
 // AddUser is the resolver for the addUser field.
 func (r *mutationResolver) AddUser(ctx context.Context, input model.NewUser) (*model.User, error) {
+	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
+	if responseAccess.Status == http.StatusInternalServerError {
+		return nil, fmt.Errorf("サーバーエラーが発生しました")
+	}
+	if responseAccess.Status == http.StatusUnauthorized {
+		responseAccess.Writer.WriteHeader(responseAccess.Status)
+		errorMessage := "認証されていません"
+		return &model.User{
+			ErrorMessage: &errorMessage,
+		}, nil
+	}
 	var dbUsers []dbModel.User
 	count := r.DB.Where("email = ?", input.Email).Find(&dbUsers).RowsAffected
 	if count != 0 {
@@ -104,6 +130,18 @@ func (r *mutationResolver) AddUser(ctx context.Context, input model.NewUser) (*m
 
 // AddGroup is the resolver for the addGroup field.
 func (r *mutationResolver) AddGroup(ctx context.Context, input model.InitGroup) (*model.Group, error) {
+	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
+	if responseAccess.Status == http.StatusInternalServerError {
+		return nil, fmt.Errorf("サーバーエラーが発生しました")
+	}
+	if responseAccess.Status == http.StatusUnauthorized {
+		responseAccess.Writer.WriteHeader(responseAccess.Status)
+		errorMessage := "認証されていません"
+		return &model.Group{
+			ErrorMessage: &errorMessage,
+		}, nil
+	}
+
 	var dbUsers []dbModel.User
 
 	err := r.DB.Debug().Preload("Groups").Where("id = ?", input.UserID).Find(&dbUsers).Error
@@ -131,6 +169,18 @@ func (r *mutationResolver) AddGroup(ctx context.Context, input model.InitGroup) 
 
 // InviteUserToGroup is the resolver for the inviteUserToGroup field.
 func (r *mutationResolver) InviteUserToGroup(ctx context.Context, input model.InviteUserToGroupInput) (*model.Invited, error) {
+	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
+	if responseAccess.Status == http.StatusInternalServerError {
+		return nil, fmt.Errorf("サーバーエラーが発生しました")
+	}
+	if responseAccess.Status == http.StatusUnauthorized {
+		responseAccess.Writer.WriteHeader(responseAccess.Status)
+		errorMessage := "認証されていません"
+		return &model.Invited{
+			Message: errorMessage,
+			Success: false,
+		}, nil
+	}
 	// ユーザーが存在するかチェックする
 	var dbUsers []dbModel.User
 	err := r.DB.Where("email = ?", input.Email).Limit(1).Find(&dbUsers).Error
@@ -210,82 +260,99 @@ func (r *mutationResolver) InviteUserToGroup(ctx context.Context, input model.In
 
 // JoinGroup is the resolver for the joinGroup field.
 func (r *mutationResolver) JoinGroup(ctx context.Context, input model.JoinGroupInput) (*model.User, error) {
-		// ユーザーが存在するかチェックする
-		var dbUsers []dbModel.User
-		err := r.DB.Where("email = ? AND password = ?", input.Email, digest.SHA512(input.Password)).Limit(1).Find(&dbUsers).Error
-		if err != nil {
-			return nil, err
-		}
-		if len(dbUsers) == 0 {
-			errorMessage := "メールアドレスまたはパスワードが違います"
-			return &model.User{
-				ErrorMessage: &errorMessage,
-			}, nil 
-		}
-	
-		groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
-		if err != nil {
-			return nil, err
-		}
-	
-		// グループが存在するかチェックする
-		var dbGroups []dbModel.Group
-		err = r.DB.Where("id = ?", uint(groupID)).Limit(1).Find(&dbGroups).Error
-		if err != nil {
-			return nil, err
-		}
-		if len(dbGroups) == 0 {
-			errorMessage := "無効なグループです"
-			return &model.User{
-				ErrorMessage: &errorMessage,
-			}, nil 
-		}
-	
-		// ユーザーがグループに参加しているかチェックする
-		var dbGroup *dbModel.Group
-		err = r.DB.Debug().Where("id = ?", uint(groupID)).Preload("Users", "email = ?", input.Email).Limit(1).Find(&dbGroup).Error
-		if err != nil {
-			return nil, err
-		}
-		if len(dbGroup.Users) == 1 {
-			errorMessage := "このメールアドレスに対してこの操作はできません"
-			return &model.User{
-				ErrorMessage: &errorMessage,
-			}, nil 
-		}
-	
-		var dbInvitedUsers []dbModel.InvitedUser
-		dbUser := dbUsers[0]
-		err = r.DB.Debug().Where("group_id = ? AND user_id = ?", uint(groupID), dbUser.ID).Order("created_at DESC").Limit(1).Find(&dbInvitedUsers).Error
-		if err != nil {
-			return nil, err
-		}
-		if len(dbInvitedUsers) == 1 && !dbInvitedUsers[0].Joined {
-			err = r.DB.Model(dbGroup).Association("Users").Append(&dbUsers)
-			if err != nil {
-				return nil, err
-			}
-			dbInvitedUsers[0].Joined = true
-			err = r.DB.Save(dbInvitedUsers[0]).Error
-			if err != nil {
-				return nil, err
-			}
-			user := &model.User{
-				ID:       strconv.FormatUint(uint64(dbUser.ID), 10),
-				Email:    dbUser.Email,
-				Name:     dbUser.Name,
-				ImageURL: dbUser.ImageURL,
-			}
-			return user, nil 
-		}
-		errorMessage := "無効なメールアドレスです"
+	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
+	if responseAccess.Status == http.StatusInternalServerError {
+		return nil, fmt.Errorf("サーバーエラーが発生しました")
+	}
+	if responseAccess.Status == http.StatusUnauthorized {
+		responseAccess.Writer.WriteHeader(responseAccess.Status)
+		errorMessage := "認証されていません"
 		return &model.User{
 			ErrorMessage: &errorMessage,
 		}, nil
+	}
+
+	// ユーザーが存在するかチェックする
+	var dbUsers []dbModel.User
+	err := r.DB.Where("email = ? AND password = ?", input.Email, digest.SHA512(input.Password)).Limit(1).Find(&dbUsers).Error
+	if err != nil {
+		return nil, err
+	}
+	if len(dbUsers) == 0 {
+		errorMessage := "メールアドレスまたはパスワードが違います"
+		return &model.User{
+			ErrorMessage: &errorMessage,
+		}, nil 
+	}
+
+	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+
+	// グループが存在するかチェックする
+	var dbGroups []dbModel.Group
+	err = r.DB.Where("id = ?", uint(groupID)).Limit(1).Find(&dbGroups).Error
+	if err != nil {
+		return nil, err
+	}
+	if len(dbGroups) == 0 {
+		errorMessage := "無効なグループです"
+		return &model.User{
+			ErrorMessage: &errorMessage,
+		}, nil 
+	}
+
+	// ユーザーがグループに参加しているかチェックする
+	var dbGroup *dbModel.Group
+	err = r.DB.Debug().Where("id = ?", uint(groupID)).Preload("Users", "email = ?", input.Email).Limit(1).Find(&dbGroup).Error
+	if err != nil {
+		return nil, err
+	}
+	if len(dbGroup.Users) == 1 {
+		errorMessage := "このメールアドレスに対してこの操作はできません"
+		return &model.User{
+			ErrorMessage: &errorMessage,
+		}, nil 
+	}
+
+	var dbInvitedUsers []dbModel.InvitedUser
+	dbUser := dbUsers[0]
+	err = r.DB.Debug().Where("group_id = ? AND user_id = ?", uint(groupID), dbUser.ID).Order("created_at DESC").Limit(1).Find(&dbInvitedUsers).Error
+	if err != nil {
+		return nil, err
+	}
+	if len(dbInvitedUsers) == 1 && !dbInvitedUsers[0].Joined {
+		err = r.DB.Model(dbGroup).Association("Users").Append(&dbUsers)
+		if err != nil {
+			return nil, err
+		}
+		dbInvitedUsers[0].Joined = true
+		err = r.DB.Save(dbInvitedUsers[0]).Error
+		if err != nil {
+			return nil, err
+		}
+		user := &model.User{
+			ID:       strconv.FormatUint(uint64(dbUser.ID), 10),
+			Email:    dbUser.Email,
+			Name:     dbUser.Name,
+			ImageURL: dbUser.ImageURL,
+		}
+		return user, nil 
+	}
+	errorMessage := "無効なメールアドレスです"
+	return &model.User{
+		ErrorMessage: &errorMessage,
+	}, nil
 }
 
 // Login is the resolver for the login field.
 func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (*model.User, error) {
+	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
+	if responseAccess.Status == http.StatusInternalServerError {
+		return nil, fmt.Errorf("サーバーエラーが発生しました")
+	}
+
 	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
 	if err != nil {
 		return nil, err
@@ -324,24 +391,25 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (*m
 	r.Session.Put(ctx, "user_id", uint(userID))
 	r.Session.Put(ctx, "group_id", uint(groupID))
 
-	signKey := digest.GenerateSignKey()
+	auth.SignKey = digest.GenerateSignKey()
 	claims := jwt.MapClaims{
-		"session_token": sessionToken,
+		"sessionToken": sessionToken,
 		"groupID":       uint(groupID),
 		"userID":        uint(userID),
 		"exp":           time.Now().AddDate(0, 1, 0).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	jwtToken, err := token.SignedString(signKey)
+	fmt.Println(token.Valid)
+	jwtToken, err := token.SignedString(auth.SignKey)
 	if err != nil {
 		return nil, err
 	}
 
-	responseAccess := ctx.Value(auth.ResponseAccessKey).(*auth.ResponseAccess)
 	responseAccess.SetCookie("jwtToken", jwtToken, false, time.Now().Add(24*time.Hour))
 	id := strconv.FormatUint(uint64(userID), 10)
 	responseAccess.SetCookie("userID", id, false, time.Now().Add(24*time.Hour))
 	responseAccess.SetCookie("groupID", input.GroupID, false, time.Now().Add(24*time.Hour))
+	responseAccess.Writer.WriteHeader(http.StatusOK)
 
 	user := &model.User{
 		ID:       id,
@@ -354,7 +422,20 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (*m
 
 // Histories is the resolver for the histories field.
 func (r *queryResolver) Histories(ctx context.Context, input model.HistoriesQuery) ([]*model.History, error) {
+	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
+	if responseAccess.Status == http.StatusInternalServerError {
+		return nil, fmt.Errorf("サーバーエラーが発生しました")
+	}
 	var histories []*model.History
+	if responseAccess.Status == http.StatusUnauthorized {
+		responseAccess.Writer.WriteHeader(responseAccess.Status)
+		errorMessage := "認証されていません"
+		histories = append(histories, &model.History{
+			ErrorMessage: &errorMessage,
+		})
+		return histories, nil
+	}
+
 	var dbHistories []dbModel.History
 	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
 	if err != nil {
@@ -401,7 +482,19 @@ func (r *queryResolver) Histories(ctx context.Context, input model.HistoriesQuer
 
 // Users is the resolver for the users field.
 func (r *queryResolver) Users(ctx context.Context, input model.UsersQuery) ([]*model.User, error) {
+	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
+	if responseAccess.Status == http.StatusInternalServerError {
+		return nil, fmt.Errorf("サーバーエラーが発生しました")
+	}
 	var users []*model.User
+	if responseAccess.Status == http.StatusUnauthorized {
+		responseAccess.Writer.WriteHeader(responseAccess.Status)
+		errorMessage := "認証されていません"
+		users = append(users, &model.User{
+			ErrorMessage: &errorMessage,
+		})
+		return users, nil
+	}
 	var dbGroup *dbModel.Group
 	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
 	if err != nil {
@@ -424,7 +517,20 @@ func (r *queryResolver) Users(ctx context.Context, input model.UsersQuery) ([]*m
 
 // Groups is the resolver for the groups field.
 func (r *queryResolver) Groups(ctx context.Context, input model.GroupsQuery) ([]*model.Group, error) {
+	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
+	if responseAccess.Status == http.StatusInternalServerError {
+		return nil, fmt.Errorf("サーバーエラーが発生しました")
+	}
 	var groups []*model.Group
+	if responseAccess.Status == http.StatusUnauthorized {
+		responseAccess.Writer.WriteHeader(responseAccess.Status)
+		errorMessage := "認証されていません"
+		groups = append(groups, &model.Group{
+			ErrorMessage: &errorMessage,
+		})
+		return groups, nil
+	}
+
 	var dbUser *dbModel.User
 	userID, err := strconv.ParseUint(input.UserID, 10, 64)
 	if err != nil {
@@ -462,6 +568,18 @@ func (r *queryResolver) Groups(ctx context.Context, input model.GroupsQuery) ([]
 
 // Amounts is the resolver for the amounts field.
 func (r *queryResolver) Amounts(ctx context.Context, input model.AmountsQuery) (*model.Amounts, error) {
+	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
+	if responseAccess.Status == http.StatusInternalServerError {
+		return nil, fmt.Errorf("サーバーエラーが発生しました")
+	}
+	if responseAccess.Status == http.StatusUnauthorized {
+		responseAccess.Writer.WriteHeader(responseAccess.Status)
+		errorMessage := "認証されていません"
+		return &model.Amounts{
+			ErrorMessage: &errorMessage,
+		}, nil
+	}
+
 	var amounts *model.Amounts
 
 	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)

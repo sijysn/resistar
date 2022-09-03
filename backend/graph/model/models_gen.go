@@ -9,8 +9,9 @@ import (
 )
 
 type Amounts struct {
-	PersonalBalance int `json:"personalBalance"`
-	GroupTotal      int `json:"groupTotal"`
+	PersonalBalance int     `json:"personalBalance"`
+	GroupTotal      int     `json:"groupTotal"`
+	ErrorMessage    *string `json:"errorMessage"`
 }
 
 type AmountsQuery struct {
@@ -21,23 +22,25 @@ type AmountsQuery struct {
 }
 
 type Balance struct {
-	ID        string  `json:"id"`
-	CreatedAt string  `json:"createdAt"`
-	UpdatedAt *string `json:"updatedAt"`
-	DeletedAt *string `json:"deletedAt"`
-	Amount    int     `json:"amount"`
-	HistoryID string  `json:"historyID"`
-	UserID    string  `json:"userID"`
-	GroupID   string  `json:"groupID"`
+	ID           string  `json:"id"`
+	CreatedAt    string  `json:"createdAt"`
+	UpdatedAt    *string `json:"updatedAt"`
+	DeletedAt    *string `json:"deletedAt"`
+	Amount       int     `json:"amount"`
+	HistoryID    string  `json:"historyID"`
+	UserID       string  `json:"userID"`
+	GroupID      string  `json:"groupID"`
+	ErrorMessage *string `json:"errorMessage"`
 }
 
 type Group struct {
-	ID        string  `json:"id"`
-	Name      string  `json:"name"`
-	CreatedAt string  `json:"createdAt"`
-	UpdatedAt *string `json:"updatedAt"`
-	DeletedAt *string `json:"deletedAt"`
-	Users     []*User `json:"users"`
+	ID           string  `json:"id"`
+	Name         string  `json:"name"`
+	CreatedAt    string  `json:"createdAt"`
+	UpdatedAt    *string `json:"updatedAt"`
+	DeletedAt    *string `json:"deletedAt"`
+	Users        []*User `json:"users"`
+	ErrorMessage *string `json:"errorMessage"`
 }
 
 type GroupsQuery struct {
@@ -51,16 +54,17 @@ type HistoriesQuery struct {
 }
 
 type History struct {
-	ID        string  `json:"id"`
-	Title     string  `json:"title"`
-	Type      Type    `json:"type"`
-	Price     int     `json:"price"`
-	FromUsers []*User `json:"fromUsers"`
-	ToUsers   []*User `json:"toUsers"`
-	CreatedAt string  `json:"createdAt"`
-	UpdatedAt *string `json:"updatedAt"`
-	DeletedAt *string `json:"deletedAt"`
-	GroupID   string  `json:"groupID"`
+	ID           string  `json:"id"`
+	Title        string  `json:"title"`
+	Type         Type    `json:"type"`
+	Price        int     `json:"price"`
+	FromUsers    []*User `json:"fromUsers"`
+	ToUsers      []*User `json:"toUsers"`
+	CreatedAt    string  `json:"createdAt"`
+	UpdatedAt    *string `json:"updatedAt"`
+	DeletedAt    *string `json:"deletedAt"`
+	GroupID      string  `json:"groupID"`
+	ErrorMessage *string `json:"errorMessage"`
 }
 
 type InitGroup struct {
