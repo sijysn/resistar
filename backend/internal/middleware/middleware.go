@@ -3,13 +3,13 @@ package middleware
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt"
 	"github.com/golang-jwt/jwt/request"
-	"github.com/sijysn/resistar/backend/internal/auth"
 	"github.com/sijysn/resistar/backend/internal/session"
 )
 
@@ -39,11 +39,20 @@ func (r *ResponseAccess) SetCookie(name string, value string, httpOnly bool, exp
 func Middleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			verifyBytes, err := ioutil.ReadFile("./jwt.pem.pub.pkcs8")
+			if err != nil {
+					panic(err)
+			}
+			verifyKey, err := jwt.ParseRSAPublicKeyFromPEM(verifyBytes)
+			if err != nil {
+					panic(err)
+			}
+		
 			token, err := request.ParseFromRequest(r, request.AuthorizationHeaderExtractor, func(token *jwt.Token) (interface{}, error) {
-        if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+        if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 					return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 				}
-        return auth.SignKey, nil
+        return verifyKey, nil
 			})
 			responseAccess := ResponseAccess{
 				Writer: w,

@@ -6,6 +6,7 @@ package graph
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
@@ -13,7 +14,6 @@ import (
 	"github.com/golang-jwt/jwt"
 	"github.com/sijysn/resistar/backend/graph/generated"
 	"github.com/sijysn/resistar/backend/graph/model"
-	"github.com/sijysn/resistar/backend/internal/auth"
 	"github.com/sijysn/resistar/backend/internal/digest"
 	"github.com/sijysn/resistar/backend/internal/middleware"
 	dbModel "github.com/sijysn/resistar/backend/internal/model"
@@ -392,15 +392,24 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (*m
 	session.Session.UserID = uint(userID)
 	session.Session.GroupID = uint(groupID)
 
-	auth.SignKey = digest.GenerateSignKey()
+	signBytes, err := ioutil.ReadFile("./jwt.pem")
+	if err != nil {
+		panic(err)
+}
+
+	signKey, err := jwt.ParseRSAPrivateKeyFromPEM(signBytes)
+	if err != nil {
+			panic(err)
+	}
+
 	claims := jwt.MapClaims{
 		"sessionToken": sessionToken,
 		"groupID":       uint(groupID),
 		"userID":        uint(userID),
 		"exp":           time.Now().AddDate(0, 1, 0).Unix(),
 	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	jwtToken, err := token.SignedString(auth.SignKey)
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+	jwtToken, err := token.SignedString(signKey)
 	if err != nil {
 		return nil, err
 	}
