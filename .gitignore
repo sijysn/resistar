@@ -1,7 +1,7 @@
 # deployする時は下記3行コメントアウトする
-backend/jwt.pem
-backend/jwt.pem.pub
-backend/jwt.pem.pub.pkcs8
+# backend/jwt.pem
+# backend/jwt.pem.pub
+# backend/jwt.pem.pub.pkcs8
 
 node_modules
 .DS_Store
