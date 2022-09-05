@@ -24,6 +24,8 @@ yarn docker-stop
 productionブランチで行う
 （productionブランチはgithubにプッシュしない）
 
-1. ```git switch production``` 
-2. .gitignoreを修正する
-3. ```yarn deploy-backend```
+1. ```git switch production```
+2. ```git pull origin main```
+3. .gitignoreを修正する
+4. ```git commit -m "deploy"```
+5. ```yarn deploy-backend```

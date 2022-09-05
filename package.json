@@ -5,6 +5,6 @@
   "scripts": {
     "docker": "docker-compose build && docker-compose up",
     "docker-stop": "docker-compose down",
-    "deploy-backend": "git subtree push --prefix backend/ api main"
+    "deploy-backend": "git subtree push --prefix backend/ api production:main"
   }
 }
