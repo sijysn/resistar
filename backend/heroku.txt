@@ -3,6 +3,3 @@ heroku addons:create heroku-postgresql:hobby-dev
 
 ENVを追加
 heroku config:set ENV=production
-
-鍵を生成
-cd backend && ssh-keygen -t rsa -f jwt.pem -m pem && ssh-keygen -f jwt.pem.pub -e -m pkcs8 > jwt.pem.pub.pkcs8
