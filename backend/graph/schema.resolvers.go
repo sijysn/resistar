@@ -395,7 +395,7 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (*m
 	signBytes, err := ioutil.ReadFile("./jwt.pem")
 	if err != nil {
 		panic(err)
-}
+	}
 
 	signKey, err := jwt.ParseRSAPrivateKeyFromPEM(signBytes)
 	if err != nil {
