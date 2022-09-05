@@ -19,3 +19,11 @@ yarn docker-stop
 ## DNS
 ネームサーバー・プロキシはcloudflareを使用している
 ドメイン管理はムームードメインを使用している
+
+## deploy
+productionブランチで行う
+（productionブランチはgithubにプッシュしない）
+
+1. ```git switch production``` 
+2. .gitignoreを修正する
+3. ```yarn deploy-backend```
