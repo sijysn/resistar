@@ -169,7 +169,7 @@ func (r *mutationResolver) AddGroup(ctx context.Context, input model.InitGroup) 
 }
 
 // InviteUserToGroup is the resolver for the inviteUserToGroup field.
-func (r *mutationResolver) InviteUserToGroup(ctx context.Context, input model.InviteUserToGroupInput) (*model.Invited, error) {
+func (r *mutationResolver) InviteUserToGroup(ctx context.Context, input model.InviteUserToGroupInput) (*model.Result, error) {
 	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
 	if responseAccess.Status == http.StatusInternalServerError {
 		return nil, fmt.Errorf("サーバーエラーが発生しました")
@@ -177,7 +177,7 @@ func (r *mutationResolver) InviteUserToGroup(ctx context.Context, input model.In
 	if responseAccess.Status == http.StatusUnauthorized {
 		// responseAccess.Writer.WriteHeader(responseAccess.Status)
 		errorMessage := "認証されていません"
-		return &model.Invited{
+		return &model.Result{
 			Message: errorMessage,
 			Success: false,
 		}, nil
@@ -190,10 +190,10 @@ func (r *mutationResolver) InviteUserToGroup(ctx context.Context, input model.In
 	}
 	if len(dbUsers) == 0 {
 		errorMessage := "このメールアドレスは登録されていません"
-		return &model.Invited{
+		return &model.Result{
 			Message: errorMessage,
 			Success: false,
-		}, nil 
+		}, nil
 	}
 
 	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
@@ -209,7 +209,7 @@ func (r *mutationResolver) InviteUserToGroup(ctx context.Context, input model.In
 	}
 	if len(dbGroups) == 0 {
 		errorMessage := "無効なグループです"
-		return &model.Invited{
+		return &model.Result{
 			Message: errorMessage,
 			Success: false,
 		}, nil
@@ -223,7 +223,7 @@ func (r *mutationResolver) InviteUserToGroup(ctx context.Context, input model.In
 	}
 	if len(dbGroup.Users) == 1 {
 		errorMessage := "このメールアドレスのユーザーは招待できません"
-		return &model.Invited{
+		return &model.Result{
 			Message: errorMessage,
 			Success: false,
 		}, nil
@@ -247,13 +247,13 @@ func (r *mutationResolver) InviteUserToGroup(ctx context.Context, input model.In
 			return nil, err
 		}
 		message := "招待メールを送りました"
-		return &model.Invited{
+		return &model.Result{
 			Message: message,
 			Success: true,
 		}, nil
 	}
 	errorMessage := "このメールアドレスのユーザーは招待できません"
-	return &model.Invited{
+	return &model.Result{
 		Message: errorMessage,
 		Success: false,
 	}, nil
@@ -283,7 +283,7 @@ func (r *mutationResolver) JoinGroup(ctx context.Context, input model.JoinGroupI
 		errorMessage := "メールアドレスまたはパスワードが違います"
 		return &model.User{
 			ErrorMessage: &errorMessage,
-		}, nil 
+		}, nil
 	}
 
 	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
@@ -301,7 +301,7 @@ func (r *mutationResolver) JoinGroup(ctx context.Context, input model.JoinGroupI
 		errorMessage := "無効なグループです"
 		return &model.User{
 			ErrorMessage: &errorMessage,
-		}, nil 
+		}, nil
 	}
 
 	// ユーザーがグループに参加しているかチェックする
@@ -314,7 +314,7 @@ func (r *mutationResolver) JoinGroup(ctx context.Context, input model.JoinGroupI
 		errorMessage := "このメールアドレスに対してこの操作はできません"
 		return &model.User{
 			ErrorMessage: &errorMessage,
-		}, nil 
+		}, nil
 	}
 
 	var dbInvitedUsers []dbModel.InvitedUser
@@ -339,7 +339,7 @@ func (r *mutationResolver) JoinGroup(ctx context.Context, input model.JoinGroupI
 			Name:     dbUser.Name,
 			ImageURL: dbUser.ImageURL,
 		}
-		return user, nil 
+		return user, nil
 	}
 	errorMessage := "無効なメールアドレスです"
 	return &model.User{
@@ -369,7 +369,7 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (*m
 		errorMessage := "無効なグループです"
 		return &model.User{
 			ErrorMessage: &errorMessage,
-		}, nil 
+		}, nil
 	}
 
 	// グループのメンバーかどうかチェックする
@@ -399,14 +399,14 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (*m
 
 	signKey, err := jwt.ParseRSAPrivateKeyFromPEM(signBytes)
 	if err != nil {
-			panic(err)
+		panic(err)
 	}
 
 	claims := jwt.MapClaims{
 		"sessionToken": sessionToken,
-		"groupID":       uint(groupID),
-		"userID":        uint(userID),
-		"exp":           time.Now().AddDate(0, 1, 0).Unix(),
+		"groupID":      uint(groupID),
+		"userID":       uint(userID),
+		"exp":          time.Now().AddDate(0, 1, 0).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 	jwtToken, err := token.SignedString(signKey)
@@ -611,6 +611,64 @@ func (r *queryResolver) Amounts(ctx context.Context, input model.AmountsQuery) (
 	}
 
 	return amounts, nil
+}
+
+// GroupsWhereUserHasBeenInvited is the resolver for the groupsWhereUserHasBeenInvited field.
+func (r *queryResolver) GroupsWhereUserHasBeenInvited(ctx context.Context, input model.GroupsQuery) ([]*model.Group, error) {
+	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
+	if responseAccess.Status == http.StatusInternalServerError {
+		return nil, fmt.Errorf("サーバーエラーが発生しました")
+	}
+	var groups []*model.Group
+	if responseAccess.Status == http.StatusUnauthorized {
+		// responseAccess.Writer.WriteHeader(responseAccess.Status)
+		errorMessage := "認証されていません"
+		groups = append(groups, &model.Group{
+			ErrorMessage: &errorMessage,
+		})
+		return groups, nil
+	}
+
+	userID, err := strconv.ParseUint(input.UserID, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	var dbInvitedUsers []dbModel.InvitedUser
+	err = r.DB.Debug().Where("user_id = ?", uint(userID)).Limit(1).Find(&dbInvitedUsers).Error
+	if err != nil {
+		return nil, err
+	}
+	if len(dbInvitedUsers) == 0 {
+		return []*model.Group{}, nil
+	}
+	var dbGroupIDs []uint
+	for _, dbInvitedUser := range dbInvitedUsers {
+		if !dbInvitedUser.Joined {
+			dbGroupIDs = append(dbGroupIDs, dbInvitedUser.GroupID)
+		}
+	}
+	var dbGroups []dbModel.Group
+	err = r.DB.Where("id IN ?", dbGroupIDs).Preload("Users").Find(&dbGroups).Order("created_at DESC").Error
+	if err != nil {
+		return nil, err
+	}
+	for _, dbGroup := range dbGroups {
+		var users []*model.User
+		for _, dbGroupUser := range dbGroup.Users {
+			users = append(users, &model.User{
+				ID:    strconv.FormatUint(uint64(dbGroupUser.ID), 10),
+				Email: dbGroupUser.Email,
+				Name:  dbGroupUser.Name,
+			})
+		}
+		groups = append(groups, &model.Group{
+			ID:    strconv.FormatUint(uint64(dbGroup.ID), 10),
+			Name:  dbGroup.Name,
+			Users: users,
+		})
+	}
+
+	return groups, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

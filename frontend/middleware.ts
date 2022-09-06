@@ -3,8 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 export function middleware(request: NextRequest) {
   const jwtToken = request.cookies.get("jwtToken");
   const userID = request.cookies.get("userID");
-  const groupID = request.cookies.get("groupID");
-  const isLoggedIn = jwtToken && userID && groupID;
+  const isLoggedIn = jwtToken && userID;
   const isPathLogin = request.nextUrl.pathname === "/login";
   if (isLoggedIn && isPathLogin) {
     return NextResponse.redirect(new URL("/", request.url));
@@ -16,5 +15,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/login", "/histories/:path*"],
+  matcher: ["/", "/login", "/histories/:path*", "/get-startd/:path*"],
 };

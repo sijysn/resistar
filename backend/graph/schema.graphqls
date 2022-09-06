@@ -67,7 +67,7 @@ type Amounts {
   errorMessage: String
 }
 
-type Invited {
+type Result {
   message: String!
   success: Boolean!
 }
@@ -98,6 +98,7 @@ type Query {
   users(input: UsersQuery!): [User!]!
   groups(input: GroupsQuery!): [Group!]!
   amounts(input: AmountsQuery!): Amounts!
+  groupsWhereUserHasBeenInvited(input: GroupsQuery!): [Group!]!
 }
 
 input NewHistory {
@@ -140,7 +141,7 @@ type Mutation {
   addHistory(input: NewHistory!): History!
   addUser(input: NewUser!): User!
   addGroup(input: InitGroup!): Group!
-  inviteUserToGroup(input: InviteUserToGroupInput!): Invited!
+  inviteUserToGroup(input: InviteUserToGroupInput!): Result!
   joinGroup(input: JoinGroupInput!): User!
   login(input: LoginUser!): User!
 }

@@ -77,11 +77,6 @@ type InviteUserToGroupInput struct {
 	GroupID string `json:"groupID"`
 }
 
-type Invited struct {
-	Message string `json:"message"`
-	Success bool   `json:"success"`
-}
-
 type JoinGroupInput struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
@@ -106,6 +101,11 @@ type NewHistory struct {
 type NewUser struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+type Result struct {
+	Message string `json:"message"`
+	Success bool   `json:"success"`
 }
 
 type User struct {
