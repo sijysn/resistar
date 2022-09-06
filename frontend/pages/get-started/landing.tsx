@@ -118,8 +118,8 @@ const LandingPage: NextPage<ServerSideProps> = ({ cookies }) => {
       )}
       {getGroupData.groupsWhereUserHasBeenInvited.map(({ id, name, users }) => {
         return (
-          <div>
-            <Box key={id}>{name}</Box>
+          <div key={id}>
+            <Box>{name}</Box>
             {users.map((user) => {
               return <Box key={user.id}>{user.name}</Box>;
             })}

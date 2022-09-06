@@ -144,8 +144,11 @@ func (r *mutationResolver) AddGroup(ctx context.Context, input model.InitGroup) 
 	}
 
 	var dbUsers []dbModel.User
-
-	err := r.DB.Debug().Preload("Groups").Where("id = ?", input.UserID).Find(&dbUsers).Error
+	userID, err := strconv.ParseUint(input.UserID, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	err = r.DB.Debug().Preload("Groups").Where("id = ?", uint(userID)).Find(&dbUsers).Error
 	if err != nil {
 		return nil, err
 	}
@@ -160,11 +163,47 @@ func (r *mutationResolver) AddGroup(ctx context.Context, input model.InitGroup) 
 	if err != nil {
 		return nil, err
 	}
+	dbGroupID := dbNewGroup.ID
+	sessionToken := digest.GenerateToken()
+	session.Session.SessionToken = sessionToken
+	session.Session.UserID = uint(userID)
+	session.Session.GroupID = dbGroupID
+
+	signBytes, err := ioutil.ReadFile("./jwt.pem")
+	if err != nil {
+		panic(err)
+	}
+
+	signKey, err := jwt.ParseRSAPrivateKeyFromPEM(signBytes)
+	if err != nil {
+		panic(err)
+	}
+
+	claims := jwt.MapClaims{
+		"sessionToken": sessionToken,
+		"groupID":     	dbGroupID,
+		"userID":       uint(userID),
+		"exp":          time.Now().AddDate(0, 1, 0).Unix(),
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+	jwtToken, err := token.SignedString(signKey)
+	if err != nil {
+		return nil, err
+	}
+	groupID := strconv.FormatUint(uint64(dbNewGroup.ID), 10)
+
+	responseAccess.SetCookie("jwtToken", jwtToken, false, time.Now().Add(24*time.Hour))
+	id := strconv.FormatUint(uint64(userID), 10)
+	responseAccess.SetCookie("userID", id, false, time.Now().Add(24*time.Hour))
+	responseAccess.SetCookie("groupID", groupID, false, time.Now().Add(24*time.Hour))
+	responseAccess.Writer.WriteHeader(http.StatusOK)
+
 	newGroup := &model.Group{
-		ID:        strconv.FormatUint(uint64(dbNewGroup.ID), 10),
+		ID:        groupID,
 		Name:      dbNewGroup.Name,
 		CreatedAt: dbNewGroup.CreatedAt.Format("2006-01-02 15:04:05"),
 	}
+
 	return newGroup, nil
 }
 
