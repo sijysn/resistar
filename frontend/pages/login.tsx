@@ -54,10 +54,10 @@ const LoginPage: NextPage = () => {
 
   const cookies = parseCookies();
   React.useEffect(() => {
-    if (cookies["jwtToken"]) {
+    if (cookies["accessToken"]) {
       router.reload();
     }
-  }, [cookies["jwtToken"]]);
+  }, [cookies["accessToken"]]);
 
   return (
     <Container component="main" maxWidth="xs">

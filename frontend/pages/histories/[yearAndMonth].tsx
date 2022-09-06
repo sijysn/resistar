@@ -32,7 +32,7 @@ export const getServerSideProps: GetServerSideProps<ServerSideProps> = async (
   const yearAndMonth = datetime.format("YYYY-MM");
 
   const cookies = nookies.get(context);
-  const apolloClient = initializeApollo(cookies["jwtToken"]);
+  const apolloClient = initializeApollo();
 
   await getHistories(apolloClient, {
     groupID: cookies["groupID"],

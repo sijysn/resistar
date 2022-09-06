@@ -54,7 +54,7 @@ const CreateNewPage: NextPage = () => {
 
   const cookies = parseCookies();
   React.useEffect(() => {
-    if (cookies["jwtToken"]) {
+    if (cookies["accessToken"]) {
       router.push("/");
     }
   });

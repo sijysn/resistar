@@ -6,12 +6,10 @@ package graph
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
 
-	"github.com/golang-jwt/jwt"
 	"github.com/sijysn/resistar/backend/graph/generated"
 	"github.com/sijysn/resistar/backend/graph/model"
 	"github.com/sijysn/resistar/backend/internal/digest"
@@ -193,7 +191,7 @@ func (r *mutationResolver) InviteUserToGroup(ctx context.Context, input model.In
 		return &model.Invited{
 			Message: errorMessage,
 			Success: false,
-		}, nil 
+		}, nil
 	}
 
 	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
@@ -283,7 +281,7 @@ func (r *mutationResolver) JoinGroup(ctx context.Context, input model.JoinGroupI
 		errorMessage := "メールアドレスまたはパスワードが違います"
 		return &model.User{
 			ErrorMessage: &errorMessage,
-		}, nil 
+		}, nil
 	}
 
 	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
@@ -301,7 +299,7 @@ func (r *mutationResolver) JoinGroup(ctx context.Context, input model.JoinGroupI
 		errorMessage := "無効なグループです"
 		return &model.User{
 			ErrorMessage: &errorMessage,
-		}, nil 
+		}, nil
 	}
 
 	// ユーザーがグループに参加しているかチェックする
@@ -314,7 +312,7 @@ func (r *mutationResolver) JoinGroup(ctx context.Context, input model.JoinGroupI
 		errorMessage := "このメールアドレスに対してこの操作はできません"
 		return &model.User{
 			ErrorMessage: &errorMessage,
-		}, nil 
+		}, nil
 	}
 
 	var dbInvitedUsers []dbModel.InvitedUser
@@ -339,7 +337,7 @@ func (r *mutationResolver) JoinGroup(ctx context.Context, input model.JoinGroupI
 			Name:     dbUser.Name,
 			ImageURL: dbUser.ImageURL,
 		}
-		return user, nil 
+		return user, nil
 	}
 	errorMessage := "無効なメールアドレスです"
 	return &model.User{
@@ -369,7 +367,7 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (*m
 		errorMessage := "無効なグループです"
 		return &model.User{
 			ErrorMessage: &errorMessage,
-		}, nil 
+		}, nil
 	}
 
 	// グループのメンバーかどうかチェックする
@@ -392,29 +390,42 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (*m
 	session.Session.UserID = uint(userID)
 	session.Session.GroupID = uint(groupID)
 
-	signBytes, err := ioutil.ReadFile("./jwt.pem")
-	if err != nil {
-		panic(err)
-	}
+	// signBytes, err := ioutil.ReadFile("./jwt.pem")
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	signKey, err := jwt.ParseRSAPrivateKeyFromPEM(signBytes)
-	if err != nil {
-			panic(err)
-	}
+	// signKey, err := jwt.ParseRSAPrivateKeyFromPEM(signBytes)
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	claims := jwt.MapClaims{
-		"sessionToken": sessionToken,
-		"groupID":       uint(groupID),
-		"userID":        uint(userID),
-		"exp":           time.Now().AddDate(0, 1, 0).Unix(),
+	// claims := jwt.MapClaims{
+	// 	"sessionToken": sessionToken,
+	// 	"groupID":      uint(groupID),
+	// 	"userID":       uint(userID),
+	// 	"exp":          time.Now().AddDate(0, 1, 0).Unix(),
+	// }
+	// token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+	// jwtToken, err := token.SignedString(signKey)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// responseAccess.SetCookie("jwtToken", jwtToken, false, time.Now().Add(24*time.Hour))
+	accessToken := digest.GenerateToken()
+	dbAccessToken := digest.SHA512(accessToken)
+	dbLoginLog := &dbModel.LoginLog{
+		UserID:      dbGroup.Users[0].ID,
+		GroupID:     dbGroup.ID,
+		AccessToken: dbAccessToken,
 	}
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-	jwtToken, err := token.SignedString(signKey)
+	err = r.DB.Create(dbLoginLog).Error
 	if err != nil {
 		return nil, err
 	}
-
-	responseAccess.SetCookie("jwtToken", jwtToken, false, time.Now().Add(24*time.Hour))
+	responseAccess.SetCookie("sessionToken", sessionToken, false, time.Now().Add(24*time.Hour))
+	responseAccess.SetCookie("accessToken", accessToken, false, time.Now().Add(24*time.Hour))
 	id := strconv.FormatUint(uint64(userID), 10)
 	responseAccess.SetCookie("userID", id, false, time.Now().Add(24*time.Hour))
 	responseAccess.SetCookie("groupID", input.GroupID, false, time.Now().Add(24*time.Hour))

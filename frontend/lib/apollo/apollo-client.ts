@@ -31,21 +31,10 @@ const httpLink = new HttpLink({
   credentials: "include",
 });
 
-const getAuthLink = (jwtToken: string) => {
-  return setContext((_, { headers }) => {
-    return {
-      headers: {
-        ...headers,
-        Authorization: jwtToken ? `Bearer ${jwtToken}` : "dddd",
-      },
-    };
-  }).concat(httpLink);
-};
-
-const createApolloClient = (jwtToken: string) => {
-  return new ApolloClient({
+const createApolloClient = () =>
+  new ApolloClient({
     ssrMode: typeof window === "undefined",
-    link: from([errorLink, getAuthLink(jwtToken)]),
+    link: from([errorLink, httpLink]),
     cache: new InMemoryCache({
       typePolicies: {
         Query: {
@@ -72,13 +61,9 @@ const createApolloClient = (jwtToken: string) => {
       }
     `,
   });
-};
 
-export const initializeApollo = (
-  jwtToken: string,
-  initialState?: Partial<unknown>
-) => {
-  const _apolloClient = apolloClient ?? createApolloClient(jwtToken);
+export const initializeApollo = (initialState?: Partial<unknown>) => {
+  const _apolloClient = apolloClient ?? createApolloClient();
   if (initialState) {
     const existingCache = _apolloClient.extract();
 
@@ -112,11 +97,8 @@ export const addApolloState = (
   return pageProps;
 };
 
-export const useApollo = (pageProps: any, jwtToken: string) => {
+export const useApollo = (pageProps: any) => {
   const state = pageProps[APOLLO_STATE];
-  const store = useMemo(() => initializeApollo(jwtToken, state), [
-    jwtToken,
-    state,
-  ]);
+  const store = useMemo(() => initializeApollo(state), [state]);
   return store;
 };

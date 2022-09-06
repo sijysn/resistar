@@ -6,11 +6,9 @@ import { ThemeProvider } from "@mui/material/styles";
 import { useApollo } from "../lib/apollo/apollo-client";
 import { theme } from "../lib/theme";
 import "../styles/globals.css";
-import { parseCookies } from "nookies";
 
 function MyApp({ Component, pageProps }: AppProps) {
-  const cookies = parseCookies();
-  const apolloClient = useApollo(pageProps, cookies["jwtToken"]);
+  const apolloClient = useApollo(pageProps);
   return (
     <>
       <Head>
