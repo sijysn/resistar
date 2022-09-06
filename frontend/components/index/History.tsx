@@ -30,7 +30,7 @@ type Props = {
 const History: React.FC<Props> = ({ loading, error, data }) => {
   if (error) return <div>Error</div>;
   if (loading || !data) return <div>Loading</div>;
-  if (data.histories[0].id === "") return <div>データがありません。</div>;
+  if (data.histories.length === 0) return <div>データがありません。</div>;
   return (
     <HistoryList>
       {data.histories.map(
