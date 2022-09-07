@@ -77,10 +77,9 @@ type InviteUserToGroupInput struct {
 	GroupID string `json:"groupID"`
 }
 
-type JoinGroupInput struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-	GroupID  string `json:"groupID"`
+type JoinGroup struct {
+	UserID  string `json:"userID"`
+	GroupID string `json:"groupID"`
 }
 
 type LoginGroup struct {

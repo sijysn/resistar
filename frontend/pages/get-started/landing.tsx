@@ -34,6 +34,11 @@ import {
   loginGroupProps,
   loginGroupVarsProps,
 } from "../../lib/apollo/api/loginGroup";
+import {
+  JOIN_GROUP,
+  joinGroupProps,
+  joinGroupVarsProps,
+} from "../../lib/apollo/api/joinGroup";
 
 const LandingPage: NextPage<ServerSideProps> = ({ cookies }) => {
   const [groupName, setGroupName] = React.useState("");
@@ -92,11 +97,9 @@ const LandingPage: NextPage<ServerSideProps> = ({ cookies }) => {
     }
   };
 
-  const [login, { loading, error }] = useMutation<
-    loginGroupProps,
-    loginGroupVarsProps
-  >(LOGIN_GROUP);
-
+  const [login] = useMutation<loginGroupProps, loginGroupVarsProps>(
+    LOGIN_GROUP
+  );
   const loginGroup = async (id: string) => {
     const loginGroupQueryVars: loginGroupVarsProps = {
       userID: cookies["userID"],
@@ -116,6 +119,29 @@ const LandingPage: NextPage<ServerSideProps> = ({ cookies }) => {
     }
     if (loginMessage) {
       setMessage(loginMessage);
+    }
+  };
+
+  const [join] = useMutation<joinGroupProps, joinGroupVarsProps>(JOIN_GROUP);
+  const joinGroup = async (id: string) => {
+    const joinGroupQueryVars: joinGroupVarsProps = {
+      userID: cookies["userID"],
+      groupID: id,
+    };
+    const { data } = await join({
+      variables: joinGroupQueryVars,
+    });
+    if (!data) {
+      setMessage("予期せぬエラーが起こりました");
+      return;
+    }
+    const { message: joinMessage, success } = data.joinGroup;
+    if (success) {
+      router.push("/");
+      return;
+    }
+    if (joinMessage) {
+      setMessage(joinMessage);
     }
   };
 
@@ -179,7 +205,7 @@ const LandingPage: NextPage<ServerSideProps> = ({ cookies }) => {
       {getGroupWhereUserHasBeenInvitedData.groupsWhereUserHasBeenInvited.map(
         ({ id, name, users }) => {
           return (
-            <div key={id}>
+            <div key={id} onClick={() => joinGroup(id)}>
               <Box>{name}</Box>
               {users.map((user) => {
                 return <Box key={user.id}>{user.name}</Box>;

@@ -7,14 +7,14 @@ import { ApolloClient, NormalizedCacheObject } from "@apollo/client";
 
 export const getGroupsWhereUserHasBeenInvited = async (
   apolloClient: ApolloClient<NormalizedCacheObject>,
-  getGroupsQueryVars: getGroupsWhereUserHasBeenInvitedVarsProps
+  getGroupsWhereUserHasBeenInvitedQueryVars: getGroupsWhereUserHasBeenInvitedVarsProps
 ) => {
   const result = await apolloClient.query<
     getGroupsWhereUserHasBeenInvitedProps,
     getGroupsWhereUserHasBeenInvitedVarsProps
   >({
     query: GET_GROUPS_WHERE_USER_HAS_BEEN_INVITED,
-    variables: getGroupsQueryVars,
+    variables: getGroupsWhereUserHasBeenInvitedQueryVars,
   });
   return { ...result };
 };

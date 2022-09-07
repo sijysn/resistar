@@ -125,9 +125,8 @@ input InviteUserToGroupInput {
   groupID: ID!
 }
 
-input JoinGroupInput {
-  email: String!
-  password: String!
+input JoinGroup {
+  userID: ID!
   groupID: ID!
 }
 
@@ -146,7 +145,7 @@ type Mutation {
   addUser(input: NewUser!): User!
   addGroup(input: InitGroup!): Group!
   inviteUserToGroup(input: InviteUserToGroupInput!): Result!
-  joinGroup(input: JoinGroupInput!): User!
+  joinGroup(input: JoinGroup!): Result!
   loginUser(input: LoginUser!): Result!
   loginGroup(input: LoginGroup!): Result!
 }

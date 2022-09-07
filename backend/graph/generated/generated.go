@@ -91,7 +91,7 @@ type ComplexityRoot struct {
 		AddHistory        func(childComplexity int, input model.NewHistory) int
 		AddUser           func(childComplexity int, input model.NewUser) int
 		InviteUserToGroup func(childComplexity int, input model.InviteUserToGroupInput) int
-		JoinGroup         func(childComplexity int, input model.JoinGroupInput) int
+		JoinGroup         func(childComplexity int, input model.JoinGroup) int
 		LoginGroup        func(childComplexity int, input model.LoginGroup) int
 		LoginUser         func(childComplexity int, input model.LoginUser) int
 	}
@@ -128,7 +128,7 @@ type MutationResolver interface {
 	AddUser(ctx context.Context, input model.NewUser) (*model.User, error)
 	AddGroup(ctx context.Context, input model.InitGroup) (*model.Group, error)
 	InviteUserToGroup(ctx context.Context, input model.InviteUserToGroupInput) (*model.Result, error)
-	JoinGroup(ctx context.Context, input model.JoinGroupInput) (*model.User, error)
+	JoinGroup(ctx context.Context, input model.JoinGroup) (*model.Result, error)
 	LoginUser(ctx context.Context, input model.LoginUser) (*model.Result, error)
 	LoginGroup(ctx context.Context, input model.LoginGroup) (*model.Result, error)
 }
@@ -423,7 +423,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.JoinGroup(childComplexity, args["input"].(model.JoinGroupInput)), true
+		return e.complexity.Mutation.JoinGroup(childComplexity, args["input"].(model.JoinGroup)), true
 
 	case "Mutation.loginGroup":
 		if e.complexity.Mutation.LoginGroup == nil {
@@ -606,7 +606,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputHistoriesQuery,
 		ec.unmarshalInputInitGroup,
 		ec.unmarshalInputInviteUserToGroupInput,
-		ec.unmarshalInputJoinGroupInput,
+		ec.unmarshalInputJoinGroup,
 		ec.unmarshalInputLoginGroup,
 		ec.unmarshalInputLoginUser,
 		ec.unmarshalInputNewHistory,
@@ -799,9 +799,8 @@ input InviteUserToGroupInput {
   groupID: ID!
 }
 
-input JoinGroupInput {
-  email: String!
-  password: String!
+input JoinGroup {
+  userID: ID!
   groupID: ID!
 }
 
@@ -820,7 +819,7 @@ type Mutation {
   addUser(input: NewUser!): User!
   addGroup(input: InitGroup!): Group!
   inviteUserToGroup(input: InviteUserToGroupInput!): Result!
-  joinGroup(input: JoinGroupInput!): User!
+  joinGroup(input: JoinGroup!): Result!
   loginUser(input: LoginUser!): Result!
   loginGroup(input: LoginGroup!): Result!
 }
@@ -895,10 +894,10 @@ func (ec *executionContext) field_Mutation_inviteUserToGroup_args(ctx context.Co
 func (ec *executionContext) field_Mutation_joinGroup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.JoinGroupInput
+	var arg0 model.JoinGroup
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNJoinGroupInput2githubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐJoinGroupInput(ctx, tmp)
+		arg0, err = ec.unmarshalNJoinGroup2githubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐJoinGroup(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2723,7 +2722,7 @@ func (ec *executionContext) _Mutation_joinGroup(ctx context.Context, field graph
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().JoinGroup(rctx, fc.Args["input"].(model.JoinGroupInput))
+		return ec.resolvers.Mutation().JoinGroup(rctx, fc.Args["input"].(model.JoinGroup))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2735,9 +2734,9 @@ func (ec *executionContext) _Mutation_joinGroup(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.User)
+	res := resTmp.(*model.Result)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+	return ec.marshalNResult2ᚖgithubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐResult(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_joinGroup(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2748,28 +2747,12 @@ func (ec *executionContext) fieldContext_Mutation_joinGroup(ctx context.Context,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_User_id(ctx, field)
-			case "name":
-				return ec.fieldContext_User_name(ctx, field)
-			case "email":
-				return ec.fieldContext_User_email(ctx, field)
-			case "password":
-				return ec.fieldContext_User_password(ctx, field)
-			case "imageURL":
-				return ec.fieldContext_User_imageURL(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_User_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_User_updatedAt(ctx, field)
-			case "deletedAt":
-				return ec.fieldContext_User_deletedAt(ctx, field)
-			case "groups":
-				return ec.fieldContext_User_groups(ctx, field)
-			case "errorMessage":
-				return ec.fieldContext_User_errorMessage(ctx, field)
+			case "message":
+				return ec.fieldContext_Result_message(ctx, field)
+			case "success":
+				return ec.fieldContext_Result_success(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type Result", field.Name)
 		},
 	}
 	defer func() {
@@ -5899,33 +5882,25 @@ func (ec *executionContext) unmarshalInputInviteUserToGroupInput(ctx context.Con
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputJoinGroupInput(ctx context.Context, obj interface{}) (model.JoinGroupInput, error) {
-	var it model.JoinGroupInput
+func (ec *executionContext) unmarshalInputJoinGroup(ctx context.Context, obj interface{}) (model.JoinGroup, error) {
+	var it model.JoinGroup
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"email", "password", "groupID"}
+	fieldsInOrder := [...]string{"userID", "groupID"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "email":
+		case "userID":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
-			it.Email, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "password":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
-			it.Password, err = ec.unmarshalNString2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+			it.UserID, err = ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7333,8 +7308,8 @@ func (ec *executionContext) unmarshalNInviteUserToGroupInput2githubᚗcomᚋsijy
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNJoinGroupInput2githubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐJoinGroupInput(ctx context.Context, v interface{}) (model.JoinGroupInput, error) {
-	res, err := ec.unmarshalInputJoinGroupInput(ctx, v)
+func (ec *executionContext) unmarshalNJoinGroup2githubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐJoinGroup(ctx context.Context, v interface{}) (model.JoinGroup, error) {
+	res, err := ec.unmarshalInputJoinGroup(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 

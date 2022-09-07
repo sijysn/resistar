@@ -38,7 +38,6 @@ const History: React.FC<Props> = ({ loading, error, data }) => {
           const typeAvatarStyle = css`
             background-color: ${getColor(type)};
           `;
-          console.log(data);
           return (
             <React.Fragment key={id}>
               {showDate(createdAt, index, data) && (
