@@ -130,7 +130,7 @@ func (r *mutationResolver) AddUser(ctx context.Context, input model.NewUser) (*m
 }
 
 // AddGroup is the resolver for the addGroup field.
-func (r *mutationResolver) AddGroup(ctx context.Context, input model.InitGroup) (*model.Group, error) {
+func (r *mutationResolver) AddGroup(ctx context.Context, input model.NewGroup) (*model.Result, error) {
 	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
 	if responseAccess.Status == http.StatusInternalServerError {
 		return nil, fmt.Errorf("サーバーエラーが発生しました")
@@ -138,14 +138,17 @@ func (r *mutationResolver) AddGroup(ctx context.Context, input model.InitGroup) 
 	if responseAccess.Status == http.StatusUnauthorized {
 		// responseAccess.Writer.WriteHeader(responseAccess.Status)
 		errorMessage := "認証されていません"
-		return &model.Group{
-			ErrorMessage: &errorMessage,
+		return &model.Result{
+			Message: errorMessage,
 		}, nil
 	}
 
 	var dbUsers []dbModel.User
-
-	err := r.DB.Debug().Preload("Groups").Where("id = ?", input.UserID).Find(&dbUsers).Error
+	userID, err := strconv.ParseUint(input.UserID, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	err = r.DB.Debug().Preload("Groups").Where("id = ?", uint(userID)).Find(&dbUsers).Error
 	if err != nil {
 		return nil, err
 	}
@@ -160,16 +163,22 @@ func (r *mutationResolver) AddGroup(ctx context.Context, input model.InitGroup) 
 	if err != nil {
 		return nil, err
 	}
-	newGroup := &model.Group{
-		ID:        strconv.FormatUint(uint64(dbNewGroup.ID), 10),
-		Name:      dbNewGroup.Name,
-		CreatedAt: dbNewGroup.CreatedAt.Format("2006-01-02 15:04:05"),
-	}
-	return newGroup, nil
+	dbGroupID := dbNewGroup.ID
+	session.Session.GroupID = dbGroupID
+
+	groupID := strconv.FormatUint(uint64(dbNewGroup.ID), 10)
+	responseAccess.SetCookie("groupID", groupID, false, time.Now().Add(24*time.Hour))
+	responseAccess.Writer.WriteHeader(http.StatusOK)
+
+	message := "グループを作成しました"
+	return &model.Result{
+		Message: message,
+		Success: true,
+	}, nil
 }
 
 // InviteUserToGroup is the resolver for the inviteUserToGroup field.
-func (r *mutationResolver) InviteUserToGroup(ctx context.Context, input model.InviteUserToGroupInput) (*model.Invited, error) {
+func (r *mutationResolver) InviteUserToGroup(ctx context.Context, input model.InviteUserToGroupInput) (*model.Result, error) {
 	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
 	if responseAccess.Status == http.StatusInternalServerError {
 		return nil, fmt.Errorf("サーバーエラーが発生しました")
@@ -177,7 +186,7 @@ func (r *mutationResolver) InviteUserToGroup(ctx context.Context, input model.In
 	if responseAccess.Status == http.StatusUnauthorized {
 		// responseAccess.Writer.WriteHeader(responseAccess.Status)
 		errorMessage := "認証されていません"
-		return &model.Invited{
+		return &model.Result{
 			Message: errorMessage,
 			Success: false,
 		}, nil
@@ -190,10 +199,10 @@ func (r *mutationResolver) InviteUserToGroup(ctx context.Context, input model.In
 	}
 	if len(dbUsers) == 0 {
 		errorMessage := "このメールアドレスは登録されていません"
-		return &model.Invited{
+		return &model.Result{
 			Message: errorMessage,
 			Success: false,
-		}, nil 
+		}, nil
 	}
 
 	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
@@ -209,7 +218,7 @@ func (r *mutationResolver) InviteUserToGroup(ctx context.Context, input model.In
 	}
 	if len(dbGroups) == 0 {
 		errorMessage := "無効なグループです"
-		return &model.Invited{
+		return &model.Result{
 			Message: errorMessage,
 			Success: false,
 		}, nil
@@ -223,7 +232,7 @@ func (r *mutationResolver) InviteUserToGroup(ctx context.Context, input model.In
 	}
 	if len(dbGroup.Users) == 1 {
 		errorMessage := "このメールアドレスのユーザーは招待できません"
-		return &model.Invited{
+		return &model.Result{
 			Message: errorMessage,
 			Success: false,
 		}, nil
@@ -247,20 +256,20 @@ func (r *mutationResolver) InviteUserToGroup(ctx context.Context, input model.In
 			return nil, err
 		}
 		message := "招待メールを送りました"
-		return &model.Invited{
+		return &model.Result{
 			Message: message,
 			Success: true,
 		}, nil
 	}
 	errorMessage := "このメールアドレスのユーザーは招待できません"
-	return &model.Invited{
+	return &model.Result{
 		Message: errorMessage,
 		Success: false,
 	}, nil
 }
 
 // JoinGroup is the resolver for the joinGroup field.
-func (r *mutationResolver) JoinGroup(ctx context.Context, input model.JoinGroupInput) (*model.User, error) {
+func (r *mutationResolver) JoinGroup(ctx context.Context, input model.JoinGroup) (*model.Result, error) {
 	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
 	if responseAccess.Status == http.StatusInternalServerError {
 		return nil, fmt.Errorf("サーバーエラーが発生しました")
@@ -268,22 +277,28 @@ func (r *mutationResolver) JoinGroup(ctx context.Context, input model.JoinGroupI
 	if responseAccess.Status == http.StatusUnauthorized {
 		// responseAccess.Writer.WriteHeader(responseAccess.Status)
 		errorMessage := "認証されていません"
-		return &model.User{
-			ErrorMessage: &errorMessage,
+		return &model.Result{
+			Message: errorMessage,
+			Success: false,
 		}, nil
 	}
 
+	userID, err := strconv.ParseUint(input.UserID, 10, 64)
+	if err != nil {
+		return nil, err
+	}
 	// ユーザーが存在するかチェックする
 	var dbUsers []dbModel.User
-	err := r.DB.Where("email = ? AND password = ?", input.Email, digest.SHA512(input.Password)).Limit(1).Find(&dbUsers).Error
+	err = r.DB.Where("id = ?", uint(userID)).Limit(1).Find(&dbUsers).Error
 	if err != nil {
 		return nil, err
 	}
 	if len(dbUsers) == 0 {
 		errorMessage := "メールアドレスまたはパスワードが違います"
-		return &model.User{
-			ErrorMessage: &errorMessage,
-		}, nil 
+		return &model.Result{
+			Message: errorMessage,
+			Success: false,
+		}, nil
 	}
 
 	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
@@ -299,27 +314,28 @@ func (r *mutationResolver) JoinGroup(ctx context.Context, input model.JoinGroupI
 	}
 	if len(dbGroups) == 0 {
 		errorMessage := "無効なグループです"
-		return &model.User{
-			ErrorMessage: &errorMessage,
-		}, nil 
+		return &model.Result{
+			Message: errorMessage,
+			Success: false,
+		}, nil
 	}
 
 	// ユーザーがグループに参加しているかチェックする
 	var dbGroup *dbModel.Group
-	err = r.DB.Debug().Where("id = ?", uint(groupID)).Preload("Users", "email = ?", input.Email).Limit(1).Find(&dbGroup).Error
+	err = r.DB.Debug().Where("id = ?", uint(groupID)).Preload("Users", "id = ?", uint(userID)).Limit(1).Find(&dbGroup).Error
 	if err != nil {
 		return nil, err
 	}
 	if len(dbGroup.Users) == 1 {
 		errorMessage := "このメールアドレスに対してこの操作はできません"
-		return &model.User{
-			ErrorMessage: &errorMessage,
-		}, nil 
+		return &model.Result{
+			Message: errorMessage,
+			Success: false,
+		}, nil
 	}
 
 	var dbInvitedUsers []dbModel.InvitedUser
-	dbUser := dbUsers[0]
-	err = r.DB.Debug().Where("group_id = ? AND user_id = ?", uint(groupID), dbUser.ID).Order("created_at DESC").Limit(1).Find(&dbInvitedUsers).Error
+	err = r.DB.Debug().Where("group_id = ? AND user_id = ?", uint(groupID), uint(userID)).Order("created_at DESC").Limit(1).Find(&dbInvitedUsers).Error
 	if err != nil {
 		return nil, err
 	}
@@ -333,25 +349,94 @@ func (r *mutationResolver) JoinGroup(ctx context.Context, input model.JoinGroupI
 		if err != nil {
 			return nil, err
 		}
-		user := &model.User{
-			ID:       strconv.FormatUint(uint64(dbUser.ID), 10),
-			Email:    dbUser.Email,
-			Name:     dbUser.Name,
-			ImageURL: dbUser.ImageURL,
-		}
-		return user, nil 
+
+		responseAccess.SetCookie("groupID", input.GroupID, false, time.Now().Add(24*time.Hour))
+		responseAccess.Writer.WriteHeader(http.StatusOK)
+
+		message := "グループに参加しました"
+		return &model.Result{
+			Message: message,
+			Success: true,
+		}, nil
 	}
 	errorMessage := "無効なメールアドレスです"
-	return &model.User{
-		ErrorMessage: &errorMessage,
+	return &model.Result{
+		Message: errorMessage,
+		Success: false,
 	}, nil
 }
 
-// Login is the resolver for the login field.
-func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (*model.User, error) {
+// LoginUser is the resolver for the loginUser field.
+func (r *mutationResolver) LoginUser(ctx context.Context, input model.LoginUser) (*model.Result, error) {
 	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
 	if responseAccess.Status == http.StatusInternalServerError {
 		return nil, fmt.Errorf("サーバーエラーが発生しました")
+	}
+
+	// ユーザーが存在するかチェックする
+	var dbUsers []dbModel.User
+	count := r.DB.Where("email = ? AND password = ?", input.Email, digest.SHA512(input.Password)).Limit(1).Find(&dbUsers).RowsAffected
+	if count != 1 {
+		errorMessage := "メールアドレスまたはパスワードが違います"
+		return &model.Result{
+			Message: errorMessage,
+			Success: false,
+		}, nil
+	}
+
+	sessionToken := digest.GenerateToken()
+	dbUser := dbUsers[0]
+	userID := dbUser.ID
+	session.Session.SessionToken = sessionToken
+	session.Session.UserID = uint(userID)
+
+	signBytes, err := ioutil.ReadFile("./jwt.pem")
+	if err != nil {
+		panic(err)
+	}
+
+	signKey, err := jwt.ParseRSAPrivateKeyFromPEM(signBytes)
+	if err != nil {
+		panic(err)
+	}
+
+	claims := jwt.MapClaims{
+		"sessionToken": sessionToken,
+		"userID":       uint(userID),
+		"exp":          time.Now().AddDate(0, 1, 0).Unix(),
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+	jwtToken, err := token.SignedString(signKey)
+	if err != nil {
+		panic(err)
+	}
+
+	responseAccess.SetCookie("jwtToken", jwtToken, false, time.Now().Add(24*time.Hour))
+	id := strconv.FormatUint(uint64(userID), 10)
+	responseAccess.SetCookie("userID", id, false, time.Now().Add(24*time.Hour))
+	responseAccess.Writer.WriteHeader(http.StatusOK)
+
+	message := "ログインに成功しました"
+	return &model.Result{
+		Message: message,
+		Success: true,
+	}, nil
+}
+
+// LoginGroup is the resolver for the loginGroup field.
+func (r *mutationResolver) LoginGroup(ctx context.Context, input model.LoginGroup) (*model.Result, error) {
+	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
+	if responseAccess.Status == http.StatusInternalServerError {
+		return nil, fmt.Errorf("サーバーエラーが発生しました")
+	}
+
+	if responseAccess.Status == http.StatusUnauthorized {
+		// responseAccess.Writer.WriteHeader(responseAccess.Status)
+		errorMessage := "認証されていません"
+		return &model.Result{
+			Message: errorMessage,
+			Success: false,
+		}, nil
 	}
 
 	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
@@ -367,66 +452,38 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (*m
 	}
 	if len(dbGroups) == 0 {
 		errorMessage := "無効なグループです"
-		return &model.User{
-			ErrorMessage: &errorMessage,
-		}, nil 
+		return &model.Result{
+			Message: errorMessage,
+			Success: false,
+		}, nil
 	}
 
 	// グループのメンバーかどうかチェックする
+	userID, err := strconv.ParseUint(input.UserID, 10, 64)
+	if err != nil {
+		return nil, err
+	}
 	var dbGroup *dbModel.Group
-	err = r.DB.Debug().Where("id = ?", uint(groupID)).Preload("Users", "email = ? AND password = ?", input.Email, digest.SHA512(input.Password)).Limit(1).Find(&dbGroup).Error
+	err = r.DB.Debug().Where("id = ?", uint(groupID)).Preload("Users", "id = ?", uint(userID)).Limit(1).Find(&dbGroup).Error
 	if err != nil {
 		return nil, err
 	}
 	if len(dbGroup.Users) != 1 {
-		errorMessage := "メールアドレスまたはパスワードが違います"
-		return &model.User{
-			ErrorMessage: &errorMessage,
+		errorMessage := "このグループには入れません"
+		return &model.Result{
+			Message: errorMessage,
+			Success: false,
 		}, nil
 	}
 
-	sessionToken := digest.GenerateToken()
-	dbUser := dbGroup.Users[0]
-	userID := dbUser.ID
-	session.Session.SessionToken = sessionToken
-	session.Session.UserID = uint(userID)
-	session.Session.GroupID = uint(groupID)
-
-	signBytes, err := ioutil.ReadFile("./jwt.pem")
-	if err != nil {
-		panic(err)
-	}
-
-	signKey, err := jwt.ParseRSAPrivateKeyFromPEM(signBytes)
-	if err != nil {
-			panic(err)
-	}
-
-	claims := jwt.MapClaims{
-		"sessionToken": sessionToken,
-		"groupID":       uint(groupID),
-		"userID":        uint(userID),
-		"exp":           time.Now().AddDate(0, 1, 0).Unix(),
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-	jwtToken, err := token.SignedString(signKey)
-	if err != nil {
-		return nil, err
-	}
-
-	responseAccess.SetCookie("jwtToken", jwtToken, false, time.Now().Add(24*time.Hour))
-	id := strconv.FormatUint(uint64(userID), 10)
-	responseAccess.SetCookie("userID", id, false, time.Now().Add(24*time.Hour))
 	responseAccess.SetCookie("groupID", input.GroupID, false, time.Now().Add(24*time.Hour))
 	responseAccess.Writer.WriteHeader(http.StatusOK)
 
-	user := &model.User{
-		ID:       id,
-		Email:    dbUser.Email,
-		Name:     dbUser.Name,
-		ImageURL: dbUser.ImageURL,
-	}
-	return user, nil
+	message := "グループにログインしました"
+	return &model.Result{
+		Message: message,
+		Success: true,
+	}, nil
 }
 
 // Histories is the resolver for the histories field.
@@ -611,6 +668,64 @@ func (r *queryResolver) Amounts(ctx context.Context, input model.AmountsQuery) (
 	}
 
 	return amounts, nil
+}
+
+// GroupsWhereUserHasBeenInvited is the resolver for the groupsWhereUserHasBeenInvited field.
+func (r *queryResolver) GroupsWhereUserHasBeenInvited(ctx context.Context, input model.GroupsQuery) ([]*model.Group, error) {
+	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
+	if responseAccess.Status == http.StatusInternalServerError {
+		return nil, fmt.Errorf("サーバーエラーが発生しました")
+	}
+	var groups []*model.Group
+	if responseAccess.Status == http.StatusUnauthorized {
+		// responseAccess.Writer.WriteHeader(responseAccess.Status)
+		errorMessage := "認証されていません"
+		groups = append(groups, &model.Group{
+			ErrorMessage: &errorMessage,
+		})
+		return groups, nil
+	}
+
+	userID, err := strconv.ParseUint(input.UserID, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	var dbInvitedUsers []dbModel.InvitedUser
+	err = r.DB.Debug().Where("user_id = ?", uint(userID)).Find(&dbInvitedUsers).Error
+	if err != nil {
+		return nil, err
+	}
+	if len(dbInvitedUsers) == 0 {
+		return []*model.Group{}, nil
+	}
+	var dbGroupIDs []uint
+	for _, dbInvitedUser := range dbInvitedUsers {
+		if !dbInvitedUser.Joined {
+			dbGroupIDs = append(dbGroupIDs, dbInvitedUser.GroupID)
+		}
+	}
+	var dbGroups []dbModel.Group
+	err = r.DB.Where("id IN ?", dbGroupIDs).Preload("Users").Find(&dbGroups).Order("created_at DESC").Error
+	if err != nil {
+		return nil, err
+	}
+	for _, dbGroup := range dbGroups {
+		var users []*model.User
+		for _, dbGroupUser := range dbGroup.Users {
+			users = append(users, &model.User{
+				ID:    strconv.FormatUint(uint64(dbGroupUser.ID), 10),
+				Email: dbGroupUser.Email,
+				Name:  dbGroupUser.Name,
+			})
+		}
+		groups = append(groups, &model.Group{
+			ID:    strconv.FormatUint(uint64(dbGroup.ID), 10),
+			Name:  dbGroup.Name,
+			Users: users,
+		})
+	}
+
+	return groups, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

@@ -65,41 +65,48 @@ const Overview: React.FC<Props> = ({
           </IconButton>
         </Link>
       </OverviewHeader>
-      <Amounts>
-        <PersonalBalance>
-          {!amountsLoading &&
-          amountsData &&
-          amountsData.amounts.personalBalance ? (
-            <>
-              <Sign personalBalance={amountsData.amounts.personalBalance} />¥
-              {Math.abs(amountsData.amounts.personalBalance).toLocaleString()}
-            </>
-          ) : (
-            "¥---"
-          )}
-        </PersonalBalance>
-        <GroupTotal>
-          グループ支出 ¥
-          {!amountsLoading && amountsData && amountsData.amounts.groupTotal
-            ? amountsData.amounts.groupTotal.toLocaleString()
-            : "---"}
-        </GroupTotal>
-      </Amounts>
-      <Members>
-        <MembersCount>
-          メンバー(
-          {!usersLoading && usersData ? usersData.users.length : 0})
-        </MembersCount>
-        <MemberList>
-          {!usersLoading && usersData ? (
-            usersData.users.map(({ id, imageURL }) => (
-              <Member key={id} src={imageURL} />
-            ))
-          ) : (
-            <Member src="" />
-          )}
-        </MemberList>
-      </Members>
+      <Link href={`/histories/overview/${yearAndMonth}`}>
+        <OverviewBody>
+          <Amounts>
+            <PersonalBalance>
+              {!amountsLoading &&
+              amountsData &&
+              amountsData.amounts.personalBalance ? (
+                <>
+                  <Sign personalBalance={amountsData.amounts.personalBalance} />
+                  ¥
+                  {Math.abs(
+                    amountsData.amounts.personalBalance
+                  ).toLocaleString()}
+                </>
+              ) : (
+                "¥---"
+              )}
+            </PersonalBalance>
+            <GroupTotal>
+              グループ支出 ¥
+              {!amountsLoading && amountsData && amountsData.amounts.groupTotal
+                ? amountsData.amounts.groupTotal.toLocaleString()
+                : "---"}
+            </GroupTotal>
+          </Amounts>
+          <Members>
+            <MembersCount>
+              メンバー(
+              {!usersLoading && usersData ? usersData.users.length : 0})
+            </MembersCount>
+            <MemberList>
+              {!usersLoading && usersData ? (
+                usersData.users.map(({ id, imageURL }) => (
+                  <Member key={id} src={imageURL} />
+                ))
+              ) : (
+                <Member src="" />
+              )}
+            </MemberList>
+          </Members>
+        </OverviewBody>
+      </Link>
     </Wrapper>
   );
 };
@@ -122,6 +129,11 @@ const OverviewHeader = styled("div")`
   align-items: center;
   justify-content: space-between;
   width: 100%;
+`;
+
+const OverviewBody = styled("a")`
+  width: 100%;
+  display: block;
 `;
 
 const Amounts = styled("div")`
@@ -150,6 +162,7 @@ const MembersCount = styled("div")`
 
 const MemberList = styled("div")`
   display: flex;
+  justify-content: center;
 `;
 
 const Member = styled(Avatar)`
