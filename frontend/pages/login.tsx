@@ -1,7 +1,6 @@
 import * as React from "react";
 import type { NextPage } from "next";
 import { useMutation } from "@apollo/client";
-import { parseCookies } from "nookies";
 import {
   LOGIN_USER,
   loginUserProps,
@@ -25,7 +24,6 @@ const LoginPage: NextPage = () => {
   const router = useRouter();
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
-  const [groupID, setGroupID] = React.useState("1");
   const [message, setMessage] = React.useState("");
 
   const [login, { loading, error }] = useMutation<
@@ -37,7 +35,6 @@ const LoginPage: NextPage = () => {
     const loginUserQueryVars: loginUserVarsProps = {
       email,
       password,
-      groupID,
     };
     const { data } = await login({
       variables: loginUserQueryVars,
@@ -46,18 +43,15 @@ const LoginPage: NextPage = () => {
       setMessage("予期せぬエラーが起こりました");
       return;
     }
-    const { errorMessage } = data.login;
-    if (errorMessage) {
-      setMessage(errorMessage);
+    const { message: loginMessage, success } = data.loginUser;
+    if (success) {
+      router.reload();
+      return;
+    }
+    if (loginMessage) {
+      setMessage(loginMessage);
     }
   };
-
-  const cookies = parseCookies();
-  React.useEffect(() => {
-    if (cookies["jwtToken"]) {
-      router.reload();
-    }
-  }, [cookies["jwtToken"]]);
 
   return (
     <Container component="main" maxWidth="xs">
@@ -106,20 +100,6 @@ const LoginPage: NextPage = () => {
             autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            InputLabelProps={{
-              shrink: true,
-            }}
-          />
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            name="groupID"
-            label="GroupID"
-            type="text"
-            autoComplete="current-password"
-            value={groupID}
-            onChange={(e) => setGroupID(e.target.value)}
             InputLabelProps={{
               shrink: true,
             }}

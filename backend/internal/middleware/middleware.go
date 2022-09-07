@@ -75,8 +75,7 @@ func getStatus(token *jwt.Token, r *http.Request, err error) int {
 	}
 	sessionValid :=	session.Session.SessionToken == claims["sessionToken"]
 	userIDValid := session.Session.UserID == uint(claims["userID"].(float64))
-	groupIDValid := session.Session.GroupID == uint(claims["groupID"].(float64))
-	if sessionValid && userIDValid && groupIDValid {
+	if sessionValid && userIDValid {
 		return http.StatusOK
 	} 
 	return http.StatusUnauthorized 

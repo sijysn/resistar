@@ -67,31 +67,29 @@ type History struct {
 	ErrorMessage *string `json:"errorMessage"`
 }
 
-type InitGroup struct {
-	UserID    string `json:"userID"`
-	GroupName string `json:"groupName"`
-}
-
 type InviteUserToGroupInput struct {
 	Email   string `json:"email"`
 	GroupID string `json:"groupID"`
 }
 
-type Invited struct {
-	Message string `json:"message"`
-	Success bool   `json:"success"`
+type JoinGroup struct {
+	UserID  string `json:"userID"`
+	GroupID string `json:"groupID"`
 }
 
-type JoinGroupInput struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-	GroupID  string `json:"groupID"`
+type LoginGroup struct {
+	UserID  string `json:"userID"`
+	GroupID string `json:"groupID"`
 }
 
 type LoginUser struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
-	GroupID  string `json:"groupID"`
+}
+
+type NewGroup struct {
+	UserID    string `json:"userID"`
+	GroupName string `json:"groupName"`
 }
 
 type NewHistory struct {
@@ -106,6 +104,11 @@ type NewHistory struct {
 type NewUser struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+type Result struct {
+	Message string `json:"message"`
+	Success bool   `json:"success"`
 }
 
 type User struct {
