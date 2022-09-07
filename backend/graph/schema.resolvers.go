@@ -130,7 +130,7 @@ func (r *mutationResolver) AddUser(ctx context.Context, input model.NewUser) (*m
 }
 
 // AddGroup is the resolver for the addGroup field.
-func (r *mutationResolver) AddGroup(ctx context.Context, input model.InitGroup) (*model.Group, error) {
+func (r *mutationResolver) AddGroup(ctx context.Context, input model.NewGroup) (*model.Result, error) {
 	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
 	if responseAccess.Status == http.StatusInternalServerError {
 		return nil, fmt.Errorf("サーバーエラーが発生しました")
@@ -138,8 +138,8 @@ func (r *mutationResolver) AddGroup(ctx context.Context, input model.InitGroup) 
 	if responseAccess.Status == http.StatusUnauthorized {
 		// responseAccess.Writer.WriteHeader(responseAccess.Status)
 		errorMessage := "認証されていません"
-		return &model.Group{
-			ErrorMessage: &errorMessage,
+		return &model.Result{
+			Message: errorMessage,
 		}, nil
 	}
 
@@ -164,47 +164,17 @@ func (r *mutationResolver) AddGroup(ctx context.Context, input model.InitGroup) 
 		return nil, err
 	}
 	dbGroupID := dbNewGroup.ID
-	sessionToken := digest.GenerateToken()
-	session.Session.SessionToken = sessionToken
-	session.Session.UserID = uint(userID)
 	session.Session.GroupID = dbGroupID
 
-	signBytes, err := ioutil.ReadFile("./jwt.pem")
-	if err != nil {
-		panic(err)
-	}
-
-	signKey, err := jwt.ParseRSAPrivateKeyFromPEM(signBytes)
-	if err != nil {
-		panic(err)
-	}
-
-	claims := jwt.MapClaims{
-		"sessionToken": sessionToken,
-		"groupID":      dbGroupID,
-		"userID":       uint(userID),
-		"exp":          time.Now().AddDate(0, 1, 0).Unix(),
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-	jwtToken, err := token.SignedString(signKey)
-	if err != nil {
-		return nil, err
-	}
 	groupID := strconv.FormatUint(uint64(dbNewGroup.ID), 10)
-
-	responseAccess.SetCookie("jwtToken", jwtToken, false, time.Now().Add(24*time.Hour))
-	id := strconv.FormatUint(uint64(userID), 10)
-	responseAccess.SetCookie("userID", id, false, time.Now().Add(24*time.Hour))
 	responseAccess.SetCookie("groupID", groupID, false, time.Now().Add(24*time.Hour))
 	responseAccess.Writer.WriteHeader(http.StatusOK)
 
-	newGroup := &model.Group{
-		ID:        groupID,
-		Name:      dbNewGroup.Name,
-		CreatedAt: dbNewGroup.CreatedAt.Format("2006-01-02 15:04:05"),
-	}
-
-	return newGroup, nil
+	message := "グループを作成しました"
+	return &model.Result{
+		Message: message,
+		Success: true,
+	}, nil
 }
 
 // InviteUserToGroup is the resolver for the inviteUserToGroup field.

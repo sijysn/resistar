@@ -3,18 +3,16 @@ import { gql } from "@apollo/client";
 export const ADD_GROUP = gql`
   mutation($userID: ID!, $groupName: String!) {
     addGroup(input: { userID: $userID, groupName: $groupName }) {
-      id
-      name
-      errorMessage
+      message
+      success
     }
   }
 `;
 
 export type addGroupProps = {
   addGroup: {
-    id: string;
-    name: string;
-    errorMessage: string;
+    message: string;
+    success: boolean;
   };
 };
 

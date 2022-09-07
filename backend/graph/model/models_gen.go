@@ -67,11 +67,6 @@ type History struct {
 	ErrorMessage *string `json:"errorMessage"`
 }
 
-type InitGroup struct {
-	UserID    string `json:"userID"`
-	GroupName string `json:"groupName"`
-}
-
 type InviteUserToGroupInput struct {
 	Email   string `json:"email"`
 	GroupID string `json:"groupID"`
@@ -90,6 +85,11 @@ type LoginGroup struct {
 type LoginUser struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+type NewGroup struct {
+	UserID    string `json:"userID"`
+	GroupName string `json:"groupName"`
 }
 
 type NewHistory struct {
