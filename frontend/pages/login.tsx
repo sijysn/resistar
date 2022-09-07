@@ -68,7 +68,7 @@ const LoginPage: NextPage = () => {
           <LockOutlinedIcon />
         </Avatar>
         <Typography component="h1" variant="h5">
-          Sign in
+          Resistar
         </Typography>
         {message && (
           <Typography component="h1" variant="h5">
@@ -80,7 +80,7 @@ const LoginPage: NextPage = () => {
             margin="normal"
             required
             fullWidth
-            label="Email Address"
+            label="メールアドレス"
             name="email"
             autoComplete="email"
             autoFocus
@@ -95,7 +95,7 @@ const LoginPage: NextPage = () => {
             required
             fullWidth
             name="password"
-            label="Password"
+            label="パスワード"
             type="password"
             autoComplete="current-password"
             value={password}
@@ -104,10 +104,10 @@ const LoginPage: NextPage = () => {
               shrink: true,
             }}
           />
-          <FormControlLabel
+          {/* <FormControlLabel
             control={<Checkbox value="remember" color="primary" />}
             label="Remember me"
-          />
+          /> */}
           <Button
             type="submit"
             fullWidth
@@ -117,7 +117,7 @@ const LoginPage: NextPage = () => {
           >
             ログイン
           </Button>
-          <Grid container>
+          {/* <Grid container>
             <Grid item xs>
               <Link href="#" variant="body2">
                 Forgot password?
@@ -128,7 +128,7 @@ const LoginPage: NextPage = () => {
                 {"Don't have an account? Sign Up"}
               </Link>
             </Grid>
-          </Grid>
+          </Grid> */}
         </Box>
       </Box>
     </Container>
