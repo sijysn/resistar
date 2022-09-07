@@ -16,16 +16,16 @@ export const GET_GROUPS_WHERE_USER_HAS_BEEN_INVITED = gql`
   }
 `;
 
-export type GroupProps = {
+export type GroupWhereUserHasBeenInvitedProps = {
   id: string;
   name: string;
   users: UserProps[];
 };
 
-export type getGroupsProps = {
-  groupsWhereUserHasBeenInvited: GroupProps[];
+export type getGroupsWhereUserHasBeenInvitedProps = {
+  groupsWhereUserHasBeenInvited: GroupWhereUserHasBeenInvitedProps[];
 };
 
-export type getGroupsVarsProps = {
+export type getGroupsWhereUserHasBeenInvitedVarsProps = {
   userID: string;
 };

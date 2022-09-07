@@ -181,7 +181,7 @@ func (r *mutationResolver) AddGroup(ctx context.Context, input model.InitGroup) 
 
 	claims := jwt.MapClaims{
 		"sessionToken": sessionToken,
-		"groupID":     	dbGroupID,
+		"groupID":      dbGroupID,
 		"userID":       uint(userID),
 		"exp":          time.Now().AddDate(0, 1, 0).Unix(),
 	}
@@ -386,11 +386,77 @@ func (r *mutationResolver) JoinGroup(ctx context.Context, input model.JoinGroupI
 	}, nil
 }
 
-// Login is the resolver for the login field.
-func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (*model.User, error) {
+// LoginUser is the resolver for the loginUser field.
+func (r *mutationResolver) LoginUser(ctx context.Context, input model.LoginUser) (*model.Result, error) {
 	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
 	if responseAccess.Status == http.StatusInternalServerError {
 		return nil, fmt.Errorf("サーバーエラーが発生しました")
+	}
+
+	// ユーザーが存在するかチェックする
+	var dbUsers []dbModel.User
+	count := r.DB.Where("email = ? AND password = ?", input.Email, digest.SHA512(input.Password)).Limit(1).Find(&dbUsers).RowsAffected
+	if count != 1 {
+		errorMessage := "メールアドレスまたはパスワードが違います"
+		return &model.Result{
+			Message: errorMessage,
+			Success: false,
+		}, nil
+	}
+
+	sessionToken := digest.GenerateToken()
+	dbUser := dbUsers[0]
+	userID := dbUser.ID
+	session.Session.SessionToken = sessionToken
+	session.Session.UserID = uint(userID)
+
+	signBytes, err := ioutil.ReadFile("./jwt.pem")
+	if err != nil {
+		panic(err)
+	}
+
+	signKey, err := jwt.ParseRSAPrivateKeyFromPEM(signBytes)
+	if err != nil {
+		panic(err)
+	}
+
+	claims := jwt.MapClaims{
+		"sessionToken": sessionToken,
+		"userID":       uint(userID),
+		"exp":          time.Now().AddDate(0, 1, 0).Unix(),
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+	jwtToken, err := token.SignedString(signKey)
+	if err != nil {
+		panic(err)
+	}
+
+	responseAccess.SetCookie("jwtToken", jwtToken, false, time.Now().Add(24*time.Hour))
+	id := strconv.FormatUint(uint64(userID), 10)
+	responseAccess.SetCookie("userID", id, false, time.Now().Add(24*time.Hour))
+	responseAccess.Writer.WriteHeader(http.StatusOK)
+
+	message := "ログインに成功しました"
+	return &model.Result{
+		Message: message,
+		Success: true,
+	}, nil
+}
+
+// LoginGroup is the resolver for the loginGroup field.
+func (r *mutationResolver) LoginGroup(ctx context.Context, input model.LoginGroup) (*model.Result, error) {
+	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
+	if responseAccess.Status == http.StatusInternalServerError {
+		return nil, fmt.Errorf("サーバーエラーが発生しました")
+	}
+
+	if responseAccess.Status == http.StatusUnauthorized {
+		// responseAccess.Writer.WriteHeader(responseAccess.Status)
+		errorMessage := "認証されていません"
+		return &model.Result{
+			Message: errorMessage,
+			Success: false,
+		}, nil
 	}
 
 	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
@@ -406,66 +472,38 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (*m
 	}
 	if len(dbGroups) == 0 {
 		errorMessage := "無効なグループです"
-		return &model.User{
-			ErrorMessage: &errorMessage,
+		return &model.Result{
+			Message: errorMessage,
+			Success: false,
 		}, nil
 	}
 
 	// グループのメンバーかどうかチェックする
+	userID, err := strconv.ParseUint(input.UserID, 10, 64)
+	if err != nil {
+		return nil, err
+	}
 	var dbGroup *dbModel.Group
-	err = r.DB.Debug().Where("id = ?", uint(groupID)).Preload("Users", "email = ? AND password = ?", input.Email, digest.SHA512(input.Password)).Limit(1).Find(&dbGroup).Error
+	err = r.DB.Debug().Where("id = ?", uint(groupID)).Preload("Users", "id = ?", uint(userID)).Limit(1).Find(&dbGroup).Error
 	if err != nil {
 		return nil, err
 	}
 	if len(dbGroup.Users) != 1 {
-		errorMessage := "メールアドレスまたはパスワードが違います"
-		return &model.User{
-			ErrorMessage: &errorMessage,
+		errorMessage := "このグループには入れません"
+		return &model.Result{
+			Message: errorMessage,
+			Success: false,
 		}, nil
 	}
 
-	sessionToken := digest.GenerateToken()
-	dbUser := dbGroup.Users[0]
-	userID := dbUser.ID
-	session.Session.SessionToken = sessionToken
-	session.Session.UserID = uint(userID)
-	session.Session.GroupID = uint(groupID)
-
-	signBytes, err := ioutil.ReadFile("./jwt.pem")
-	if err != nil {
-		panic(err)
-	}
-
-	signKey, err := jwt.ParseRSAPrivateKeyFromPEM(signBytes)
-	if err != nil {
-		panic(err)
-	}
-
-	claims := jwt.MapClaims{
-		"sessionToken": sessionToken,
-		"groupID":      uint(groupID),
-		"userID":       uint(userID),
-		"exp":          time.Now().AddDate(0, 1, 0).Unix(),
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-	jwtToken, err := token.SignedString(signKey)
-	if err != nil {
-		return nil, err
-	}
-
-	responseAccess.SetCookie("jwtToken", jwtToken, false, time.Now().Add(24*time.Hour))
-	id := strconv.FormatUint(uint64(userID), 10)
-	responseAccess.SetCookie("userID", id, false, time.Now().Add(24*time.Hour))
 	responseAccess.SetCookie("groupID", input.GroupID, false, time.Now().Add(24*time.Hour))
 	responseAccess.Writer.WriteHeader(http.StatusOK)
 
-	user := &model.User{
-		ID:       id,
-		Email:    dbUser.Email,
-		Name:     dbUser.Name,
-		ImageURL: dbUser.ImageURL,
-	}
-	return user, nil
+	message := "グループにログインしました"
+	return &model.Result{
+		Message: message,
+		Success: true,
+	}, nil
 }
 
 // Histories is the resolver for the histories field.

@@ -83,10 +83,14 @@ type JoinGroupInput struct {
 	GroupID  string `json:"groupID"`
 }
 
+type LoginGroup struct {
+	UserID  string `json:"userID"`
+	GroupID string `json:"groupID"`
+}
+
 type LoginUser struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
-	GroupID  string `json:"groupID"`
 }
 
 type NewHistory struct {
