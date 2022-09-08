@@ -1,21 +1,16 @@
 import * as React from "react";
 import type { GetServerSideProps, NextPage } from "next";
-import Link from "next/link";
 import nookies from "nookies";
 import dayjs from "dayjs";
 import { useQuery } from "@apollo/client";
 import { styled } from "@mui/material";
-import Button from "@mui/material/Button";
-import IconButton from "@mui/material/IconButton";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import { ServerSideProps } from "../../index";
 import {
   addApolloState,
   initializeApollo,
 } from "../../../lib/apollo/apollo-client";
-import { getHistories } from "../../../lib/apollo/server/getHistories";
+import { getAdjustment } from "../../../lib/apollo/server/getAdjustment";
 import { getUsers } from "../../../lib/apollo/server/getUsers";
-import { getAmounts } from "../../../lib/apollo/server/getAmounts";
 import InviteUserModal from "../../../components/histories/overview/InviteUserModal";
 import Header from "../../../components/histories/overview/Header";
 import Adjustment from "../../../components/histories/overview/Adjustment";
@@ -49,7 +44,7 @@ const YearAndMonthHistoryDetails: NextPage<ServerSideProps> = ({
     <>
       <Overview>
         <Header yearAndMonth={yearAndMonth} handleClick={openModal} />
-        <Adjustment />
+        <Adjustment yearAndMonth={yearAndMonth} cookies={cookies} />
       </Overview>
       <Members data={data} loading={loading} error={error} />
       <InviteUserModal
@@ -80,7 +75,7 @@ export const getServerSideProps: GetServerSideProps<ServerSideProps> = async (
   const cookies = nookies.get(context);
   const apolloClient = initializeApollo(cookies["jwtToken"]);
 
-  await getHistories(apolloClient, {
+  await getAdjustment(apolloClient, {
     groupID: cookies["groupID"],
     year,
     month,
@@ -88,13 +83,6 @@ export const getServerSideProps: GetServerSideProps<ServerSideProps> = async (
 
   await getUsers(apolloClient, {
     groupID: cookies["groupID"],
-  });
-
-  await getAmounts(apolloClient, {
-    year,
-    month,
-    groupID: cookies["groupID"],
-    userID: cookies["userID"],
   });
 
   return addApolloState(apolloClient, {
