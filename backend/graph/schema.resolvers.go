@@ -7,7 +7,9 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"net/http"
+	"sort"
 	"strconv"
 	"time"
 
@@ -668,6 +670,95 @@ func (r *queryResolver) Amounts(ctx context.Context, input model.AmountsQuery) (
 	}
 
 	return amounts, nil
+}
+
+// Adjustment is the resolver for the adjustment field.
+func (r *queryResolver) Adjustment(ctx context.Context, input model.AdjustmentQuery) ([]*model.Adjustment, error) {
+	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
+	if responseAccess.Status == http.StatusInternalServerError {
+		return nil, fmt.Errorf("サーバーエラーが発生しました")
+	}
+	var adjustments []*model.Adjustment
+	if responseAccess.Status == http.StatusUnauthorized {
+		// responseAccess.Writer.WriteHeader(responseAccess.Status)
+		errorMessage := "認証されていません"
+		adjustments = append(adjustments, &model.Adjustment{
+			ErrorMessage: &errorMessage,
+		})
+		return adjustments, nil
+	}
+
+	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	var dbGroup *dbModel.Group
+	err = r.DB.Debug().Where("id = ?", uint(groupID)).Preload("Users").Limit(1).Find(&dbGroup).Error
+	if err != nil {
+		return nil, err
+	}
+	type personalBalanceType struct{
+		PersonalBalance int
+		User *model.User
+	}
+	var personalBalances []*personalBalanceType
+	var amounts *model.Amounts
+	for _, dbUser := range dbGroup.Users {
+		err = r.DB.Debug().Table("balances").Select("SUM(amount) as personal_balance").Where("group_id = ? AND user_id = ? AND date_part('year', created_at) = ? AND date_part('month', created_at) = ?", uint(groupID), dbUser.ID, input.Year, input.Month).Scan(&amounts).Error
+		if err != nil {
+			return nil, err
+		}
+
+		user := &model.User{
+			ID: strconv.FormatUint(uint64(dbUser.ID), 10),
+			Name: dbUser.Name,
+		}
+		personalBalances = append(personalBalances, &personalBalanceType{
+			PersonalBalance: amounts.PersonalBalance,
+			User: user,
+		})
+	}
+	
+	paidTooMuch := &personalBalanceType{};
+	paidLess := &personalBalanceType{};
+	for true {
+		tooMuchBorder := 0
+		lessBorder := 0
+		sort.Slice(personalBalances, func(i, j int) bool { return personalBalances[i].PersonalBalance < personalBalances[j].PersonalBalance })
+		for _, pb := range personalBalances {
+			if paidTooMuch.PersonalBalance == 0 {
+				tooMuchBorder = 0
+			} else {
+				tooMuchBorder = paidTooMuch.PersonalBalance
+			}
+			if paidLess.PersonalBalance == 0 {
+				lessBorder = 0
+			} else {
+				lessBorder = paidLess.PersonalBalance
+			}
+
+			if pb.PersonalBalance >= tooMuchBorder {
+				paidTooMuch = pb 
+			}
+			if pb.PersonalBalance <= lessBorder {
+				paidLess = pb
+			}
+		}
+
+		if paidTooMuch.PersonalBalance == paidLess.PersonalBalance {
+			break
+		}
+		payment := math.Min(float64(paidTooMuch.PersonalBalance), math.Abs(float64(paidLess.PersonalBalance)));
+		adjustments = append(adjustments, &model.Adjustment{
+			FromUser: paidLess.User,
+			ToUser: paidTooMuch.User,
+			Amount: int(payment),
+		})
+		paidTooMuch.PersonalBalance -= int(payment)
+		paidLess.PersonalBalance += int(payment)
+	}
+	
+	return adjustments, nil
 }
 
 // GroupsWhereUserHasBeenInvited is the resolver for the groupsWhereUserHasBeenInvited field.

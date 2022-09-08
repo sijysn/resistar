@@ -5,6 +5,7 @@ export const GET_USERS = gql`
     users(input: { groupID: $groupID }) {
       id
       name
+      email
       imageURL
     }
   }
@@ -13,6 +14,7 @@ export const GET_USERS = gql`
 export type UserProps = {
   id: string;
   name: string;
+  email: string;
   imageURL?: string;
 };
 

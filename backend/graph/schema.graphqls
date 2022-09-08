@@ -67,6 +67,13 @@ type Amounts {
   errorMessage: String
 }
 
+type Adjustment {
+  fromUser: User!
+  toUser: User!
+  amount: Int!
+  errorMessage: String
+}
+
 type Result {
   message: String!
   success: Boolean!
@@ -93,11 +100,18 @@ input AmountsQuery {
   groupID: ID!
 }
 
+input AdjustmentQuery {
+  year: String!
+  month: String!
+  groupID: ID!
+}
+
 type Query {
   histories(input: HistoriesQuery!): [History!]!
   users(input: UsersQuery!): [User!]!
   groups(input: GroupsQuery!): [Group!]!
   amounts(input: AmountsQuery!): Amounts!
+  adjustment(input: AdjustmentQuery!): [Adjustment!]!
   groupsWhereUserHasBeenInvited(input: GroupsQuery!): [Group!]!
 }
 
