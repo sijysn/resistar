@@ -44,6 +44,13 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	Adjustment struct {
+		Amount       func(childComplexity int) int
+		ErrorMessage func(childComplexity int) int
+		FromUser     func(childComplexity int) int
+		ToUser       func(childComplexity int) int
+	}
+
 	Amounts struct {
 		ErrorMessage    func(childComplexity int) int
 		GroupTotal      func(childComplexity int) int
@@ -97,6 +104,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
+		Adjustment                    func(childComplexity int, input model.AdjustmentQuery) int
 		Amounts                       func(childComplexity int, input model.AmountsQuery) int
 		Groups                        func(childComplexity int, input model.GroupsQuery) int
 		GroupsWhereUserHasBeenInvited func(childComplexity int, input model.GroupsQuery) int
@@ -137,6 +145,7 @@ type QueryResolver interface {
 	Users(ctx context.Context, input model.UsersQuery) ([]*model.User, error)
 	Groups(ctx context.Context, input model.GroupsQuery) ([]*model.Group, error)
 	Amounts(ctx context.Context, input model.AmountsQuery) (*model.Amounts, error)
+	Adjustment(ctx context.Context, input model.AdjustmentQuery) ([]*model.Adjustment, error)
 	GroupsWhereUserHasBeenInvited(ctx context.Context, input model.GroupsQuery) ([]*model.Group, error)
 }
 
@@ -154,6 +163,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "Adjustment.amount":
+		if e.complexity.Adjustment.Amount == nil {
+			break
+		}
+
+		return e.complexity.Adjustment.Amount(childComplexity), true
+
+	case "Adjustment.errorMessage":
+		if e.complexity.Adjustment.ErrorMessage == nil {
+			break
+		}
+
+		return e.complexity.Adjustment.ErrorMessage(childComplexity), true
+
+	case "Adjustment.fromUser":
+		if e.complexity.Adjustment.FromUser == nil {
+			break
+		}
+
+		return e.complexity.Adjustment.FromUser(childComplexity), true
+
+	case "Adjustment.toUser":
+		if e.complexity.Adjustment.ToUser == nil {
+			break
+		}
+
+		return e.complexity.Adjustment.ToUser(childComplexity), true
 
 	case "Amounts.errorMessage":
 		if e.complexity.Amounts.ErrorMessage == nil {
@@ -449,6 +486,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.LoginUser(childComplexity, args["input"].(model.LoginUser)), true
 
+	case "Query.adjustment":
+		if e.complexity.Query.Adjustment == nil {
+			break
+		}
+
+		args, err := ec.field_Query_adjustment_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Adjustment(childComplexity, args["input"].(model.AdjustmentQuery)), true
+
 	case "Query.amounts":
 		if e.complexity.Query.Amounts == nil {
 			break
@@ -601,6 +650,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputAdjustmentQuery,
 		ec.unmarshalInputAmountsQuery,
 		ec.unmarshalInputGroupsQuery,
 		ec.unmarshalInputHistoriesQuery,
@@ -741,6 +791,13 @@ type Amounts {
   errorMessage: String
 }
 
+type Adjustment {
+  fromUser: User!
+  toUser: User!
+  amount: Int!
+  errorMessage: String
+}
+
 type Result {
   message: String!
   success: Boolean!
@@ -767,11 +824,18 @@ input AmountsQuery {
   groupID: ID!
 }
 
+input AdjustmentQuery {
+  year: String!
+  month: String!
+  groupID: ID!
+}
+
 type Query {
   histories(input: HistoriesQuery!): [History!]!
   users(input: UsersQuery!): [User!]!
   groups(input: GroupsQuery!): [Group!]!
   amounts(input: AmountsQuery!): Amounts!
+  adjustment(input: AdjustmentQuery!): [Adjustment!]!
   groupsWhereUserHasBeenInvited(input: GroupsQuery!): [Group!]!
 }
 
@@ -951,6 +1015,21 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_adjustment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.AdjustmentQuery
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNAdjustmentQuery2githubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐAdjustmentQuery(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_amounts_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1063,6 +1142,223 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _Adjustment_fromUser(ctx context.Context, field graphql.CollectedField, obj *model.Adjustment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Adjustment_fromUser(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FromUser, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖgithubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Adjustment_fromUser(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Adjustment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "email":
+				return ec.fieldContext_User_email(ctx, field)
+			case "password":
+				return ec.fieldContext_User_password(ctx, field)
+			case "imageURL":
+				return ec.fieldContext_User_imageURL(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_User_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_User_updatedAt(ctx, field)
+			case "deletedAt":
+				return ec.fieldContext_User_deletedAt(ctx, field)
+			case "groups":
+				return ec.fieldContext_User_groups(ctx, field)
+			case "errorMessage":
+				return ec.fieldContext_User_errorMessage(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Adjustment_toUser(ctx context.Context, field graphql.CollectedField, obj *model.Adjustment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Adjustment_toUser(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ToUser, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖgithubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Adjustment_toUser(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Adjustment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "email":
+				return ec.fieldContext_User_email(ctx, field)
+			case "password":
+				return ec.fieldContext_User_password(ctx, field)
+			case "imageURL":
+				return ec.fieldContext_User_imageURL(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_User_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_User_updatedAt(ctx, field)
+			case "deletedAt":
+				return ec.fieldContext_User_deletedAt(ctx, field)
+			case "groups":
+				return ec.fieldContext_User_groups(ctx, field)
+			case "errorMessage":
+				return ec.fieldContext_User_errorMessage(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Adjustment_amount(ctx context.Context, field graphql.CollectedField, obj *model.Adjustment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Adjustment_amount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Amount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Adjustment_amount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Adjustment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Adjustment_errorMessage(ctx context.Context, field graphql.CollectedField, obj *model.Adjustment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Adjustment_errorMessage(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ErrorMessage, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Adjustment_errorMessage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Adjustment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
 
 func (ec *executionContext) _Amounts_personalBalance(ctx context.Context, field graphql.CollectedField, obj *model.Amounts) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Amounts_personalBalance(ctx, field)
@@ -3165,6 +3461,71 @@ func (ec *executionContext) fieldContext_Query_amounts(ctx context.Context, fiel
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_amounts_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_adjustment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_adjustment(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Adjustment(rctx, fc.Args["input"].(model.AdjustmentQuery))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Adjustment)
+	fc.Result = res
+	return ec.marshalNAdjustment2ᚕᚖgithubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐAdjustmentᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_adjustment(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "fromUser":
+				return ec.fieldContext_Adjustment_fromUser(ctx, field)
+			case "toUser":
+				return ec.fieldContext_Adjustment_toUser(ctx, field)
+			case "amount":
+				return ec.fieldContext_Adjustment_amount(ctx, field)
+			case "errorMessage":
+				return ec.fieldContext_Adjustment_errorMessage(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Adjustment", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_adjustment_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -5676,6 +6037,50 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputAdjustmentQuery(ctx context.Context, obj interface{}) (model.AdjustmentQuery, error) {
+	var it model.AdjustmentQuery
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"year", "month", "groupID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "year":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("year"))
+			it.Year, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "month":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("month"))
+			it.Month, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "groupID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("groupID"))
+			it.GroupID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputAmountsQuery(ctx context.Context, obj interface{}) (model.AmountsQuery, error) {
 	var it model.AmountsQuery
 	asMap := map[string]interface{}{}
@@ -6119,6 +6524,52 @@ func (ec *executionContext) unmarshalInputUsersQuery(ctx context.Context, obj in
 // endregion ************************** interface.gotpl ***************************
 
 // region    **************************** object.gotpl ****************************
+
+var adjustmentImplementors = []string{"Adjustment"}
+
+func (ec *executionContext) _Adjustment(ctx context.Context, sel ast.SelectionSet, obj *model.Adjustment) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, adjustmentImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Adjustment")
+		case "fromUser":
+
+			out.Values[i] = ec._Adjustment_fromUser(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "toUser":
+
+			out.Values[i] = ec._Adjustment_toUser(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "amount":
+
+			out.Values[i] = ec._Adjustment_amount(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "errorMessage":
+
+			out.Values[i] = ec._Adjustment_errorMessage(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
 
 var amountsImplementors = []string{"Amounts"}
 
@@ -6575,6 +7026,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_amounts(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "adjustment":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_adjustment(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -7065,6 +7539,65 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 // endregion **************************** object.gotpl ****************************
 
 // region    ***************************** type.gotpl *****************************
+
+func (ec *executionContext) marshalNAdjustment2ᚕᚖgithubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐAdjustmentᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Adjustment) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNAdjustment2ᚖgithubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐAdjustment(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNAdjustment2ᚖgithubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐAdjustment(ctx context.Context, sel ast.SelectionSet, v *model.Adjustment) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Adjustment(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNAdjustmentQuery2githubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐAdjustmentQuery(ctx context.Context, v interface{}) (model.AdjustmentQuery, error) {
+	res, err := ec.unmarshalInputAdjustmentQuery(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
 
 func (ec *executionContext) marshalNAmounts2githubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐAmounts(ctx context.Context, sel ast.SelectionSet, v model.Amounts) graphql.Marshaler {
 	return ec._Amounts(ctx, sel, &v)

@@ -8,6 +8,19 @@ import (
 	"strconv"
 )
 
+type Adjustment struct {
+	FromUser     *User   `json:"fromUser"`
+	ToUser       *User   `json:"toUser"`
+	Amount       int     `json:"amount"`
+	ErrorMessage *string `json:"errorMessage"`
+}
+
+type AdjustmentQuery struct {
+	Year    string `json:"year"`
+	Month   string `json:"month"`
+	GroupID string `json:"groupID"`
+}
+
 type Amounts struct {
 	PersonalBalance int     `json:"personalBalance"`
 	GroupTotal      int     `json:"groupTotal"`

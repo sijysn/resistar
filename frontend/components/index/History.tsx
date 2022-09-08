@@ -28,9 +28,10 @@ type Props = {
 };
 
 const History: React.FC<Props> = ({ loading, error, data }) => {
-  if (error) return <div>Error</div>;
-  if (loading || !data) return <div>Loading</div>;
-  if (data.histories.length === 0) return <div>データがありません。</div>;
+  if (error) return <Message>{error.message}</Message>;
+  if (loading || !data) return <Message>Loading</Message>;
+  if (data.histories.length === 0)
+    return <Message>データがありません。</Message>;
   return (
     <HistoryList>
       {data.histories.map(
@@ -223,6 +224,10 @@ const ToUserAvatar = styled(Avatar)`
 const Price = styled("p")`
   text-align: end;
   margin: 0;
+`;
+
+const Message = styled("p")`
+  text-align: center;
 `;
 
 export default History;
