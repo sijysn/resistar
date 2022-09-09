@@ -30,7 +30,6 @@ func (r *mutationResolver) AddHistory(ctx context.Context, input model.NewHistor
 		return nil, fmt.Errorf("サーバーエラーが発生しました")
 	}
 	if responseAccess.Status == http.StatusUnauthorized {
-		// responseAccess.Writer.WriteHeader(responseAccess.Status)
 		errorMessage := "認証されていません"
 		return &model.History{
 			ErrorMessage: &errorMessage,
@@ -98,7 +97,6 @@ func (r *mutationResolver) AddUser(ctx context.Context, input model.NewUser) (*m
 		return nil, fmt.Errorf("サーバーエラーが発生しました")
 	}
 	if responseAccess.Status == http.StatusUnauthorized {
-		// responseAccess.Writer.WriteHeader(responseAccess.Status)
 		errorMessage := "認証されていません"
 		return &model.User{
 			ErrorMessage: &errorMessage,
@@ -138,7 +136,6 @@ func (r *mutationResolver) AddGroup(ctx context.Context, input model.NewGroup) (
 		return nil, fmt.Errorf("サーバーエラーが発生しました")
 	}
 	if responseAccess.Status == http.StatusUnauthorized {
-		// responseAccess.Writer.WriteHeader(responseAccess.Status)
 		errorMessage := "認証されていません"
 		return &model.Result{
 			Message: errorMessage,
@@ -186,7 +183,6 @@ func (r *mutationResolver) InviteUserToGroup(ctx context.Context, input model.In
 		return nil, fmt.Errorf("サーバーエラーが発生しました")
 	}
 	if responseAccess.Status == http.StatusUnauthorized {
-		// responseAccess.Writer.WriteHeader(responseAccess.Status)
 		errorMessage := "認証されていません"
 		return &model.Result{
 			Message: errorMessage,
@@ -277,7 +273,6 @@ func (r *mutationResolver) JoinGroup(ctx context.Context, input model.JoinGroup)
 		return nil, fmt.Errorf("サーバーエラーが発生しました")
 	}
 	if responseAccess.Status == http.StatusUnauthorized {
-		// responseAccess.Writer.WriteHeader(responseAccess.Status)
 		errorMessage := "認証されていません"
 		return &model.Result{
 			Message: errorMessage,
@@ -433,7 +428,6 @@ func (r *mutationResolver) LoginGroup(ctx context.Context, input model.LoginGrou
 	}
 
 	if responseAccess.Status == http.StatusUnauthorized {
-		// responseAccess.Writer.WriteHeader(responseAccess.Status)
 		errorMessage := "認証されていません"
 		return &model.Result{
 			Message: errorMessage,
@@ -496,7 +490,6 @@ func (r *queryResolver) Histories(ctx context.Context, input model.HistoriesQuer
 	}
 	var histories []*model.History
 	if responseAccess.Status == http.StatusUnauthorized {
-		// responseAccess.Writer.WriteHeader(responseAccess.Status)
 		errorMessage := "認証されていません"
 		histories = append(histories, &model.History{
 			ErrorMessage: &errorMessage,
@@ -556,7 +549,6 @@ func (r *queryResolver) Users(ctx context.Context, input model.UsersQuery) ([]*m
 	}
 	var users []*model.User
 	if responseAccess.Status == http.StatusUnauthorized {
-		// responseAccess.Writer.WriteHeader(responseAccess.Status)
 		errorMessage := "認証されていません"
 		users = append(users, &model.User{
 			ErrorMessage: &errorMessage,
@@ -591,7 +583,6 @@ func (r *queryResolver) Groups(ctx context.Context, input model.GroupsQuery) ([]
 	}
 	var groups []*model.Group
 	if responseAccess.Status == http.StatusUnauthorized {
-		// responseAccess.Writer.WriteHeader(responseAccess.Status)
 		errorMessage := "認証されていません"
 		groups = append(groups, &model.Group{
 			ErrorMessage: &errorMessage,
@@ -641,7 +632,6 @@ func (r *queryResolver) Amounts(ctx context.Context, input model.AmountsQuery) (
 		return nil, fmt.Errorf("サーバーエラーが発生しました")
 	}
 	if responseAccess.Status == http.StatusUnauthorized {
-		// responseAccess.Writer.WriteHeader(responseAccess.Status)
 		errorMessage := "認証されていません"
 		return &model.Amounts{
 			ErrorMessage: &errorMessage,
@@ -680,7 +670,6 @@ func (r *queryResolver) Adjustment(ctx context.Context, input model.AdjustmentQu
 	}
 	var adjustments []*model.Adjustment
 	if responseAccess.Status == http.StatusUnauthorized {
-		// responseAccess.Writer.WriteHeader(responseAccess.Status)
 		errorMessage := "認証されていません"
 		adjustments = append(adjustments, &model.Adjustment{
 			ErrorMessage: &errorMessage,
@@ -775,7 +764,6 @@ func (r *queryResolver) GroupsWhereUserHasBeenInvited(ctx context.Context, input
 	}
 	var groups []*model.Group
 	if responseAccess.Status == http.StatusUnauthorized {
-		// responseAccess.Writer.WriteHeader(responseAccess.Status)
 		errorMessage := "認証されていません"
 		groups = append(groups, &model.Group{
 			ErrorMessage: &errorMessage,
