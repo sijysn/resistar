@@ -697,25 +697,31 @@ func (r *queryResolver) Adjustment(ctx context.Context, input model.AdjustmentQu
 	if err != nil {
 		return nil, err
 	}
+	type scan struct{
+		PersonalBalance int
+		ID uint
+		Email string
+		Name string
+	}
+	var scans []*scan
+	err = r.DB.Debug().Table("balances").Select("SUM(balances.amount) as personal_balance, users.id, users.email, users.name").Where("balances.group_id = ? AND date_part('year', balances.created_at) = ? AND date_part('month', balances.created_at) = ?", uint(groupID), input.Year, input.Month).Joins("LEFT JOIN users ON users.id = balances.user_id").Group("users.id").Scan(&scans).Error
+	if err != nil {
+		return nil, err
+	}
+
 	type personalBalanceType struct{
 		PersonalBalance int
 		User *model.User
 	}
 	var personalBalances []*personalBalanceType
-	var amounts *model.Amounts
-	for _, dbUser := range dbGroup.Users {
-		err = r.DB.Debug().Table("balances").Select("SUM(amount) as personal_balance").Where("group_id = ? AND user_id = ? AND date_part('year', created_at) = ? AND date_part('month', created_at) = ?", uint(groupID), dbUser.ID, input.Year, input.Month).Scan(&amounts).Error
-		if err != nil {
-			return nil, err
-		}
-
-		user := &model.User{
-			ID: strconv.FormatUint(uint64(dbUser.ID), 10),
-			Name: dbUser.Name,
-		}
+	for _, v := range scans {
 		personalBalances = append(personalBalances, &personalBalanceType{
-			PersonalBalance: amounts.PersonalBalance,
-			User: user,
+			PersonalBalance: v.PersonalBalance,
+			User: &model.User{
+				ID: strconv.FormatUint(uint64(v.ID), 10),
+				Email: v.Email,
+				Name: v.Name,
+			},
 		})
 	}
 	
