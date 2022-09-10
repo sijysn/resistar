@@ -96,12 +96,6 @@ func (r *mutationResolver) AddUser(ctx context.Context, input model.NewUser) (*m
 	if responseAccess.Status == http.StatusInternalServerError {
 		return nil, fmt.Errorf("サーバーエラーが発生しました")
 	}
-	if responseAccess.Status == http.StatusUnauthorized {
-		errorMessage := "認証されていません"
-		return &model.User{
-			ErrorMessage: &errorMessage,
-		}, nil
-	}
 	var dbUsers []dbModel.User
 	count := r.DB.Where("email = ?", input.Email).Find(&dbUsers).RowsAffected
 	if count != 0 {
