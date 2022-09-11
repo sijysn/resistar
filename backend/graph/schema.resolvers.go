@@ -711,7 +711,7 @@ func (r *queryResolver) Adjustment(ctx context.Context, input model.AdjustmentQu
 	paidTooMuch := &personalBalanceType{}
 	paidLess := &personalBalanceType{}
 	var i int
-	for i < 3 {
+	for true {
 		sort.Slice(personalBalances, func(i, j int) bool { return personalBalances[i].PersonalBalance < personalBalances[j].PersonalBalance })
 		for _, pb := range personalBalances {
 			if pb.PersonalBalance > paidTooMuch.PersonalBalance {
