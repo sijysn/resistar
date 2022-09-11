@@ -708,28 +708,16 @@ func (r *queryResolver) Adjustment(ctx context.Context, input model.AdjustmentQu
 		})
 	}
 	
-	paidTooMuch := &personalBalanceType{};
-	paidLess := &personalBalanceType{};
-	for true {
-		tooMuchBorder := 0
-		lessBorder := 0
+	paidTooMuch := &personalBalanceType{}
+	paidLess := &personalBalanceType{}
+	var i int
+	for i < 3 {
 		sort.Slice(personalBalances, func(i, j int) bool { return personalBalances[i].PersonalBalance < personalBalances[j].PersonalBalance })
 		for _, pb := range personalBalances {
-			if paidTooMuch.PersonalBalance == 0 {
-				tooMuchBorder = 0
-			} else {
-				tooMuchBorder = paidTooMuch.PersonalBalance
-			}
-			if paidLess.PersonalBalance == 0 {
-				lessBorder = 0
-			} else {
-				lessBorder = paidLess.PersonalBalance
-			}
-
-			if pb.PersonalBalance >= tooMuchBorder {
+			if pb.PersonalBalance > paidTooMuch.PersonalBalance {
 				paidTooMuch = pb 
 			}
-			if pb.PersonalBalance <= lessBorder {
+			if pb.PersonalBalance < paidLess.PersonalBalance {
 				paidLess = pb
 			}
 		}
@@ -738,6 +726,9 @@ func (r *queryResolver) Adjustment(ctx context.Context, input model.AdjustmentQu
 			break
 		}
 		payment := math.Min(float64(paidTooMuch.PersonalBalance), math.Abs(float64(paidLess.PersonalBalance)));
+		if payment < 10 {
+			break
+		}
 		adjustments = append(adjustments, &model.Adjustment{
 			FromUser: paidLess.User,
 			ToUser: paidTooMuch.User,
@@ -745,6 +736,7 @@ func (r *queryResolver) Adjustment(ctx context.Context, input model.AdjustmentQu
 		})
 		paidTooMuch.PersonalBalance -= int(payment)
 		paidLess.PersonalBalance += int(payment)
+		i++
 	}
 	
 	return adjustments, nil
