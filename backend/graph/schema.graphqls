@@ -156,7 +156,7 @@ input LoginGroup {
 
 type Mutation {
   addHistory(input: NewHistory!): History!
-  addUser(input: NewUser!): User!
+  addUser(input: NewUser!): Result!
   addGroup(input: NewGroup!): Result!
   inviteUserToGroup(input: InviteUserToGroupInput!): Result!
   joinGroup(input: JoinGroup!): Result!
