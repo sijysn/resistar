@@ -133,7 +133,7 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	AddHistory(ctx context.Context, input model.NewHistory) (*model.History, error)
-	AddUser(ctx context.Context, input model.NewUser) (*model.User, error)
+	AddUser(ctx context.Context, input model.NewUser) (*model.Result, error)
 	AddGroup(ctx context.Context, input model.NewGroup) (*model.Result, error)
 	InviteUserToGroup(ctx context.Context, input model.InviteUserToGroupInput) (*model.Result, error)
 	JoinGroup(ctx context.Context, input model.JoinGroup) (*model.Result, error)
@@ -880,7 +880,7 @@ input LoginGroup {
 
 type Mutation {
   addHistory(input: NewHistory!): History!
-  addUser(input: NewUser!): User!
+  addUser(input: NewUser!): Result!
   addGroup(input: NewGroup!): Result!
   inviteUserToGroup(input: InviteUserToGroupInput!): Result!
   joinGroup(input: JoinGroup!): Result!
@@ -2821,9 +2821,9 @@ func (ec *executionContext) _Mutation_addUser(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.User)
+	res := resTmp.(*model.Result)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+	return ec.marshalNResult2ᚖgithubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐResult(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_addUser(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2834,28 +2834,12 @@ func (ec *executionContext) fieldContext_Mutation_addUser(ctx context.Context, f
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_User_id(ctx, field)
-			case "name":
-				return ec.fieldContext_User_name(ctx, field)
-			case "email":
-				return ec.fieldContext_User_email(ctx, field)
-			case "password":
-				return ec.fieldContext_User_password(ctx, field)
-			case "imageURL":
-				return ec.fieldContext_User_imageURL(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_User_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_User_updatedAt(ctx, field)
-			case "deletedAt":
-				return ec.fieldContext_User_deletedAt(ctx, field)
-			case "groups":
-				return ec.fieldContext_User_groups(ctx, field)
-			case "errorMessage":
-				return ec.fieldContext_User_errorMessage(ctx, field)
+			case "message":
+				return ec.fieldContext_Result_message(ctx, field)
+			case "success":
+				return ec.fieldContext_Result_success(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type Result", field.Name)
 		},
 	}
 	defer func() {
@@ -7889,10 +7873,6 @@ func (ec *executionContext) unmarshalNType2githubᚗcomᚋsijysnᚋresistarᚋba
 
 func (ec *executionContext) marshalNType2githubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐType(ctx context.Context, sel ast.SelectionSet, v model.Type) graphql.Marshaler {
 	return v
-}
-
-func (ec *executionContext) marshalNUser2githubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v model.User) graphql.Marshaler {
-	return ec._User(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.User) graphql.Marshaler {

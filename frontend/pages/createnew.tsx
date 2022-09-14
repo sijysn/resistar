@@ -3,10 +3,10 @@ import type { NextPage } from "next";
 import Link from "next/link";
 import { useMutation } from "@apollo/client";
 import {
-  LOGIN_USER,
-  loginUserProps,
-  loginUserVarsProps,
-} from "../lib/apollo/api/loginUser";
+  ADD_USER,
+  addUserProps,
+  addUserVarsProps,
+} from "../lib/apollo/api/addUser";
 import { useRouter } from "next/router";
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
@@ -20,36 +20,42 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 
-const LoginPage: NextPage = () => {
+const CreateNewPage: NextPage = () => {
   const router = useRouter();
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
+  const [confirmationPassword, setConfirmationPassword] = React.useState("");
   const [message, setMessage] = React.useState("");
 
-  const [login, { loading, error }] = useMutation<
-    loginUserProps,
-    loginUserVarsProps
-  >(LOGIN_USER);
+  const [addUser, { loading, error }] = useMutation<
+    addUserProps,
+    addUserVarsProps
+  >(ADD_USER);
 
-  const loginUser = async () => {
-    const loginUserQueryVars: loginUserVarsProps = {
+  const registerUser = async () => {
+    setMessage("");
+    if (password !== confirmationPassword) {
+      setMessage("パスワードが一致しません");
+      return;
+    }
+    const addUserQueryVars: addUserVarsProps = {
       email,
       password,
     };
-    const { data } = await login({
-      variables: loginUserQueryVars,
+    const { data } = await addUser({
+      variables: addUserQueryVars,
     });
     if (!data) {
       setMessage("予期せぬエラーが起こりました");
       return;
     }
-    const { message: loginMessage, success } = data.loginUser;
+    const { message: addUserMessage, success } = data.addUser;
     if (success) {
       router.reload();
       return;
     }
-    if (loginMessage) {
-      setMessage(loginMessage);
+    if (addUserMessage) {
+      setMessage(addUserMessage);
     }
   };
 
@@ -104,6 +110,19 @@ const LoginPage: NextPage = () => {
               shrink: true,
             }}
           />
+          <TextField
+            margin="normal"
+            required
+            fullWidth
+            name="password"
+            label="パスワード(確認用)"
+            type="password"
+            value={confirmationPassword}
+            onChange={(e) => setConfirmationPassword(e.target.value)}
+            InputLabelProps={{
+              shrink: true,
+            }}
+          />
           {/* <FormControlLabel
             control={<Checkbox value="remember" color="primary" />}
             label="Remember me"
@@ -113,12 +132,12 @@ const LoginPage: NextPage = () => {
             fullWidth
             variant="contained"
             sx={{ mt: 3, mb: 2 }}
-            onClick={loginUser}
+            onClick={registerUser}
           >
-            ログイン
+            登録
           </Button>
-          <Link href="/createnew">
-            <a>Resistarを使うのは初めてですか? 登録</a>
+          <Link href="/login">
+            <a>すでにResistarをお使いですか? ログイン</a>
           </Link>
         </Box>
       </Box>
@@ -126,4 +145,4 @@ const LoginPage: NextPage = () => {
   );
 };
 
-export default LoginPage;
+export default CreateNewPage;

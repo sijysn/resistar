@@ -6,12 +6,14 @@ export function middleware(request: NextRequest) {
   const groupID = request.cookies.get("groupID");
   const isUserLoggedIn = Boolean(jwtToken && userID);
   const pathname = request.nextUrl.pathname;
-  const isPathLogin = request.nextUrl.pathname === "/login";
+  const isPathNotLogin =
+    request.nextUrl.pathname === "/login" ||
+    request.nextUrl.pathname === "/createnew";
   const isPathGetStarted = pathname.includes("get-started");
 
   // ユーザーもグループもログインしている場合
   if (isUserLoggedIn && groupID) {
-    if (isPathLogin) {
+    if (isPathNotLogin) {
       return NextResponse.redirect(new URL("/", request.url));
     }
     return NextResponse.next();
@@ -24,12 +26,18 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/get-started/landing", request.url));
   }
   // ログインしていない場合
-  if (isPathLogin) {
+  if (isPathNotLogin) {
     return NextResponse.next();
   }
   return NextResponse.redirect(new URL("/login", request.url));
 }
 
 export const config = {
-  matcher: ["/", "/login", "/histories/:path*", "/get-started/:path*"],
+  matcher: [
+    "/",
+    "/login",
+    "/createnew",
+    "/histories/:path*",
+    "/get-started/:path*",
+  ],
 };

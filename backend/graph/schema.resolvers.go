@@ -91,7 +91,7 @@ func (r *mutationResolver) AddHistory(ctx context.Context, input model.NewHistor
 }
 
 // AddUser is the resolver for the addUser field.
-func (r *mutationResolver) AddUser(ctx context.Context, input model.NewUser) (*model.User, error) {
+func (r *mutationResolver) AddUser(ctx context.Context, input model.NewUser) (*model.Result, error) {
 	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
 	if responseAccess.Status == http.StatusInternalServerError {
 		return nil, fmt.Errorf("サーバーエラーが発生しました")
@@ -100,8 +100,9 @@ func (r *mutationResolver) AddUser(ctx context.Context, input model.NewUser) (*m
 	count := r.DB.Where("email = ?", input.Email).Find(&dbUsers).RowsAffected
 	if count != 0 {
 		errorMessage := "このメールアドレスは既に登録されています"
-		return &model.User{
-			ErrorMessage: &errorMessage,
+		return &model.Result{
+			Message: errorMessage,
+			Success: false,
 		}, nil
 	}
 
@@ -115,12 +116,11 @@ func (r *mutationResolver) AddUser(ctx context.Context, input model.NewUser) (*m
 		return nil, err
 	}
 
-	newUser := &model.User{
-		ID:       strconv.FormatUint(uint64(dbNewUser.ID), 10),
-		Email:    dbNewUser.Email,
-		Password: password,
+	result, err := r.LoginUser(ctx, model.LoginUser{Email: input.Email, Password: input.Password})
+	if err != nil {
+		return nil, err
 	}
-	return newUser, nil
+	return result, nil
 }
 
 // AddGroup is the resolver for the addGroup field.
@@ -680,11 +680,11 @@ func (r *queryResolver) Adjustment(ctx context.Context, input model.AdjustmentQu
 	if err != nil {
 		return nil, err
 	}
-	type scan struct{
+	type scan struct {
 		PersonalBalance int
-		ID uint
-		Email string
-		Name string
+		ID              uint
+		Email           string
+		Name            string
 	}
 	var scans []*scan
 	err = r.DB.Debug().Table("balances").Select("SUM(balances.amount) as personal_balance, users.id, users.email, users.name").Where("balances.group_id = ? AND date_part('year', balances.created_at) = ? AND date_part('month', balances.created_at) = ?", uint(groupID), input.Year, input.Month).Joins("LEFT JOIN users ON users.id = balances.user_id").Group("users.id").Scan(&scans).Error
@@ -692,22 +692,22 @@ func (r *queryResolver) Adjustment(ctx context.Context, input model.AdjustmentQu
 		return nil, err
 	}
 
-	type personalBalanceType struct{
+	type personalBalanceType struct {
 		PersonalBalance int
-		User *model.User
+		User            *model.User
 	}
 	var personalBalances []*personalBalanceType
 	for _, v := range scans {
 		personalBalances = append(personalBalances, &personalBalanceType{
 			PersonalBalance: v.PersonalBalance,
 			User: &model.User{
-				ID: strconv.FormatUint(uint64(v.ID), 10),
+				ID:    strconv.FormatUint(uint64(v.ID), 10),
 				Email: v.Email,
-				Name: v.Name,
+				Name:  v.Name,
 			},
 		})
 	}
-	
+
 	paidTooMuch := &personalBalanceType{}
 	paidLess := &personalBalanceType{}
 	var i int
@@ -715,7 +715,7 @@ func (r *queryResolver) Adjustment(ctx context.Context, input model.AdjustmentQu
 		sort.Slice(personalBalances, func(i, j int) bool { return personalBalances[i].PersonalBalance < personalBalances[j].PersonalBalance })
 		for _, pb := range personalBalances {
 			if pb.PersonalBalance > paidTooMuch.PersonalBalance {
-				paidTooMuch = pb 
+				paidTooMuch = pb
 			}
 			if pb.PersonalBalance < paidLess.PersonalBalance {
 				paidLess = pb
@@ -725,20 +725,20 @@ func (r *queryResolver) Adjustment(ctx context.Context, input model.AdjustmentQu
 		if paidTooMuch.PersonalBalance == paidLess.PersonalBalance {
 			break
 		}
-		payment := math.Min(float64(paidTooMuch.PersonalBalance), math.Abs(float64(paidLess.PersonalBalance)));
+		payment := math.Min(float64(paidTooMuch.PersonalBalance), math.Abs(float64(paidLess.PersonalBalance)))
 		if payment < 10 {
 			break
 		}
 		adjustments = append(adjustments, &model.Adjustment{
 			FromUser: paidLess.User,
-			ToUser: paidTooMuch.User,
-			Amount: int(payment),
+			ToUser:   paidTooMuch.User,
+			Amount:   int(payment),
 		})
 		paidTooMuch.PersonalBalance -= int(payment)
 		paidLess.PersonalBalance += int(payment)
 		i++
 	}
-	
+
 	return adjustments, nil
 }
 
