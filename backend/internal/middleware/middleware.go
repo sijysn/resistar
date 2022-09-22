@@ -11,6 +11,10 @@ import (
 	"github.com/golang-jwt/jwt"
 	"github.com/golang-jwt/jwt/request"
 	"github.com/sijysn/resistar/backend/internal/session"
+	"github.com/sijysn/resistar/backend/internal/digest"
+	"github.com/sijysn/resistar/backend/internal/model"
+	"github.com/sijysn/resistar/backend/internal/auth"
+	"gorm.io/gorm"
 )
 
 var ResponseAccessKey string
@@ -36,7 +40,7 @@ func (r *ResponseAccess) SetCookie(name string, value string, httpOnly bool, exp
 	http.SetCookie(r.Writer, cookie)
 }
 
-func Middleware() func(http.Handler) http.Handler {
+func Middleware(db *gorm.DB) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			verifyBytes, err := ioutil.ReadFile("./jwt.pem.pub.pkcs8")
@@ -47,16 +51,16 @@ func Middleware() func(http.Handler) http.Handler {
 			if err != nil {
 					panic(err)
 			}
-		
+
 			token, err := request.ParseFromRequest(r, request.AuthorizationHeaderExtractor, func(token *jwt.Token) (interface{}, error) {
-        if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
+				if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 					return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 				}
-        return verifyKey, nil
+				return verifyKey, nil
 			})
 			responseAccess := ResponseAccess{
 				Writer: w,
-				Status: getStatus(token, r, err),
+				Status: getStatus(db, token, r, err),
 			}
 			ctx := context.WithValue(r.Context(), ResponseAccessKey, &responseAccess)
 			r = r.WithContext(ctx)
@@ -65,18 +69,46 @@ func Middleware() func(http.Handler) http.Handler {
 	}
 }
 
-func getStatus(token *jwt.Token, r *http.Request, err error) int {
+func getStatus(db *gorm.DB, token *jwt.Token, r *http.Request, err error) int {
 	if err != nil  {
-		return http.StatusUnauthorized
+		return auth.StatusUnauthorized
 	}
 	claims, ok := token.Claims.(jwt.MapClaims);
 	if !ok {
 		return http.StatusInternalServerError
 	}
-	sessionValid :=	session.Session.SessionToken == claims["sessionToken"]
-	userIDValid := session.Session.UserID == uint(claims["userID"].(float64))
-	if sessionValid && userIDValid {
-		return http.StatusOK
-	} 
-	return http.StatusUnauthorized 
+	userID := claims["userID"]
+	if userID == nil {
+		return auth.StatusUnauthorized
+	}
+	sessionToken := claims["sessionToken"]
+	if sessionToken == nil {
+		return auth.StatusUnauthorized
+	}
+
+	var userLoginLog *model.UserLoginLog
+	var groupLoginLog *model.GroupLoginLog
+
+	err = db.Where("token = ? AND user_id = ?", digest.SHA512(claims["sessionToken"].(string)), uint(claims["userID"].(float64))).Limit(1).Find(&userLoginLog).Error
+	if err != nil {
+		return http.StatusInternalServerError
+	}
+	if userLoginLog.CreatedAt.Before(time.Now().AddDate(1, 0, 0)) {
+		return auth.StatusUnauthorized
+	}
+	session.Session.UserID = userLoginLog.UserID
+
+	groupID := claims["groupID"]
+	if groupID == nil {
+		return auth.StatusUser
+	}
+	err = db.Where("token = ? AND user_id = ? AND group_id = ?", digest.SHA512(claims["sessionToken"].(string)), uint(claims["userID"].(float64)), uint(claims["groupID"].(float64))).Limit(1).Find(&groupLoginLog).Error
+	if err != nil {
+		return http.StatusInternalServerError
+	}
+	if groupLoginLog.CreatedAt.Before(time.Now().AddDate(1, 0, 0)) {
+		return auth.StatusUser
+	}
+	session.Session.GroupID = groupLoginLog.GroupID
+	return auth.StatusGroup
 }
