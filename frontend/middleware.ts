@@ -13,7 +13,7 @@ export function middleware(request: NextRequest) {
 
   // ユーザーもグループもログインしている場合
   if (isUserLoggedIn && groupID) {
-    if (isPathNotLogin) {
+    if (isPathNotLogin || isPathGetStarted) {
       return NextResponse.redirect(new URL("/", request.url));
     }
     return NextResponse.next();
