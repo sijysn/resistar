@@ -64,9 +64,10 @@ const LoginPage: NextPage = () => {
           alignItems: "center",
         }}
       >
-        <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
-          <LockOutlinedIcon />
-        </Avatar>
+        <Avatar
+          sx={{ m: 1, bgcolor: "secondary.main" }}
+          src="/images/icon-192x192.png"
+        />
         <Typography component="h1" variant="h5">
           Resistar
         </Typography>
