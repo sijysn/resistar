@@ -13,6 +13,8 @@ import (
 	"strconv"
 	"time"
 
+	validation "github.com/go-ozzo/ozzo-validation"
+	"github.com/go-ozzo/ozzo-validation/is"
 	"github.com/golang-jwt/jwt"
 	"github.com/sijysn/resistar/backend/graph/generated"
 	"github.com/sijysn/resistar/backend/graph/model"
@@ -97,6 +99,17 @@ func (r *mutationResolver) AddUser(ctx context.Context, input model.NewUser) (*m
 	if responseAccess.Status == http.StatusInternalServerError {
 		return nil, fmt.Errorf("サーバーエラーが発生しました")
 	}
+
+	err := validation.Validate(
+		input.Email,
+		validation.Required,
+		validation.Length(5, 100),
+		is.Email,
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	var dbUsers []dbModel.User
 	count := r.DB.Where("email = ?", input.Email).Find(&dbUsers).RowsAffected
 	if count != 0 {
@@ -112,7 +125,7 @@ func (r *mutationResolver) AddUser(ctx context.Context, input model.NewUser) (*m
 		Email:    input.Email,
 		Password: password,
 	}
-	err := r.DB.Create(dbNewUser).Error
+	err = r.DB.Create(dbNewUser).Error
 	if err != nil {
 		return nil, err
 	}
@@ -219,9 +232,19 @@ func (r *mutationResolver) InviteUserToGroup(ctx context.Context, input model.In
 			Success: false,
 		}, nil
 	}
+	err := validation.Validate(
+		input.Email,
+		validation.Required,
+		validation.Length(5, 100),
+		is.Email,
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	// ユーザーが存在するかチェックする
 	var dbUsers []dbModel.User
-	err := r.DB.Where("email = ?", input.Email).Limit(1).Find(&dbUsers).Error
+	err = r.DB.Where("email = ?", input.Email).Limit(1).Find(&dbUsers).Error
 	if err != nil {
 		return nil, err
 	}
@@ -432,6 +455,16 @@ func (r *mutationResolver) LoginUser(ctx context.Context, input model.LoginUser)
 	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
 	if responseAccess.Status == http.StatusInternalServerError {
 		return nil, fmt.Errorf("サーバーエラーが発生しました")
+	}
+	
+	err := validation.Validate(
+		input.Email,
+		validation.Required,
+		validation.Length(5, 100),
+		is.Email,
+	)
+	if err != nil {
+		return nil, err
 	}
 
 	// ユーザーが存在するかチェックする
