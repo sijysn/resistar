@@ -16,7 +16,13 @@ function MyApp({ Component, pageProps }: AppProps) {
       <Head>
         <title>Resistar</title>
         <link rel="icon" href="/favicon.ico" />
-        <meta name="viewport" content="initial-scale=1, width=device-width" />
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="apple-touch-icon" href="/images/icon-192x192.png"></link>
+        <meta name="theme-color" content="#fff" />
+        <meta
+          name="viewport"
+          content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no"
+        />
       </Head>
       <ApolloProvider client={apolloClient}>
         <ThemeProvider theme={theme}>
