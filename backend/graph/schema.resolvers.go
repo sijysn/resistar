@@ -436,7 +436,7 @@ func (r *mutationResolver) LoginUser(ctx context.Context, input model.LoginUser)
 
 	// ユーザーが存在するかチェックする
 	var dbUsers []dbModel.User
-	count := r.DB.Debug().Where("email = ? AND password = ?", input.Email, digest.SHA512(input.Password)).Limit(1).Find(&dbUsers).RowsAffected
+	count := r.DB.Where("email = ? AND password = ?", input.Email, digest.SHA512(input.Password)).Limit(1).Find(&dbUsers).RowsAffected
 	if count != 1 {
 		errorMessage := "メールアドレスまたはパスワードが違います"
 		return &model.Result{
