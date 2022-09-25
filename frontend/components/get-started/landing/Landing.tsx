@@ -90,7 +90,7 @@ const Landing: React.FC<ServerSideProps> = ({ cookies }) => {
     }
     const { message: addGroupMessage, success } = data.addGroup;
     if (success) {
-      router.push("/");
+      router.reload();
       return;
     }
     if (addGroupMessage) {
@@ -115,7 +115,7 @@ const Landing: React.FC<ServerSideProps> = ({ cookies }) => {
     }
     const { message: loginMessage, success } = data.loginGroup;
     if (success) {
-      router.push("/");
+      router.reload();
       return;
     }
     if (loginMessage) {
@@ -138,7 +138,7 @@ const Landing: React.FC<ServerSideProps> = ({ cookies }) => {
     }
     const { message: joinMessage, success } = data.joinGroup;
     if (success) {
-      router.push("/");
+      router.reload();
       return;
     }
     if (joinMessage) {

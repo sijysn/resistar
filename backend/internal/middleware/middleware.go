@@ -40,6 +40,22 @@ func (r *ResponseAccess) SetCookie(name string, value string, httpOnly bool, exp
 	http.SetCookie(r.Writer, cookie)
 }
 
+// func (r *ResponseAccess) DeleteCookie(name string) {
+// 	cookie := &http.Cookie{
+// 		Name: name,
+// 		Value: "",
+// 		HttpOnly: true,
+// 		Secure: true,
+// 		SameSite: http.SameSiteNoneMode,
+//     MaxAge: -1,
+// 	}
+// 	env := os.Getenv("ENV")
+// 	if env == "production" {
+// 		cookie.Domain = "resistar.net"
+// 	}
+// 	http.SetCookie(r.Writer, cookie)
+// }
+
 func Middleware(db *gorm.DB) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -58,10 +74,16 @@ func Middleware(db *gorm.DB) func(http.Handler) http.Handler {
 				}
 				return verifyKey, nil
 			})
+			status := getStatus(db, token, r, err)
 			responseAccess := ResponseAccess{
 				Writer: w,
-				Status: getStatus(db, token, r, err),
+				Status: status,
 			}
+			// if status == auth.StatusUnauthorized {
+			// 	responseAccess.DeleteCookie("jwtToken")
+			// 	responseAccess.DeleteCookie("userID")
+			// 	responseAccess.DeleteCookie("groupID")
+			// }
 			ctx := context.WithValue(r.Context(), ResponseAccessKey, &responseAccess)
 			r = r.WithContext(ctx)
 			next.ServeHTTP(w, r)
