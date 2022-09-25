@@ -16,6 +16,7 @@ import (
 	"github.com/golang-jwt/jwt"
 	"github.com/sijysn/resistar/backend/graph/generated"
 	"github.com/sijysn/resistar/backend/graph/model"
+	"github.com/sijysn/resistar/backend/internal/auth"
 	"github.com/sijysn/resistar/backend/internal/digest"
 	"github.com/sijysn/resistar/backend/internal/middleware"
 	dbModel "github.com/sijysn/resistar/backend/internal/model"
@@ -29,7 +30,7 @@ func (r *mutationResolver) AddHistory(ctx context.Context, input model.NewHistor
 	if responseAccess.Status == http.StatusInternalServerError {
 		return nil, fmt.Errorf("サーバーエラーが発生しました")
 	}
-	if responseAccess.Status == http.StatusUnauthorized {
+	if responseAccess.Status == auth.StatusUnauthorized {
 		errorMessage := "認証されていません"
 		return &model.History{
 			ErrorMessage: &errorMessage,
@@ -129,7 +130,7 @@ func (r *mutationResolver) AddGroup(ctx context.Context, input model.NewGroup) (
 	if responseAccess.Status == http.StatusInternalServerError {
 		return nil, fmt.Errorf("サーバーエラーが発生しました")
 	}
-	if responseAccess.Status == http.StatusUnauthorized {
+	if responseAccess.Status == auth.StatusUnauthorized {
 		errorMessage := "認証されていません"
 		return &model.Result{
 			Message: errorMessage,
@@ -176,7 +177,7 @@ func (r *mutationResolver) InviteUserToGroup(ctx context.Context, input model.In
 	if responseAccess.Status == http.StatusInternalServerError {
 		return nil, fmt.Errorf("サーバーエラーが発生しました")
 	}
-	if responseAccess.Status == http.StatusUnauthorized {
+	if responseAccess.Status == auth.StatusUnauthorized || responseAccess.Status == auth.StatusUser {
 		errorMessage := "認証されていません"
 		return &model.Result{
 			Message: errorMessage,
@@ -266,7 +267,7 @@ func (r *mutationResolver) JoinGroup(ctx context.Context, input model.JoinGroup)
 	if responseAccess.Status == http.StatusInternalServerError {
 		return nil, fmt.Errorf("サーバーエラーが発生しました")
 	}
-	if responseAccess.Status == http.StatusUnauthorized {
+	if responseAccess.Status == auth.StatusUnauthorized {
 		errorMessage := "認証されていません"
 		return &model.Result{
 			Message: errorMessage,
@@ -366,7 +367,7 @@ func (r *mutationResolver) LoginUser(ctx context.Context, input model.LoginUser)
 
 	// ユーザーが存在するかチェックする
 	var dbUsers []dbModel.User
-	count := r.DB.Where("email = ? AND password = ?", input.Email, digest.SHA512(input.Password)).Limit(1).Find(&dbUsers).RowsAffected
+	count := r.DB.Debug().Where("email = ? AND password = ?", input.Email, digest.SHA512(input.Password)).Limit(1).Find(&dbUsers).RowsAffected
 	if count != 1 {
 		errorMessage := "メールアドレスまたはパスワードが違います"
 		return &model.Result{
@@ -402,6 +403,15 @@ func (r *mutationResolver) LoginUser(ctx context.Context, input model.LoginUser)
 		panic(err)
 	}
 
+	loginLog := &dbModel.UserLoginLog{
+		UserID: dbUsers[0].ID,
+		Token: digest.SHA512(sessionToken),
+	}
+	err = r.DB.Create(loginLog).Error
+	if err != nil {
+		return nil, err
+	}
+
 	responseAccess.SetCookie("jwtToken", jwtToken, false, time.Now().Add(24*time.Hour))
 	id := strconv.FormatUint(uint64(userID), 10)
 	responseAccess.SetCookie("userID", id, false, time.Now().Add(24*time.Hour))
@@ -421,7 +431,7 @@ func (r *mutationResolver) LoginGroup(ctx context.Context, input model.LoginGrou
 		return nil, fmt.Errorf("サーバーエラーが発生しました")
 	}
 
-	if responseAccess.Status == http.StatusUnauthorized {
+	if responseAccess.Status == auth.StatusUnauthorized {
 		errorMessage := "認証されていません"
 		return &model.Result{
 			Message: errorMessage,
@@ -466,6 +476,40 @@ func (r *mutationResolver) LoginGroup(ctx context.Context, input model.LoginGrou
 		}, nil
 	}
 
+	signBytes, err := ioutil.ReadFile("./jwt.pem")
+	if err != nil {
+		panic(err)
+	}
+
+	signKey, err := jwt.ParseRSAPrivateKeyFromPEM(signBytes)
+	if err != nil {
+		panic(err)
+	}
+
+	sessionToken := digest.GenerateToken()
+	claims := jwt.MapClaims{
+		"sessionToken": sessionToken,
+		"userID":       uint(userID),
+		"groupID":      uint(groupID),
+		"exp":          time.Now().AddDate(0, 1, 0).Unix(),
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+	jwtToken, err := token.SignedString(signKey)
+	if err != nil {
+		panic(err)
+	}
+
+	loginLog := &dbModel.GroupLoginLog{
+		UserID: uint(userID),
+		GroupID: uint(groupID),
+		Token: digest.SHA512(sessionToken),
+	}
+	err = r.DB.Create(loginLog).Error
+	if err != nil {
+		return nil, err
+	}
+
+	responseAccess.SetCookie("jwtToken", jwtToken, false, time.Now().Add(24*time.Hour))
 	responseAccess.SetCookie("groupID", input.GroupID, false, time.Now().Add(24*time.Hour))
 	responseAccess.Writer.WriteHeader(http.StatusOK)
 
@@ -483,7 +527,7 @@ func (r *queryResolver) Histories(ctx context.Context, input model.HistoriesQuer
 		return nil, fmt.Errorf("サーバーエラーが発生しました")
 	}
 	var histories []*model.History
-	if responseAccess.Status == http.StatusUnauthorized {
+	if responseAccess.Status == auth.StatusUnauthorized || responseAccess.Status == auth.StatusUser {
 		errorMessage := "認証されていません"
 		histories = append(histories, &model.History{
 			ErrorMessage: &errorMessage,
@@ -542,13 +586,13 @@ func (r *queryResolver) Users(ctx context.Context, input model.UsersQuery) ([]*m
 		return nil, fmt.Errorf("サーバーエラーが発生しました")
 	}
 	var users []*model.User
-	if responseAccess.Status == http.StatusUnauthorized {
+	if responseAccess.Status == auth.StatusUnauthorized || responseAccess.Status == auth.StatusUser {
 		errorMessage := "認証されていません"
 		users = append(users, &model.User{
 			ErrorMessage: &errorMessage,
 		})
 		return users, nil
-	}
+	} 
 	var dbGroup *dbModel.Group
 	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
 	if err != nil {
@@ -576,7 +620,7 @@ func (r *queryResolver) Groups(ctx context.Context, input model.GroupsQuery) ([]
 		return nil, fmt.Errorf("サーバーエラーが発生しました")
 	}
 	var groups []*model.Group
-	if responseAccess.Status == http.StatusUnauthorized {
+	if responseAccess.Status == auth.StatusUnauthorized {
 		errorMessage := "認証されていません"
 		groups = append(groups, &model.Group{
 			ErrorMessage: &errorMessage,
@@ -625,7 +669,7 @@ func (r *queryResolver) Amounts(ctx context.Context, input model.AmountsQuery) (
 	if responseAccess.Status == http.StatusInternalServerError {
 		return nil, fmt.Errorf("サーバーエラーが発生しました")
 	}
-	if responseAccess.Status == http.StatusUnauthorized {
+	if responseAccess.Status == auth.StatusUnauthorized || responseAccess.Status == auth.StatusUser {
 		errorMessage := "認証されていません"
 		return &model.Amounts{
 			ErrorMessage: &errorMessage,
@@ -663,7 +707,7 @@ func (r *queryResolver) Adjustment(ctx context.Context, input model.AdjustmentQu
 		return nil, fmt.Errorf("サーバーエラーが発生しました")
 	}
 	var adjustments []*model.Adjustment
-	if responseAccess.Status == http.StatusUnauthorized {
+	if responseAccess.Status == auth.StatusUnauthorized ||responseAccess.Status == auth.StatusUser {
 		errorMessage := "認証されていません"
 		adjustments = append(adjustments, &model.Adjustment{
 			ErrorMessage: &errorMessage,
@@ -749,7 +793,7 @@ func (r *queryResolver) GroupsWhereUserHasBeenInvited(ctx context.Context, input
 		return nil, fmt.Errorf("サーバーエラーが発生しました")
 	}
 	var groups []*model.Group
-	if responseAccess.Status == http.StatusUnauthorized {
+	if responseAccess.Status == auth.StatusUnauthorized {
 		errorMessage := "認証されていません"
 		groups = append(groups, &model.Group{
 			ErrorMessage: &errorMessage,

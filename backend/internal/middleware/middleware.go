@@ -10,10 +10,10 @@ import (
 
 	"github.com/golang-jwt/jwt"
 	"github.com/golang-jwt/jwt/request"
-	"github.com/sijysn/resistar/backend/internal/session"
+	"github.com/sijysn/resistar/backend/internal/auth"
 	"github.com/sijysn/resistar/backend/internal/digest"
 	"github.com/sijysn/resistar/backend/internal/model"
-	"github.com/sijysn/resistar/backend/internal/auth"
+	"github.com/sijysn/resistar/backend/internal/session"
 	"gorm.io/gorm"
 )
 
@@ -77,38 +77,37 @@ func getStatus(db *gorm.DB, token *jwt.Token, r *http.Request, err error) int {
 	if !ok {
 		return http.StatusInternalServerError
 	}
-	userID := claims["userID"]
-	if userID == nil {
-		return auth.StatusUnauthorized
-	}
 	sessionToken := claims["sessionToken"]
 	if sessionToken == nil {
 		return auth.StatusUnauthorized
 	}
-
-	var userLoginLog *model.UserLoginLog
-	var groupLoginLog *model.GroupLoginLog
-
-	err = db.Where("token = ? AND user_id = ?", digest.SHA512(claims["sessionToken"].(string)), uint(claims["userID"].(float64))).Limit(1).Find(&userLoginLog).Error
-	if err != nil {
-		return http.StatusInternalServerError
-	}
-	if userLoginLog.CreatedAt.Before(time.Now().AddDate(1, 0, 0)) {
+	userID := claims["userID"]
+	if userID == nil {
 		return auth.StatusUnauthorized
 	}
-	session.Session.UserID = userLoginLog.UserID
-
 	groupID := claims["groupID"]
 	if groupID == nil {
+		var userLoginLog *model.UserLoginLog
+		err = db.Where("token = ? AND user_id = ?", digest.SHA512(claims["sessionToken"].(string)), uint(claims["userID"].(float64))).Order("created_at DESC").Limit(1).Find(&userLoginLog).Error
+		if err != nil {
+			return http.StatusInternalServerError
+		}
+		if userLoginLog.CreatedAt.Before(time.Now().AddDate(-1, 0, 0)) {
+			return auth.StatusUnauthorized
+		}
+		session.Session.UserID = userLoginLog.UserID
 		return auth.StatusUser
 	}
-	err = db.Where("token = ? AND user_id = ? AND group_id = ?", digest.SHA512(claims["sessionToken"].(string)), uint(claims["userID"].(float64)), uint(claims["groupID"].(float64))).Limit(1).Find(&groupLoginLog).Error
+
+	var groupLoginLog *model.GroupLoginLog
+	err = db.Where("token = ? AND user_id = ? AND group_id = ?", digest.SHA512(claims["sessionToken"].(string)), uint(claims["userID"].(float64)), uint(claims["groupID"].(float64))).Order("created_at DESC").Limit(1).Find(&groupLoginLog).Error
 	if err != nil {
 		return http.StatusInternalServerError
 	}
-	if groupLoginLog.CreatedAt.Before(time.Now().AddDate(1, 0, 0)) {
-		return auth.StatusUser
+	if groupLoginLog.CreatedAt.Before(time.Now().AddDate(-1, 0, 0)) {
+		return auth.StatusUnauthorized
 	}
+	session.Session.UserID = groupLoginLog.UserID
 	session.Session.GroupID = groupLoginLog.GroupID
 	return auth.StatusGroup
 }
