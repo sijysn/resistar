@@ -1,9 +1,9 @@
 package session
 
 type session struct {
-	SessionToken string
-	UserID uint
-	GroupID uint
+	SessionToken *string
+	UserID *uint
+	GroupID *uint
 }
 
 var Session = session{}

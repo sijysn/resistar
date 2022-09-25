@@ -158,7 +158,7 @@ func (r *mutationResolver) AddGroup(ctx context.Context, input model.NewGroup) (
 		return nil, err
 	}
 	dbGroupID := dbNewGroup.ID
-	session.Session.GroupID = dbGroupID
+	session.Session.GroupID = &dbGroupID
 
 	groupID := strconv.FormatUint(uint64(dbNewGroup.ID), 10)
 
@@ -186,9 +186,9 @@ func (r *mutationResolver) AddGroup(ctx context.Context, input model.NewGroup) (
 	}
 
 	loginLog := &dbModel.GroupLoginLog{
-		UserID: uint(userID),
+		UserID:  uint(userID),
 		GroupID: dbNewGroup.ID,
-		Token: digest.SHA512(sessionToken),
+		Token:   digest.SHA512(sessionToken),
 	}
 	err = r.DB.Create(loginLog).Error
 	if err != nil {
@@ -381,12 +381,12 @@ func (r *mutationResolver) JoinGroup(ctx context.Context, input model.JoinGroup)
 		if err != nil {
 			panic(err)
 		}
-	
+
 		signKey, err := jwt.ParseRSAPrivateKeyFromPEM(signBytes)
 		if err != nil {
 			panic(err)
 		}
-	
+
 		sessionToken := digest.GenerateToken()
 		claims := jwt.MapClaims{
 			"sessionToken": sessionToken,
@@ -399,17 +399,17 @@ func (r *mutationResolver) JoinGroup(ctx context.Context, input model.JoinGroup)
 		if err != nil {
 			panic(err)
 		}
-	
+
 		loginLog := &dbModel.GroupLoginLog{
-			UserID: uint(userID),
+			UserID:  uint(userID),
 			GroupID: uint(groupID),
-			Token: digest.SHA512(sessionToken),
+			Token:   digest.SHA512(sessionToken),
 		}
 		err = r.DB.Create(loginLog).Error
 		if err != nil {
 			return nil, err
 		}
-	
+
 		responseAccess.SetCookie("jwtToken", jwtToken, false, time.Now().Add(24*time.Hour))
 		responseAccess.SetCookie("groupID", input.GroupID, false, time.Now().Add(24*time.Hour))
 		responseAccess.Writer.WriteHeader(http.StatusOK)
@@ -448,8 +448,8 @@ func (r *mutationResolver) LoginUser(ctx context.Context, input model.LoginUser)
 	sessionToken := digest.GenerateToken()
 	dbUser := dbUsers[0]
 	userID := dbUser.ID
-	session.Session.SessionToken = sessionToken
-	session.Session.UserID = uint(userID)
+	session.Session.SessionToken = &sessionToken
+	session.Session.UserID = &userID
 
 	signBytes, err := ioutil.ReadFile("./jwt.pem")
 	if err != nil {
@@ -474,7 +474,7 @@ func (r *mutationResolver) LoginUser(ctx context.Context, input model.LoginUser)
 
 	loginLog := &dbModel.UserLoginLog{
 		UserID: dbUsers[0].ID,
-		Token: digest.SHA512(sessionToken),
+		Token:  digest.SHA512(sessionToken),
 	}
 	err = r.DB.Create(loginLog).Error
 	if err != nil {
@@ -569,9 +569,9 @@ func (r *mutationResolver) LoginGroup(ctx context.Context, input model.LoginGrou
 	}
 
 	loginLog := &dbModel.GroupLoginLog{
-		UserID: uint(userID),
+		UserID:  uint(userID),
 		GroupID: uint(groupID),
-		Token: digest.SHA512(sessionToken),
+		Token:   digest.SHA512(sessionToken),
 	}
 	err = r.DB.Create(loginLog).Error
 	if err != nil {
@@ -583,6 +583,61 @@ func (r *mutationResolver) LoginGroup(ctx context.Context, input model.LoginGrou
 	responseAccess.Writer.WriteHeader(http.StatusOK)
 
 	message := "グループにログインしました"
+	return &model.Result{
+		Message: message,
+		Success: true,
+	}, nil
+}
+
+// LogoutGroup is the resolver for the logoutGroup field.
+func (r *mutationResolver) LogoutGroup(ctx context.Context) (*model.Result, error) {
+	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
+	if responseAccess.Status == http.StatusInternalServerError {
+		return nil, fmt.Errorf("サーバーエラーが発生しました")
+	}
+	if responseAccess.Status != auth.StatusGroup {
+		errorMessage := "認証されていません"
+		return &model.Result{
+			Message: errorMessage,
+			Success: false,
+		}, nil
+	}
+	signBytes, err := ioutil.ReadFile("./jwt.pem")
+	if err != nil {
+		panic(err)
+	}
+	session.Session.GroupID = nil
+
+	signKey, err := jwt.ParseRSAPrivateKeyFromPEM(signBytes)
+	if err != nil {
+		panic(err)
+	}
+
+	sessionToken := digest.GenerateToken()
+	claims := jwt.MapClaims{
+		"sessionToken": sessionToken,
+		"userID":       &session.Session.UserID,
+		"exp":          time.Now().AddDate(0, 1, 0).Unix(),
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+	jwtToken, err := token.SignedString(signKey)
+	if err != nil {
+		panic(err)
+	}
+	responseAccess.SetCookie("jwtToken", jwtToken, false, time.Now().Add(24*time.Hour))
+	responseAccess.DeleteCookie("groupID")
+	responseAccess.Writer.WriteHeader(http.StatusOK)
+
+	loginLog := &dbModel.UserLoginLog{
+		UserID: *session.Session.UserID,
+		Token:  digest.SHA512(sessionToken),
+	}
+	err = r.DB.Create(loginLog).Error
+	if err != nil {
+		return nil, err
+	}
+	
+	message := "グループからログアウトしました"
 	return &model.Result{
 		Message: message,
 		Success: true,
@@ -661,7 +716,7 @@ func (r *queryResolver) Users(ctx context.Context, input model.UsersQuery) ([]*m
 			ErrorMessage: &errorMessage,
 		})
 		return users, nil
-	} 
+	}
 	var dbGroup *dbModel.Group
 	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
 	if err != nil {

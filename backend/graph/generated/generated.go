@@ -101,6 +101,7 @@ type ComplexityRoot struct {
 		JoinGroup         func(childComplexity int, input model.JoinGroup) int
 		LoginGroup        func(childComplexity int, input model.LoginGroup) int
 		LoginUser         func(childComplexity int, input model.LoginUser) int
+		LogoutGroup       func(childComplexity int) int
 	}
 
 	Query struct {
@@ -139,6 +140,7 @@ type MutationResolver interface {
 	JoinGroup(ctx context.Context, input model.JoinGroup) (*model.Result, error)
 	LoginUser(ctx context.Context, input model.LoginUser) (*model.Result, error)
 	LoginGroup(ctx context.Context, input model.LoginGroup) (*model.Result, error)
+	LogoutGroup(ctx context.Context) (*model.Result, error)
 }
 type QueryResolver interface {
 	Histories(ctx context.Context, input model.HistoriesQuery) ([]*model.History, error)
@@ -485,6 +487,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.LoginUser(childComplexity, args["input"].(model.LoginUser)), true
+
+	case "Mutation.logoutGroup":
+		if e.complexity.Mutation.LogoutGroup == nil {
+			break
+		}
+
+		return e.complexity.Mutation.LogoutGroup(childComplexity), true
 
 	case "Query.adjustment":
 		if e.complexity.Query.Adjustment == nil {
@@ -886,6 +895,7 @@ type Mutation {
   joinGroup(input: JoinGroup!): Result!
   loginUser(input: LoginUser!): Result!
   loginGroup(input: LoginGroup!): Result!
+  logoutGroup: Result!
 }
 `, BuiltIn: false},
 }
@@ -3157,6 +3167,56 @@ func (ec *executionContext) fieldContext_Mutation_loginGroup(ctx context.Context
 	if fc.Args, err = ec.field_Mutation_loginGroup_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_logoutGroup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_logoutGroup(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().LogoutGroup(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Result)
+	fc.Result = res
+	return ec.marshalNResult2ᚖgithubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐResult(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_logoutGroup(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "message":
+				return ec.fieldContext_Result_message(ctx, field)
+			case "success":
+				return ec.fieldContext_Result_success(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Result", field.Name)
+		},
 	}
 	return fc, nil
 }
@@ -6896,6 +6956,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_loginGroup(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "logoutGroup":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_logoutGroup(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {

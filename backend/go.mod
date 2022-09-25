@@ -3,7 +3,7 @@ module github.com/sijysn/resistar/backend
 go 1.17
 
 require (
-	github.com/99designs/gqlgen v0.17.17
+	github.com/99designs/gqlgen v0.17.20
 	github.com/alexedwards/scs/v2 v2.5.0
 	github.com/go-chi/chi v1.5.4
 	github.com/golang-jwt/jwt v3.2.2+incompatible

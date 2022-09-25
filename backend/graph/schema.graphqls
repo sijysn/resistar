@@ -162,4 +162,5 @@ type Mutation {
   joinGroup(input: JoinGroup!): Result!
   loginUser(input: LoginUser!): Result!
   loginGroup(input: LoginGroup!): Result!
+  logoutGroup: Result!
 }

@@ -40,21 +40,21 @@ func (r *ResponseAccess) SetCookie(name string, value string, httpOnly bool, exp
 	http.SetCookie(r.Writer, cookie)
 }
 
-// func (r *ResponseAccess) DeleteCookie(name string) {
-// 	cookie := &http.Cookie{
-// 		Name: name,
-// 		Value: "",
-// 		HttpOnly: true,
-// 		Secure: true,
-// 		SameSite: http.SameSiteNoneMode,
-//     MaxAge: -1,
-// 	}
-// 	env := os.Getenv("ENV")
-// 	if env == "production" {
-// 		cookie.Domain = "resistar.net"
-// 	}
-// 	http.SetCookie(r.Writer, cookie)
-// }
+func (r *ResponseAccess) DeleteCookie(name string) {
+	cookie := &http.Cookie{
+		Name: name,
+		Value: "",
+		HttpOnly: true,
+		Secure: true,
+		SameSite: http.SameSiteNoneMode,
+    MaxAge: -1,
+	}
+	env := os.Getenv("ENV")
+	if env == "production" {
+		cookie.Domain = "resistar.net"
+	}
+	http.SetCookie(r.Writer, cookie)
+}
 
 func Middleware(db *gorm.DB) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -117,7 +117,7 @@ func getStatus(db *gorm.DB, token *jwt.Token, r *http.Request, err error) int {
 		if userLoginLog.CreatedAt.Before(time.Now().AddDate(-1, 0, 0)) {
 			return auth.StatusUnauthorized
 		}
-		session.Session.UserID = userLoginLog.UserID
+		session.Session.UserID = &userLoginLog.UserID
 		return auth.StatusUser
 	}
 
@@ -129,7 +129,7 @@ func getStatus(db *gorm.DB, token *jwt.Token, r *http.Request, err error) int {
 	if groupLoginLog.CreatedAt.Before(time.Now().AddDate(-1, 0, 0)) {
 		return auth.StatusUnauthorized
 	}
-	session.Session.UserID = groupLoginLog.UserID
-	session.Session.GroupID = groupLoginLog.GroupID
+	session.Session.UserID = &groupLoginLog.UserID
+	session.Session.GroupID = &groupLoginLog.GroupID
 	return auth.StatusGroup
 }

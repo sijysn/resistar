@@ -2,7 +2,7 @@ import * as React from "react";
 import type { GetServerSideProps, NextPage } from "next";
 import nookies from "nookies";
 import dayjs from "dayjs";
-import { useQuery } from "@apollo/client";
+import { useMutation, useQuery } from "@apollo/client";
 import { styled } from "@mui/material";
 import { ServerSideProps } from "../../index";
 import {
@@ -20,14 +20,23 @@ import {
   getUsersVarsProps,
   GET_USERS,
 } from "../../../lib/apollo/api/getUsers";
+import {
+  logoutGroupProps,
+  LOGOUT_GROUP,
+} from "../../../lib/apollo/api/logoutGroup";
+import { useRouter } from "next/router";
 
 const YearAndMonthHistoryDetails: NextPage<ServerSideProps> = ({
   cookies,
   yearAndMonth,
 }) => {
+  const router = useRouter();
+
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
+
+  const [message, setMessage] = React.useState("");
 
   const getUsersQueryVars = {
     groupID: cookies["groupID"],
@@ -40,10 +49,34 @@ const YearAndMonthHistoryDetails: NextPage<ServerSideProps> = ({
     }
   );
 
+  const [logoutGroup] = useMutation<logoutGroupProps>(LOGOUT_GROUP);
+
+  const logout = async () => {
+    const { data } = await logoutGroup();
+    if (!data) {
+      setMessage("予期せぬエラーが起こりました");
+      return;
+    }
+    const { message: logoutMessage, success } = data.logoutGroup;
+    if (success) {
+      router.reload();
+      return;
+    }
+    if (logoutMessage) {
+      setMessage(logoutMessage);
+    }
+  };
+
   return (
     <>
       <Overview>
-        <Header yearAndMonth={yearAndMonth} handleClick={openModal} />
+        <Header
+          yearAndMonth={yearAndMonth}
+          menuItems={[
+            { title: "招待", handleClick: openModal },
+            { title: "ログアウト", handleClick: logout },
+          ]}
+        />
         <Adjustment yearAndMonth={yearAndMonth} cookies={cookies} />
       </Overview>
       <Members data={data} loading={loading} error={error} />
