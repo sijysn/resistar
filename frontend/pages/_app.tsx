@@ -7,6 +7,7 @@ import { useApollo } from "../lib/apollo/apollo-client";
 import { theme } from "../lib/theme";
 import "../styles/globals.css";
 import { parseCookies } from "nookies";
+import { COLOR } from "../lib/color";
 
 function MyApp({ Component, pageProps }: AppProps) {
   const cookies = parseCookies();
@@ -18,7 +19,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         <link rel="icon" href="/favicon.ico" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/images/icon-192x192.png"></link>
-        <meta name="theme-color" content="#fff" />
+        <meta name="theme-color" content={COLOR.PRIMARY_MAIN} />
         <meta
           name="viewport"
           content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no"
