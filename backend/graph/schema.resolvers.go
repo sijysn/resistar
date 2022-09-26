@@ -13,7 +13,8 @@ import (
 	"strconv"
 	"time"
 
-	validation "github.com/go-ozzo/ozzo-validation"
+	"github.com/99designs/gqlgen/graphql"
+	"github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
 	"github.com/golang-jwt/jwt"
 	"github.com/sijysn/resistar/backend/graph/generated"
@@ -456,7 +457,7 @@ func (r *mutationResolver) LoginUser(ctx context.Context, input model.LoginUser)
 	if responseAccess.Status == http.StatusInternalServerError {
 		return nil, fmt.Errorf("サーバーエラーが発生しました")
 	}
-	
+
 	err := validation.Validate(
 		input.Email,
 		validation.Required,
@@ -669,12 +670,17 @@ func (r *mutationResolver) LogoutGroup(ctx context.Context) (*model.Result, erro
 	if err != nil {
 		return nil, err
 	}
-	
+
 	message := "グループからログアウトしました"
 	return &model.Result{
 		Message: message,
 		Success: true,
 	}, nil
+}
+
+// UploadImage is the resolver for the uploadImage field.
+func (r *mutationResolver) UploadImage(ctx context.Context, file graphql.Upload) (*model.Result, error) {
+	panic(fmt.Errorf("not implemented: UploadImage - uploadImage"))
 }
 
 // Histories is the resolver for the histories field.

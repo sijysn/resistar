@@ -2,6 +2,8 @@
 #
 # https://gqlgen.com/getting-started/
 
+scalar Upload
+
 type History {
   id: ID!
   title: String!
@@ -163,4 +165,5 @@ type Mutation {
   loginUser(input: LoginUser!): Result!
   loginGroup(input: LoginGroup!): Result!
   logoutGroup: Result!
+  uploadImage(file: Upload!): Result!
 }

@@ -11,6 +11,7 @@ import { onError } from "@apollo/client/link/error";
 import { setContext } from "@apollo/client/link/context";
 import merge from "deepmerge";
 import isEqual from "lodash/isEqual";
+import { createUploadLink } from "apollo-upload-client";
 
 const APOLLO_STATE = "__APOLLO_STATE__";
 
@@ -26,7 +27,7 @@ const errorLink = onError(({ graphQLErrors, networkError }) => {
   if (networkError) console.log(`[Network error]: ${networkError}`);
 });
 
-const httpLink = new HttpLink({
+const httpLink = createUploadLink({
   uri: process.env.NEXT_PUBLIC_API_URL,
   credentials: "include",
 });
