@@ -7,21 +7,15 @@ import {
   addUserProps,
   addUserVarsProps,
 } from "../lib/apollo/api/addUser";
-import { useRouter } from "next/router";
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
 import TextField from "@mui/material/TextField";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Checkbox from "@mui/material/Checkbox";
-import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
-import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 
 const CreateNewPage: NextPage = () => {
-  const router = useRouter();
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [confirmationPassword, setConfirmationPassword] = React.useState("");
@@ -51,7 +45,7 @@ const CreateNewPage: NextPage = () => {
     }
     const { message: addUserMessage, success } = data.addUser;
     if (success) {
-      router.reload();
+      window.location.href = "/get-started/landing";
       return;
     }
     if (addUserMessage) {

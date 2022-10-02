@@ -7,21 +7,15 @@ import {
   loginUserProps,
   loginUserVarsProps,
 } from "../lib/apollo/api/loginUser";
-import { useRouter } from "next/router";
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
 import TextField from "@mui/material/TextField";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Checkbox from "@mui/material/Checkbox";
-import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
-import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 
 const LoginPage: NextPage = () => {
-  const router = useRouter();
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [message, setMessage] = React.useState("");
@@ -45,7 +39,7 @@ const LoginPage: NextPage = () => {
     }
     const { message: loginMessage, success } = data.loginUser;
     if (success) {
-      router.reload();
+      window.location.href = "/get-started/landing";
       return;
     }
     if (loginMessage) {

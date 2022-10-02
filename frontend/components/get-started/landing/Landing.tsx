@@ -1,8 +1,5 @@
 import * as React from "react";
-import type { GetServerSideProps, NextPage } from "next";
-import { useRouter } from "next/router";
 import { useQuery, useMutation } from "@apollo/client";
-import nookies, { parseCookies } from "nookies";
 import CssBaseline from "@mui/material/CssBaseline";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
@@ -69,7 +66,6 @@ const Landing: React.FC<ServerSideProps> = ({ cookies }) => {
     // networkStatusが変わるとコンポーネントが再レンダリングされる
     notifyOnNetworkStatusChange: true,
   });
-  const router = useRouter();
 
   const [
     addNewGroup,
@@ -90,7 +86,7 @@ const Landing: React.FC<ServerSideProps> = ({ cookies }) => {
     }
     const { message: addGroupMessage, success } = data.addGroup;
     if (success) {
-      router.reload();
+      window.location.href = "/";
       return;
     }
     if (addGroupMessage) {
@@ -115,7 +111,7 @@ const Landing: React.FC<ServerSideProps> = ({ cookies }) => {
     }
     const { message: loginMessage, success } = data.loginGroup;
     if (success) {
-      router.reload();
+      window.location.href = "/";
       return;
     }
     if (loginMessage) {
@@ -138,7 +134,7 @@ const Landing: React.FC<ServerSideProps> = ({ cookies }) => {
     }
     const { message: joinMessage, success } = data.joinGroup;
     if (success) {
-      router.reload();
+      window.location.href = "/";
       return;
     }
     if (joinMessage) {

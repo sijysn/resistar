@@ -24,14 +24,11 @@ import {
   logoutGroupProps,
   LOGOUT_GROUP,
 } from "../../../lib/apollo/api/logoutGroup";
-import { useRouter } from "next/router";
 
 const YearAndMonthHistoryDetails: NextPage<ServerSideProps> = ({
   cookies,
   yearAndMonth,
 }) => {
-  const router = useRouter();
-
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
@@ -59,7 +56,7 @@ const YearAndMonthHistoryDetails: NextPage<ServerSideProps> = ({
     }
     const { message: logoutMessage, success } = data.logoutGroup;
     if (success) {
-      router.reload();
+      window.location.href = "/get-started/landing";
       return;
     }
     if (logoutMessage) {
