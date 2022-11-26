@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: resistar
+    env: docker
+    region: oregon
+    plan: free
+    branch: main
+    rootDir: backend
+    numInstances: 1
+    healthCheckPath: /
+    envVars:
+      - key: DATABASE_URL
+        fromService:
+          name: resistar
+          property: connectionString
