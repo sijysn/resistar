@@ -21,11 +21,5 @@ yarn docker-stop
 ドメイン管理はムームードメインを使用している
 
 ## deploy
-productionブランチで行う
-（productionブランチはgithubにプッシュしない）
-
-1. ```git switch production```
-2. ```git pull origin main```
-3. .gitignoreを修正する
-4. ```git commit -m "deploy"```
-5. ```yarn deploy-backend```
+render.comを使用している
+mainブランチにマージすると、自動でデプロイされる
