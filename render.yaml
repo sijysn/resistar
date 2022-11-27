@@ -8,8 +8,3 @@ services:
     rootDir: backend
     numInstances: 1
     healthCheckPath: /
-    envVars:
-      - key: DATABASE_URL
-        fromService:
-          name: resistar
-          property: connectionString
