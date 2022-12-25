@@ -8,7 +8,6 @@ import (
 )
 
 func(repository *Repository) GetUsers(input model.UsersQuery)([]*model.User, error) {
-	println("dfefie")
 	var users []*model.User
 	var dbGroup *entity.Group
 	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)

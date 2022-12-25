@@ -736,48 +736,48 @@ func (r *queryResolver) Histories(ctx context.Context, input model.HistoriesQuer
 	return histories, nil
 }
 
-// Users is the resolver for the users field.
-func (r *queryResolver) Users(ctx context.Context, input model.UsersQuery) ([]*model.User, error) {
-	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
-	if responseAccess.Status == http.StatusInternalServerError {
-		return nil, fmt.Errorf("サーバーエラーが発生しました")
-	}
-	var users []*model.User
-	if responseAccess.Status != auth.StatusGroup {
-		errorMessage := "認証されていません"
-		users = append(users, &model.User{
-			ErrorMessage: &errorMessage,
-		})
-		return users, nil
-	}
-	var dbGroup *dbModel.Group
-	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
-	if err != nil {
-		return nil, err
-	}
-	err = r.DB.Debug().Where("id = ?", uint(groupID)).Preload("Users").Limit(1).Find(&dbGroup).Error
-	if err != nil {
-		return nil, err
-	}
-	for _, dbUser := range dbGroup.Users {
-		users = append(users, &model.User{
-			ID:       strconv.FormatUint(uint64(dbUser.ID), 10),
-			Email:    dbUser.Email,
-			Name:     dbUser.Name,
-			ImageURL: dbUser.ImageURL,
-		})
-	}
-	return users, nil
-}
-
 // // Users is the resolver for the users field.
 // func (r *queryResolver) Users(ctx context.Context, input model.UsersQuery) ([]*model.User, error) {
-// 	users, err := r.Usecase.GetUsers(ctx, input)
+// 	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
+// 	if responseAccess.Status == http.StatusInternalServerError {
+// 		return nil, fmt.Errorf("サーバーエラーが発生しました")
+// 	}
+// 	var users []*model.User
+// 	if responseAccess.Status != auth.StatusGroup {
+// 		errorMessage := "認証されていません"
+// 		users = append(users, &model.User{
+// 			ErrorMessage: &errorMessage,
+// 		})
+// 		return users, nil
+// 	}
+// 	var dbGroup *dbModel.Group
+// 	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
 // 	if err != nil {
 // 		return nil, err
 // 	}
+// 	err = r.DB.Debug().Where("id = ?", uint(groupID)).Preload("Users").Limit(1).Find(&dbGroup).Error
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	for _, dbUser := range dbGroup.Users {
+// 		users = append(users, &model.User{
+// 			ID:       strconv.FormatUint(uint64(dbUser.ID), 10),
+// 			Email:    dbUser.Email,
+// 			Name:     dbUser.Name,
+// 			ImageURL: dbUser.ImageURL,
+// 		})
+// 	}
 // 	return users, nil
 // }
+
+// Users is the resolver for the users field.
+func (r *queryResolver) Users(ctx context.Context, input model.UsersQuery) ([]*model.User, error) {
+	users, err := r.Usecase.GetUsers(ctx, input)
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
+}
 
 // Groups is the resolver for the groups field.
 func (r *queryResolver) Groups(ctx context.Context, input model.GroupsQuery) ([]*model.Group, error) {
