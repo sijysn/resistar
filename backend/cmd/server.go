@@ -18,6 +18,8 @@ import (
 	"github.com/sijysn/resistar/backend/internal/driver"
 	"github.com/sijysn/resistar/backend/internal/middleware"
 	"github.com/sijysn/resistar/backend/internal/migrate"
+	"github.com/sijysn/resistar/backend/repository"
+	"github.com/sijysn/resistar/backend/usecase"
 )
 
 const defaultPort = "8080"
@@ -62,7 +64,9 @@ func run() {
 		port = defaultPort
 	}
 
-	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{DB: db, Session: session }}))
+	repository := repository.NewRepository(db)
+	usecase := usecase.NewUsecase(repository)
+	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{DB: db, Session: session, Usecase: usecase }}))
 
 	router := chi.NewRouter()
 

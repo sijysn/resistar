@@ -2,6 +2,7 @@ package graph
 
 import (
 	"github.com/alexedwards/scs/v2"
+	"github.com/sijysn/resistar/backend/usecase"
 	"gorm.io/gorm"
 )
 
@@ -13,4 +14,5 @@ import (
 type Resolver struct{
 	DB *gorm.DB
 	Session *scs.SessionManager
+	Usecase usecase.Usecases
 }

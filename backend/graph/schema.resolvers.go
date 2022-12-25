@@ -770,6 +770,15 @@ func (r *queryResolver) Users(ctx context.Context, input model.UsersQuery) ([]*m
 	return users, nil
 }
 
+// // Users is the resolver for the users field.
+// func (r *queryResolver) Users(ctx context.Context, input model.UsersQuery) ([]*model.User, error) {
+// 	users, err := r.Usecase.GetUsers(ctx, input)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return users, nil
+// }
+
 // Groups is the resolver for the groups field.
 func (r *queryResolver) Groups(ctx context.Context, input model.GroupsQuery) ([]*model.Group, error) {
 	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
