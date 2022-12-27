@@ -35,7 +35,11 @@ func(u *UsecaseRepository) LoginUser(ctx context.Context, input model.LoginUser)
 	}
 
 	// ユーザーが存在するかチェックする
-	users, err := u.Repository.GetUserByEmailAndPassword(input)
+	getUserByEmailAndPasswordInput := repository.GetUserByEmailAndPasswordInput{
+		Email: input.Email,
+		Password: input.Password,
+	}
+	users, err := u.Repository.GetUserByEmailAndPassword(getUserByEmailAndPasswordInput)
 	if len(users) != 1 {
 		errorMessage := "メールアドレスまたはパスワードが違います"
 		return &model.Result{
