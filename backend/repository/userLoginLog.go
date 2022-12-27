@@ -7,12 +7,12 @@ type CreateUserLoginLogInput struct {
 	Token string 
 }
 
-func(repository *Repository) CreateUserLoginLog(input CreateUserLoginLogInput) error {
+func(r *Repository) CreateUserLoginLog(input CreateUserLoginLogInput) error {
 	loginLog := &entity.UserLoginLog{
 		UserID: input.UserID,
 		Token:  input.Token,
 	}
-	err := repository.DB.Debug().Create(loginLog).Error
+	err := r.DB.Debug().Create(loginLog).Error
 	if err != nil {
 		return err
 	}
