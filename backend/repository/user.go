@@ -18,7 +18,7 @@ type GetUserByEmailAndPasswordInput struct {
 	Password string
 }
 
-func(r *Repository) GetUsers(input GetUsersInput)([]entity.User, error) {
+func(r *Repository) GetUsers(input GetUsersInput) ([]entity.User, error) {
 	var dbGroup *entity.Group
 	err := r.DB.Debug().Where("id = ?", input.GroupID).Preload("Users").Limit(1).Find(&dbGroup).Error
 	if err != nil {
@@ -27,7 +27,7 @@ func(r *Repository) GetUsers(input GetUsersInput)([]entity.User, error) {
 	return dbGroup.Users, nil
 }
 
-func(r *Repository) GetUserByID(input GetUserByIDInput)(*entity.User, error) {
+func(r *Repository) GetUserByID(input GetUserByIDInput) (*entity.User, error) {
 	var user *entity.User
 	err := r.DB.Debug().Where("id = ?", input.UserID).Preload("Groups").Limit(1).Find(&user).Error
 	if err != nil {
