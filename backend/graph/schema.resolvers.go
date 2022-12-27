@@ -452,78 +452,11 @@ func (r *mutationResolver) JoinGroup(ctx context.Context, input model.JoinGroup)
 
 // LoginUser is the resolver for the loginUser field.
 func (r *mutationResolver) LoginUser(ctx context.Context, input model.LoginUser) (*model.Result, error) {
-	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
-	if responseAccess.Status == http.StatusInternalServerError {
-		return nil, fmt.Errorf("サーバーエラーが発生しました")
-	}
-	
-	err := validation.Validate(
-		input.Email,
-		validation.Required,
-		validation.Length(5, 100),
-		is.Email,
-	)
+	result, err := r.Usecase.LoginUser(ctx, input)
 	if err != nil {
 		return nil, err
 	}
-
-	// ユーザーが存在するかチェックする
-	var dbUsers []dbModel.User
-	count := r.DB.Where("email = ? AND password = ?", input.Email, digest.SHA512(input.Password)).Limit(1).Find(&dbUsers).RowsAffected
-	if count != 1 {
-		errorMessage := "メールアドレスまたはパスワードが違います"
-		return &model.Result{
-			Message: errorMessage,
-			Success: false,
-		}, nil
-	}
-
-	sessionToken := digest.GenerateToken()
-	dbUser := dbUsers[0]
-	userID := dbUser.ID
-	session.Session.SessionToken = &sessionToken
-	session.Session.UserID = &userID
-
-	signBytes, err := ioutil.ReadFile("./jwt.pem")
-	if err != nil {
-		panic(err)
-	}
-
-	signKey, err := jwt.ParseRSAPrivateKeyFromPEM(signBytes)
-	if err != nil {
-		panic(err)
-	}
-
-	claims := jwt.MapClaims{
-		"sessionToken": sessionToken,
-		"userID":       uint(userID),
-		"exp":          time.Now().AddDate(0, 1, 0).Unix(),
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-	jwtToken, err := token.SignedString(signKey)
-	if err != nil {
-		panic(err)
-	}
-
-	loginLog := &dbModel.UserLoginLog{
-		UserID: dbUsers[0].ID,
-		Token:  digest.SHA512(sessionToken),
-	}
-	err = r.DB.Create(loginLog).Error
-	if err != nil {
-		return nil, err
-	}
-
-	responseAccess.SetCookie("jwtToken", jwtToken, false, time.Now().Add(24*time.Hour))
-	id := strconv.FormatUint(uint64(userID), 10)
-	responseAccess.SetCookie("userID", id, false, time.Now().Add(24*time.Hour))
-	responseAccess.Writer.WriteHeader(http.StatusOK)
-
-	message := "ログインに成功しました"
-	return &model.Result{
-		Message: message,
-		Success: true,
-	}, nil
+	return result, err
 }
 
 // LoginGroup is the resolver for the loginGroup field.
