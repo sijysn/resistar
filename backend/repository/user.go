@@ -5,6 +5,7 @@ import (
 
 	"github.com/sijysn/resistar/backend/entity"
 	"github.com/sijysn/resistar/backend/graph/model"
+	"github.com/sijysn/resistar/backend/internal/digest"
 )
 
 func(repository *Repository) GetUsers(input model.UsersQuery)([]*model.User, error) {
@@ -27,4 +28,13 @@ func(repository *Repository) GetUsers(input model.UsersQuery)([]*model.User, err
 		})
 	}
 	return users, nil
+}
+
+func(repository *Repository) GetUserByEmailAndPassword(input model.LoginUser) ([]*entity.User, error) {
+	var dbUsers []*entity.User
+	err := repository.DB.Debug().Where("email = ? AND password = ?", input.Email, digest.SHA512(input.Password)).Limit(1).Find(&dbUsers).Error
+	if err != nil {
+		return nil, err
+	}
+	return dbUsers, nil
 }
