@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/sijysn/resistar/backend/graph/model"
 	"github.com/sijysn/resistar/backend/internal/auth"
 	"github.com/sijysn/resistar/backend/internal/middleware"
 	"github.com/sijysn/resistar/backend/repository"
+	"github.com/sijysn/resistar/backend/utility"
 )
 
 func(u *UsecaseRepository) GetGroups(ctx context.Context, input model.GroupsQuery) ([]*model.Group, error) {
@@ -26,12 +26,12 @@ func(u *UsecaseRepository) GetGroups(ctx context.Context, input model.GroupsQuer
 		return groups, nil
 	}
 
-	userID, err := strconv.ParseUint(input.UserID, 10, 64)
+	userID, err := utility.ParseStringToUint(input.UserID)
 	if err != nil {
 		return nil, err
 	}
 	GetUserByIDInput := repository.GetUserByIDInput{
-		UserID: uint(userID),
+		UserID: userID,
 	}
 	dbUser, err := u.Repository.GetUserByID(GetUserByIDInput)
 	if err != nil {
@@ -50,14 +50,14 @@ func(u *UsecaseRepository) GetGroups(ctx context.Context, input model.GroupsQuer
 		}
 		for _, dbMyGroupUser := range dbMyGroup.Users {
 			myGroupUsers = append(myGroupUsers, &model.User{
-				ID:    strconv.FormatUint(uint64(dbMyGroupUser.ID), 10),
+				ID:    utility.ParseUintToString(dbMyGroupUser.ID),
 				Email: dbMyGroupUser.Email,
 				Name:  dbMyGroupUser.Name,
 			})
 		}
 
 		groups = append(groups, &model.Group{
-			ID:    strconv.FormatUint(uint64(dbGroup.ID), 10),
+			ID:    utility.ParseUintToString(dbGroup.ID),
 			Name:  dbGroup.Name,
 			Users: myGroupUsers,
 		})

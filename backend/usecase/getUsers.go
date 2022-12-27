@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/sijysn/resistar/backend/graph/model"
 	"github.com/sijysn/resistar/backend/internal/auth"
 	"github.com/sijysn/resistar/backend/internal/middleware"
 	"github.com/sijysn/resistar/backend/repository"
+	"github.com/sijysn/resistar/backend/utility"
 )
 
 func(u *UsecaseRepository) GetUsers(ctx context.Context, input model.UsersQuery) ([]*model.User, error) {
@@ -25,17 +25,17 @@ func(u *UsecaseRepository) GetUsers(ctx context.Context, input model.UsersQuery)
 		})
 		return users, nil
 	}
-	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
+	groupID, err := utility.ParseStringToUint(input.GroupID)
 	if err != nil {
 		return nil, err
 	}
 	getUsersInput := repository.GetUsersInput{
-		GroupID: uint(groupID),
+		GroupID: groupID,
 	}
 	dbUsers, err := u.Repository.GetUsers(getUsersInput)
 	for _, dbUser := range dbUsers {
 		users = append(users, &model.User{
-			ID:       strconv.FormatUint(uint64(dbUser.ID), 10),
+			ID:       utility.ParseUintToString(dbUser.ID),
 			Email:    dbUser.Email,
 			Name:     dbUser.Name,
 			ImageURL: dbUser.ImageURL,
