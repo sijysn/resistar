@@ -9,6 +9,10 @@ type GetUsersInput struct {
 	GroupID uint
 }
 
+type GetUserByIDInput struct {
+	UserID uint
+}
+
 type GetUserByEmailAndPasswordInput struct {
 	Email string
 	Password string
@@ -21,6 +25,15 @@ func(repository *Repository) GetUsers(input GetUsersInput)([]entity.User, error)
 		return nil, err
 	}
 	return dbGroup.Users, nil
+}
+
+func(repository *Repository) GetUserByID(input GetUserByIDInput)(*entity.User, error) {
+	var user *entity.User
+	err := repository.DB.Debug().Where("id = ?", input.UserID).Preload("Groups").Limit(1).Find(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }
 
 func(repository *Repository) GetUserByEmailAndPassword(input GetUserByEmailAndPasswordInput) ([]entity.User, error) {
