@@ -1,30 +1,33 @@
 package repository
 
 import (
-	"strconv"
-
 	"github.com/sijysn/resistar/backend/entity"
-	"github.com/sijysn/resistar/backend/graph/model"
+	"github.com/sijysn/resistar/backend/internal/digest"
 )
 
-func(repository *Repository) GetUsers(input model.UsersQuery)([]*model.User, error) {
-	var users []*model.User
+type GetUsersInput struct {
+	GroupID uint
+}
+
+type GetUserByEmailAndPasswordInput struct {
+	Email string
+	Password string
+}
+
+func(repository *Repository) GetUsers(input GetUsersInput)([]entity.User, error) {
 	var dbGroup *entity.Group
-	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
+	err := repository.DB.Debug().Where("id = ?", input.GroupID).Preload("Users").Limit(1).Find(&dbGroup).Error
 	if err != nil {
 		return nil, err
 	}
-	err = repository.DB.Debug().Where("id = ?", uint(groupID)).Preload("Users").Limit(1).Find(&dbGroup).Error
+	return dbGroup.Users, nil
+}
+
+func(repository *Repository) GetUserByEmailAndPassword(input GetUserByEmailAndPasswordInput) ([]entity.User, error) {
+	var dbUsers []entity.User
+	err := repository.DB.Debug().Where("email = ? AND password = ?", input.Email, digest.SHA512(input.Password)).Limit(1).Find(&dbUsers).Error
 	if err != nil {
 		return nil, err
 	}
-	for _, dbUser := range dbGroup.Users {
-		users = append(users, &model.User{
-			ID:       strconv.FormatUint(uint64(dbUser.ID), 10),
-			Email:    dbUser.Email,
-			Name:     dbUser.Name,
-			ImageURL: dbUser.ImageURL,
-		})
-	}
-	return users, nil
+	return dbUsers, nil
 }
