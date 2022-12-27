@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strconv"
 	"time"
 
 	validation "github.com/go-ozzo/ozzo-validation"
@@ -16,6 +15,7 @@ import (
 	"github.com/sijysn/resistar/backend/internal/middleware"
 	"github.com/sijysn/resistar/backend/internal/session"
 	"github.com/sijysn/resistar/backend/repository"
+	"github.com/sijysn/resistar/backend/utility"
 )
 
 func(u *UsecaseRepository) LoginUser(ctx context.Context, input model.LoginUser) (*model.Result, error) {
@@ -85,7 +85,7 @@ func(u *UsecaseRepository) LoginUser(ctx context.Context, input model.LoginUser)
 	}
 
 	responseAccess.SetCookie("jwtToken", jwtToken, false, time.Now().Add(24*time.Hour))
-	id := strconv.FormatUint(uint64(userID), 10)
+	id := utility.ParseUintToString(userID)
 	responseAccess.SetCookie("userID", id, false, time.Now().Add(24*time.Hour))
 	responseAccess.Writer.WriteHeader(http.StatusOK)
 
