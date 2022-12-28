@@ -10,6 +10,7 @@ import (
 type Usecases interface {
 	GetUsers(ctx context.Context, input model.UsersQuery) ([]*model.User, error)
 	GetGroups(ctx context.Context, input model.GroupsQuery) ([]*model.Group, error)
+	GetGroupsWhereUserHasBeenInvited(ctx context.Context, input model.GroupsQuery) ([]*model.Group, error)
 	GetHistories(ctx context.Context, input model.HistoriesQuery) ([]*model.History, error)
 	LoginUser(ctx context.Context, input model.LoginUser) (*model.Result, error)
 }
