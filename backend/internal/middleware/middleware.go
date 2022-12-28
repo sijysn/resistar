@@ -79,11 +79,6 @@ func Middleware(db *gorm.DB) func(http.Handler) http.Handler {
 				Writer: w,
 				Status: status,
 			}
-			// if status == auth.StatusUnauthorized {
-			// 	responseAccess.DeleteCookie("jwtToken")
-			// 	responseAccess.DeleteCookie("userID")
-			// 	responseAccess.DeleteCookie("groupID")
-			// }
 			ctx := context.WithValue(r.Context(), ResponseAccessKey, &responseAccess)
 			r = r.WithContext(ctx)
 			next.ServeHTTP(w, r)
