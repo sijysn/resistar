@@ -639,38 +639,10 @@ func (r *queryResolver) Groups(ctx context.Context, input model.GroupsQuery) ([]
 
 // Amounts is the resolver for the amounts field.
 func (r *queryResolver) Amounts(ctx context.Context, input model.AmountsQuery) (*model.Amounts, error) {
-	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
-	if responseAccess.Status == http.StatusInternalServerError {
-		return nil, fmt.Errorf("サーバーエラーが発生しました")
-	}
-	if responseAccess.Status != auth.StatusGroup {
-		errorMessage := "認証されていません"
-		return &model.Amounts{
-			ErrorMessage: &errorMessage,
-		}, nil
-	}
-
-	var amounts *model.Amounts
-
-	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
+	amounts, err := r.Usecase.GetAmounts(ctx, input)
 	if err != nil {
 		return nil, err
 	}
-	userID, err := strconv.ParseUint(input.UserID, 10, 64)
-	if err != nil {
-		return nil, err
-	}
-
-	err = r.DB.Debug().Table("balances").Select("SUM(amount) as personal_balance").Where("group_id = ? AND user_id = ? AND date_part('year', created_at) = ? AND date_part('month', created_at) = ?", groupID, userID, input.Year, input.Month).Scan(&amounts).Error
-	if err != nil {
-		return nil, err
-	}
-
-	err = r.DB.Debug().Table("balances").Select("SUM(amount) as group_total").Where("group_id = ? AND date_part('year', created_at) = ? AND date_part('month', created_at) = ? AND amount > 0", groupID, input.Year, input.Month).Scan(&amounts).Error
-	if err != nil {
-		return nil, err
-	}
-
 	return amounts, nil
 }
 

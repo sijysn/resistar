@@ -2,6 +2,7 @@ package repository
 
 import (
 	"github.com/sijysn/resistar/backend/entity"
+	"github.com/sijysn/resistar/backend/graph/model"
 )
 
 type Queries interface {
@@ -11,6 +12,8 @@ type Queries interface {
 	GetGroupByID(input GetGroupByIDInput) (*entity.Group, error)
 	GetGroupsByIDs(input GetGroupsByIDsInput) ([]entity.Group, error)
 	GetHistoriesByGroupID(input GetHistoriesByGroupIDInput) ([]entity.History, error)
+	ScanPersonalBalance(input ScanPersonalBalanceInput) (*model.Amounts, error)
+	ScanGroupTotal(input ScanGroupTotalInput) (*model.Amounts, error)
 	GetInvitedUsersByUserID(input GetInvitedUsersInput) ([]entity.InvitedUser, error)
 	CreateUserLoginLog(input CreateUserLoginLogInput) error
 }
