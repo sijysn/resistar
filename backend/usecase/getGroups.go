@@ -30,10 +30,10 @@ func(u *UsecaseRepository) GetGroups(ctx context.Context, input model.GroupsQuer
 	if err != nil {
 		return nil, err
 	}
-	GetUserByIDInput := repository.GetUserByIDInput{
+	getUserWithGroupsByIDInput := repository.GetUserWithGroupsByIDInput{
 		UserID: userID,
 	}
-	dbUser, err := u.Repository.GetUserByID(GetUserByIDInput)
+	dbUser, err := u.Repository.GetUserWithGroupsByID(getUserWithGroupsByIDInput)
 	if err != nil {
 		return nil, err
 	}

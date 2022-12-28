@@ -13,6 +13,10 @@ type GetUserByIDInput struct {
 	UserID uint
 }
 
+type GetUserWithGroupsByIDInput struct {
+	UserID uint
+}
+
 type GetUserByEmailAndPasswordInput struct {
 	Email string
 	Password string
@@ -29,6 +33,15 @@ func(r *Repository) GetUsers(input GetUsersInput) ([]entity.User, error) {
 
 func(r *Repository) GetUserByID(input GetUserByIDInput) (*entity.User, error) {
 	var user *entity.User
+	err := r.DB.Debug().Where("id = ?", input.UserID).Limit(1).First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+func(r *Repository) GetUserWithGroupsByID(input GetUserWithGroupsByIDInput) (*entity.User, error) {
+	var user *entity.User
 	err := r.DB.Debug().Where("id = ?", input.UserID).Preload("Groups").Limit(1).Find(&user).Error
 	if err != nil {
 		return nil, err
@@ -36,9 +49,9 @@ func(r *Repository) GetUserByID(input GetUserByIDInput) (*entity.User, error) {
 	return user, nil
 }
 
-func(repository *Repository) GetUserByEmailAndPassword(input GetUserByEmailAndPasswordInput) ([]entity.User, error) {
+func(r *Repository) GetUserByEmailAndPassword(input GetUserByEmailAndPasswordInput) ([]entity.User, error) {
 	var dbUsers []entity.User
-	err := repository.DB.Debug().Where("email = ? AND password = ?", input.Email, utility.SHA512(input.Password)).Limit(1).Find(&dbUsers).Error
+	err := r.DB.Debug().Where("email = ? AND password = ?", input.Email, utility.SHA512(input.Password)).Limit(1).Find(&dbUsers).Error
 	if err != nil {
 		return nil, err
 	}

@@ -30,7 +30,7 @@ func (u *UsecaseRepository) GetGroupsWhereUserHasBeenInvited(ctx context.Context
 	if err != nil {
 		return nil, err
 	}
-	getInvitedUsersByUserIDInput := repository.GetInvitedUsersInput{
+	getInvitedUsersByUserIDInput := repository.GetInvitedUsersByUserIDInput{
 		UserID: userID,
 	}
 	dbInvitedUsers, err := u.Repository.GetInvitedUsersByUserID(getInvitedUsersByUserIDInput)
