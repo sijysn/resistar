@@ -14,7 +14,6 @@ import (
 	"github.com/rs/cors"
 	"github.com/sijysn/resistar/backend/graph"
 	"github.com/sijysn/resistar/backend/graph/generated"
-	"github.com/sijysn/resistar/backend/internal/config"
 	"github.com/sijysn/resistar/backend/internal/driver"
 	"github.com/sijysn/resistar/backend/internal/middleware"
 	"github.com/sijysn/resistar/backend/internal/migrate"
@@ -25,7 +24,6 @@ import (
 const defaultPort = "8080"
 const timezone = "Asia/Tokyo"
 
-var app *config.AppConfig
 var session *scs.SessionManager
 
 func run() {
