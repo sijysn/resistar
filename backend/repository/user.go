@@ -36,9 +36,9 @@ func(r *Repository) GetUserWithGroupsByID(input GetUserWithGroupsByIDInput) (*en
 	return user, nil
 }
 
-func(repository *Repository) GetUserByEmailAndPassword(input GetUserByEmailAndPasswordInput) ([]entity.User, error) {
+func(r *Repository) GetUserByEmailAndPassword(input GetUserByEmailAndPasswordInput) ([]entity.User, error) {
 	var dbUsers []entity.User
-	err := repository.DB.Debug().Where("email = ? AND password = ?", input.Email, utility.SHA512(input.Password)).Limit(1).Find(&dbUsers).Error
+	err := r.DB.Debug().Where("email = ? AND password = ?", input.Email, utility.SHA512(input.Password)).Limit(1).Find(&dbUsers).Error
 	if err != nil {
 		return nil, err
 	}
