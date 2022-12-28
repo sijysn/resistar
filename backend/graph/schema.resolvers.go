@@ -612,60 +612,10 @@ func (r *mutationResolver) LogoutGroup(ctx context.Context) (*model.Result, erro
 
 // Histories is the resolver for the histories field.
 func (r *queryResolver) Histories(ctx context.Context, input model.HistoriesQuery) ([]*model.History, error) {
-	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
-	if responseAccess.Status == http.StatusInternalServerError {
-		return nil, fmt.Errorf("サーバーエラーが発生しました")
-	}
-	var histories []*model.History
-	if responseAccess.Status != auth.StatusGroup {
-		errorMessage := "認証されていません"
-		histories = append(histories, &model.History{
-			ErrorMessage: &errorMessage,
-		})
-		return histories, nil
-	}
-
-	var dbHistories []dbModel.History
-	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
+	histories, err := r.Usecase.GetHistories(ctx, input)
 	if err != nil {
 		return nil, err
 	}
-	err = r.DB.Debug().Preload("FromUsers").Preload("ToUsers").Where("group_id = ? AND date_part('year', created_at) = ? AND date_part('month', created_at) = ?", groupID, input.Year, input.Month).Order("created_at DESC").Find(&dbHistories).Error
-	if err != nil {
-		return nil, err
-	}
-	for _, v := range dbHistories {
-		var fromUsers, toUsers []*model.User
-		for _, fromUser := range v.FromUsers {
-			fromUsers = append(fromUsers, &model.User{
-				ID:       strconv.FormatUint(uint64(fromUser.ID), 10),
-				Email:    fromUser.Email,
-				Name:     fromUser.Name,
-				ImageURL: fromUser.ImageURL,
-			})
-		}
-		for _, toUser := range v.ToUsers {
-			toUsers = append(toUsers, &model.User{
-				ID:       strconv.FormatUint(uint64(toUser.ID), 10),
-				Email:    toUser.Email,
-				Name:     toUser.Name,
-				ImageURL: toUser.ImageURL,
-			})
-		}
-
-		history := &model.History{
-			ID:        strconv.FormatUint(uint64(v.ID), 10),
-			Title:     v.Title,
-			Type:      v.Type,
-			Price:     v.Price,
-			FromUsers: fromUsers,
-			ToUsers:   toUsers,
-			CreatedAt: v.CreatedAt.Format("2006-01-02 15:04:05"),
-			GroupID:   strconv.FormatUint(uint64(v.GroupID), 10),
-		}
-		histories = append(histories, history)
-	}
-
 	return histories, nil
 }
 
