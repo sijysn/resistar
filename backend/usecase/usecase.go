@@ -15,6 +15,7 @@ type Usecases interface {
 	GetAmounts(ctx context.Context, input model.AmountsQuery) (*model.Amounts, error)
 	GetAdjustments(ctx context.Context, input model.AdjustmentQuery) ([]*model.Adjustment, error)
 	LoginUser(ctx context.Context, input model.LoginUser) (*model.Result, error)
+	LoginGroup(ctx context.Context, input model.LoginGroup) (*model.Result, error)
 	LogoutGroup(ctx context.Context) (*model.Result, error)
 }
 
