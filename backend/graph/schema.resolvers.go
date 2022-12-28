@@ -460,98 +460,11 @@ func (r *mutationResolver) LoginUser(ctx context.Context, input model.LoginUser)
 
 // LoginGroup is the resolver for the loginGroup field.
 func (r *mutationResolver) LoginGroup(ctx context.Context, input model.LoginGroup) (*model.Result, error) {
-	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
-	if responseAccess.Status == http.StatusInternalServerError {
-		return nil, fmt.Errorf("サーバーエラーが発生しました")
-	}
-
-	if responseAccess.Status == auth.StatusUnauthorized {
-		errorMessage := "認証されていません"
-		return &model.Result{
-			Message: errorMessage,
-			Success: false,
-		}, nil
-	}
-
-	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
+	result, err := r.Usecase.LoginGroup(ctx, input)
 	if err != nil {
 		return nil, err
 	}
-
-	// グループが存在するかチェックする
-	var dbGroups []dbModel.Group
-	err = r.DB.Where("id = ?", uint(groupID)).Limit(1).Find(&dbGroups).Error
-	if err != nil {
-		return nil, err
-	}
-	if len(dbGroups) == 0 {
-		errorMessage := "無効なグループです"
-		return &model.Result{
-			Message: errorMessage,
-			Success: false,
-		}, nil
-	}
-
-	// グループのメンバーかどうかチェックする
-	userID, err := strconv.ParseUint(input.UserID, 10, 64)
-	if err != nil {
-		return nil, err
-	}
-	var dbGroup *dbModel.Group
-	err = r.DB.Debug().Where("id = ?", uint(groupID)).Preload("Users", "id = ?", uint(userID)).Limit(1).Find(&dbGroup).Error
-	if err != nil {
-		return nil, err
-	}
-	if len(dbGroup.Users) != 1 {
-		errorMessage := "このグループには入れません"
-		return &model.Result{
-			Message: errorMessage,
-			Success: false,
-		}, nil
-	}
-
-	signBytes, err := ioutil.ReadFile("./jwt.pem")
-	if err != nil {
-		panic(err)
-	}
-
-	signKey, err := jwt.ParseRSAPrivateKeyFromPEM(signBytes)
-	if err != nil {
-		panic(err)
-	}
-
-	sessionToken := utility.GenerateToken()
-	claims := jwt.MapClaims{
-		"sessionToken": sessionToken,
-		"userID":       uint(userID),
-		"groupID":      uint(groupID),
-		"exp":          time.Now().AddDate(0, 1, 0).Unix(),
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-	jwtToken, err := token.SignedString(signKey)
-	if err != nil {
-		panic(err)
-	}
-
-	loginLog := &dbModel.GroupLoginLog{
-		UserID:  uint(userID),
-		GroupID: uint(groupID),
-		Token:   utility.SHA512(sessionToken),
-	}
-	err = r.DB.Create(loginLog).Error
-	if err != nil {
-		return nil, err
-	}
-
-	responseAccess.SetCookie("jwtToken", jwtToken, false, time.Now().Add(24*time.Hour))
-	responseAccess.SetCookie("groupID", input.GroupID, false, time.Now().Add(24*time.Hour))
-	responseAccess.Writer.WriteHeader(http.StatusOK)
-
-	message := "グループにログインしました"
-	return &model.Result{
-		Message: message,
-		Success: true,
-	}, nil
+	return result, nil
 }
 
 // LogoutGroup is the resolver for the logoutGroup field.
