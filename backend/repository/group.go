@@ -61,7 +61,7 @@ type AddUserAssociationInput struct {
 }
 
 func (r *Repository) AddUserAssociation(input AddUserAssociationInput) error {
-	err := r.DB.Model(input.Group).Association("Users").Append(&input.User)
+	err := r.DB.Model(input.Group).Association("Users").Append(input.User)
 	if err != nil {
 		return err
 	}
