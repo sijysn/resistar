@@ -41,10 +41,10 @@ func(u *UsecaseRepository) GetGroups(ctx context.Context, input model.GroupsQuer
 	for _, dbGroup := range dbUser.Groups {
 		// 所属しているグループのメンバーを取得する
 		var myGroupUsers []*model.User
-		GetGroupByIDInput := repository.GetGroupByIDInput{
+		GetGroupWithUsersByIDInput := repository.GetGroupWithUsersByIDInput{
 			GroupID: dbGroup.ID,
 		}
-		dbMyGroup, err := u.Repository.GetGroupByID(GetGroupByIDInput)
+		dbMyGroup, err := u.Repository.GetGroupWithUsersByID(GetGroupWithUsersByIDInput)
 		if err != nil {
 			return nil, err
 		}
