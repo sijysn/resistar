@@ -9,6 +9,10 @@ type GetUsersInput struct {
 	GroupID uint
 }
 
+type GetUserByIDInput struct {
+	UserID uint
+}
+
 type GetUserWithGroupsByIDInput struct {
 	UserID uint
 }
@@ -25,6 +29,15 @@ func(r *Repository) GetUsers(input GetUsersInput) ([]entity.User, error) {
 		return nil, err
 	}
 	return dbGroup.Users, nil
+}
+
+func(r *Repository) GetUserByID(input GetUserByIDInput) (*entity.User, error) {
+	var user *entity.User
+	err := r.DB.Debug().Where("id = ?", input.UserID).Limit(1).First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }
 
 func(r *Repository) GetUserWithGroupsByID(input GetUserWithGroupsByIDInput) (*entity.User, error) {

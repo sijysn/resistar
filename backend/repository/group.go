@@ -8,7 +8,7 @@ type GetGroupByIDInput struct {
 
 func (r *Repository) GetGroupByID(input GetGroupByIDInput) (*entity.Group, error) {
 	var group *entity.Group
-	err := r.DB.Debug().Where("id = ?", input.GroupID).Limit(1).Find(&group).Error
+	err := r.DB.Debug().Where("id = ?", input.GroupID).Limit(1).First(&group).Error
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +35,7 @@ type GetGroupWithUsersByIDAndUserIDInput struct {
 
 func (r *Repository) GetGroupWithUsersByIDAndUserID(input GetGroupWithUsersByIDAndUserIDInput) (*entity.Group, error) {
 	var group *entity.Group
-	err := r.DB.Debug().Where("id = ?", input.GroupID).Preload("Users", "id = ?", input.UserID).Limit(1).Find(&group).Error
+	err := r.DB.Debug().Where("id = ?", input.GroupID).Preload("Users", "id = ?", input.UserID).Limit(1).First(&group).Error
 	if err != nil {
 		return nil, err
 	}
@@ -53,4 +53,17 @@ func (r *Repository) GetGroupsByIDs(input GetGroupsByIDsInput) ([]entity.Group, 
 		return nil, err
 	}
 	return groups, nil
+}
+
+type AddUserAssociationInput struct {
+	Group *entity.Group
+	User *entity.User
+}
+
+func (r *Repository) AddUserAssociation(input AddUserAssociationInput) error {
+	err := r.DB.Model(input.Group).Association("Users").Append(&input.User)
+	if err != nil {
+		return err
+	}
+	return nil
 }
