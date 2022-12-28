@@ -2,7 +2,7 @@ import {
   getGroupsWhereUserHasBeenInvitedProps,
   getGroupsWhereUserHasBeenInvitedVarsProps,
   GET_GROUPS_WHERE_USER_HAS_BEEN_INVITED,
-} from "../../../lib/apollo/api/getGroupsWhereUserHasBeenInvited";
+} from "../api/getGroupsWhereUserHasBeenInvited";
 import { ApolloClient, NormalizedCacheObject } from "@apollo/client";
 
 export const getGroupsWhereUserHasBeenInvited = async (

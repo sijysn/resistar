@@ -105,7 +105,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Adjustment                    func(childComplexity int, input model.AdjustmentQuery) int
+		Adjustments                   func(childComplexity int, input model.AdjustmentQuery) int
 		Amounts                       func(childComplexity int, input model.AmountsQuery) int
 		Groups                        func(childComplexity int, input model.GroupsQuery) int
 		GroupsWhereUserHasBeenInvited func(childComplexity int, input model.GroupsQuery) int
@@ -147,7 +147,7 @@ type QueryResolver interface {
 	Users(ctx context.Context, input model.UsersQuery) ([]*model.User, error)
 	Groups(ctx context.Context, input model.GroupsQuery) ([]*model.Group, error)
 	Amounts(ctx context.Context, input model.AmountsQuery) (*model.Amounts, error)
-	Adjustment(ctx context.Context, input model.AdjustmentQuery) ([]*model.Adjustment, error)
+	Adjustments(ctx context.Context, input model.AdjustmentQuery) ([]*model.Adjustment, error)
 	GroupsWhereUserHasBeenInvited(ctx context.Context, input model.GroupsQuery) ([]*model.Group, error)
 }
 
@@ -495,17 +495,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.LogoutGroup(childComplexity), true
 
-	case "Query.adjustment":
-		if e.complexity.Query.Adjustment == nil {
+	case "Query.adjustments":
+		if e.complexity.Query.Adjustments == nil {
 			break
 		}
 
-		args, err := ec.field_Query_adjustment_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_adjustments_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.Adjustment(childComplexity, args["input"].(model.AdjustmentQuery)), true
+		return e.complexity.Query.Adjustments(childComplexity, args["input"].(model.AdjustmentQuery)), true
 
 	case "Query.amounts":
 		if e.complexity.Query.Amounts == nil {
@@ -844,7 +844,7 @@ type Query {
   users(input: UsersQuery!): [User!]!
   groups(input: GroupsQuery!): [Group!]!
   amounts(input: AmountsQuery!): Amounts!
-  adjustment(input: AdjustmentQuery!): [Adjustment!]!
+  adjustments(input: AdjustmentQuery!): [Adjustment!]!
   groupsWhereUserHasBeenInvited(input: GroupsQuery!): [Group!]!
 }
 
@@ -1025,7 +1025,7 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_adjustment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_adjustments_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 model.AdjustmentQuery
@@ -3511,8 +3511,8 @@ func (ec *executionContext) fieldContext_Query_amounts(ctx context.Context, fiel
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_adjustment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_adjustment(ctx, field)
+func (ec *executionContext) _Query_adjustments(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_adjustments(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -3525,7 +3525,7 @@ func (ec *executionContext) _Query_adjustment(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Adjustment(rctx, fc.Args["input"].(model.AdjustmentQuery))
+		return ec.resolvers.Query().Adjustments(rctx, fc.Args["input"].(model.AdjustmentQuery))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3542,7 +3542,7 @@ func (ec *executionContext) _Query_adjustment(ctx context.Context, field graphql
 	return ec.marshalNAdjustment2ᚕᚖgithubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐAdjustmentᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_adjustment(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_adjustments(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -3569,7 +3569,7 @@ func (ec *executionContext) fieldContext_Query_adjustment(ctx context.Context, f
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_adjustment_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_adjustments_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -7092,7 +7092,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "adjustment":
+		case "adjustments":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -7101,7 +7101,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_adjustment(ctx, field)
+				res = ec._Query_adjustments(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

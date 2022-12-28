@@ -111,7 +111,7 @@ type Query {
   users(input: UsersQuery!): [User!]!
   groups(input: GroupsQuery!): [Group!]!
   amounts(input: AmountsQuery!): Amounts!
-  adjustment(input: AdjustmentQuery!): [Adjustment!]!
+  adjustments(input: AdjustmentQuery!): [Adjustment!]!
   groupsWhereUserHasBeenInvited(input: GroupsQuery!): [Group!]!
 }
 

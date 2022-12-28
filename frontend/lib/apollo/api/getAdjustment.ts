@@ -1,9 +1,9 @@
 import { gql } from "@apollo/client";
 import { UserProps } from "./getUsers";
 
-export const GET_ADJUSTMENT = gql`
+export const GET_ADJUSTMENTS = gql`
   query($groupID: ID!, $year: String!, $month: String!) {
-    adjustment(input: { groupID: $groupID, year: $year, month: $month }) {
+    adjustments(input: { groupID: $groupID, year: $year, month: $month }) {
       fromUser {
         id
         name
@@ -19,17 +19,17 @@ export const GET_ADJUSTMENT = gql`
   }
 `;
 
-export type AdjustmentProps = {
+export type AdjustmentsProps = {
   fromUser: UserProps;
   toUser: UserProps;
   amount: number;
 };
 
-export type getAdjustmentProps = {
-  adjustment: AdjustmentProps[];
+export type getAdjustmentsProps = {
+  adjustments: AdjustmentsProps[];
 };
 
-export type getAdjustmentVarsProps = {
+export type getAdjustmentsVarsProps = {
   groupID: string;
   year: string;
   month: string;
