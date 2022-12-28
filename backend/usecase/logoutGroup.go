@@ -12,6 +12,7 @@ import (
 	"github.com/sijysn/resistar/backend/internal/auth"
 	"github.com/sijysn/resistar/backend/internal/middleware"
 	"github.com/sijysn/resistar/backend/internal/session"
+	"github.com/sijysn/resistar/backend/repository"
 	"github.com/sijysn/resistar/backend/utility"
 )
 
@@ -52,6 +53,15 @@ func (u *UsecaseRepository) LogoutGroup(ctx context.Context) (*model.Result, err
 	responseAccess.SetCookie("jwtToken", jwtToken, false, time.Now().Add(24*time.Hour))
 	responseAccess.DeleteCookie("groupID")
 	responseAccess.Writer.WriteHeader(http.StatusOK)
+
+	loginLogInput := repository.CreateUserLoginLogInput{
+		UserID: *session.Session.UserID,
+		Token:  utility.SHA512(sessionToken),
+	}
+	err = u.Repository.CreateUserLoginLog(loginLogInput)
+	if err != nil {
+		return nil, err
+	}
 
 	message := "グループからログアウトしました"
 	return &model.Result{
