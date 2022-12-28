@@ -2,7 +2,7 @@ import {
   getHistoriesProps,
   getHistoriesVarsProps,
   GET_HISTORIES,
-} from "../../../lib/apollo/api/getHistories";
+} from "../api/getHistories";
 import { ApolloClient, NormalizedCacheObject } from "@apollo/client";
 
 export const getHistories = async (

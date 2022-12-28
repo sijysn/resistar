@@ -2,7 +2,7 @@ import {
   getAdjustmentsProps,
   getAdjustmentsVarsProps,
   GET_ADJUSTMENTS,
-} from "../../../lib/apollo/api/getAdjustment";
+} from "../api/getAdjustment";
 import { ApolloClient, NormalizedCacheObject } from "@apollo/client";
 
 export const getAdjustments = async (

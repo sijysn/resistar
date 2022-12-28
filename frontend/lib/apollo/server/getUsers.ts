@@ -1,8 +1,4 @@
-import {
-  getUsersProps,
-  getUsersVarsProps,
-  GET_USERS,
-} from "../../../lib/apollo/api/getUsers";
+import { getUsersProps, getUsersVarsProps, GET_USERS } from "../api/getUsers";
 import { ApolloClient, NormalizedCacheObject } from "@apollo/client";
 
 export const getUsers = async (

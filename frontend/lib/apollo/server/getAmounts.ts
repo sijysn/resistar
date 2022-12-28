@@ -2,7 +2,7 @@ import {
   getAmountsProps,
   getAmountsVarsProps,
   GET_AMOUNTS,
-} from "../../../lib/apollo/api/getAmounts";
+} from "../api/getAmounts";
 import { ApolloClient, NormalizedCacheObject } from "@apollo/client";
 
 export const getAmounts = async (
