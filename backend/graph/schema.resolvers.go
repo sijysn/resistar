@@ -19,11 +19,11 @@ import (
 	"github.com/sijysn/resistar/backend/graph/generated"
 	"github.com/sijysn/resistar/backend/graph/model"
 	"github.com/sijysn/resistar/backend/internal/auth"
-	"github.com/sijysn/resistar/backend/internal/digest"
 	"github.com/sijysn/resistar/backend/internal/middleware"
 	dbModel "github.com/sijysn/resistar/backend/internal/model"
 	"github.com/sijysn/resistar/backend/internal/session"
 	"github.com/sijysn/resistar/backend/internal/sql"
+	"github.com/sijysn/resistar/backend/utility"
 )
 
 // AddHistory is the resolver for the addHistory field.
@@ -120,7 +120,7 @@ func (r *mutationResolver) AddUser(ctx context.Context, input model.NewUser) (*m
 		}, nil
 	}
 
-	password := digest.SHA512(input.Password)
+	password := utility.SHA512(input.Password)
 	dbNewUser := &dbModel.User{
 		Email:    input.Email,
 		Password: password,
@@ -185,7 +185,7 @@ func (r *mutationResolver) AddGroup(ctx context.Context, input model.NewGroup) (
 		panic(err)
 	}
 
-	sessionToken := digest.GenerateToken()
+	sessionToken := utility.GenerateToken()
 	claims := jwt.MapClaims{
 		"sessionToken": sessionToken,
 		"userID":       uint(userID),
@@ -201,7 +201,7 @@ func (r *mutationResolver) AddGroup(ctx context.Context, input model.NewGroup) (
 	loginLog := &dbModel.GroupLoginLog{
 		UserID:  uint(userID),
 		GroupID: dbNewGroup.ID,
-		Token:   digest.SHA512(sessionToken),
+		Token:   utility.SHA512(sessionToken),
 	}
 	err = r.DB.Create(loginLog).Error
 	if err != nil {
@@ -410,7 +410,7 @@ func (r *mutationResolver) JoinGroup(ctx context.Context, input model.JoinGroup)
 			panic(err)
 		}
 
-		sessionToken := digest.GenerateToken()
+		sessionToken := utility.GenerateToken()
 		claims := jwt.MapClaims{
 			"sessionToken": sessionToken,
 			"userID":       uint(userID),
@@ -426,7 +426,7 @@ func (r *mutationResolver) JoinGroup(ctx context.Context, input model.JoinGroup)
 		loginLog := &dbModel.GroupLoginLog{
 			UserID:  uint(userID),
 			GroupID: uint(groupID),
-			Token:   digest.SHA512(sessionToken),
+			Token:   utility.SHA512(sessionToken),
 		}
 		err = r.DB.Create(loginLog).Error
 		if err != nil {
@@ -521,7 +521,7 @@ func (r *mutationResolver) LoginGroup(ctx context.Context, input model.LoginGrou
 		panic(err)
 	}
 
-	sessionToken := digest.GenerateToken()
+	sessionToken := utility.GenerateToken()
 	claims := jwt.MapClaims{
 		"sessionToken": sessionToken,
 		"userID":       uint(userID),
@@ -537,7 +537,7 @@ func (r *mutationResolver) LoginGroup(ctx context.Context, input model.LoginGrou
 	loginLog := &dbModel.GroupLoginLog{
 		UserID:  uint(userID),
 		GroupID: uint(groupID),
-		Token:   digest.SHA512(sessionToken),
+		Token:   utility.SHA512(sessionToken),
 	}
 	err = r.DB.Create(loginLog).Error
 	if err != nil {
@@ -579,7 +579,7 @@ func (r *mutationResolver) LogoutGroup(ctx context.Context) (*model.Result, erro
 		panic(err)
 	}
 
-	sessionToken := digest.GenerateToken()
+	sessionToken := utility.GenerateToken()
 	claims := jwt.MapClaims{
 		"sessionToken": sessionToken,
 		"userID":       &session.Session.UserID,
@@ -596,7 +596,7 @@ func (r *mutationResolver) LogoutGroup(ctx context.Context) (*model.Result, erro
 
 	loginLog := &dbModel.UserLoginLog{
 		UserID: *session.Session.UserID,
-		Token:  digest.SHA512(sessionToken),
+		Token:  utility.SHA512(sessionToken),
 	}
 	err = r.DB.Create(loginLog).Error
 	if err != nil {

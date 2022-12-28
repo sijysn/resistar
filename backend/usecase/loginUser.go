@@ -11,7 +11,6 @@ import (
 	"github.com/go-ozzo/ozzo-validation/is"
 	"github.com/golang-jwt/jwt"
 	"github.com/sijysn/resistar/backend/graph/model"
-	"github.com/sijysn/resistar/backend/internal/digest"
 	"github.com/sijysn/resistar/backend/internal/middleware"
 	"github.com/sijysn/resistar/backend/internal/session"
 	"github.com/sijysn/resistar/backend/repository"
@@ -48,7 +47,7 @@ func(u *UsecaseRepository) LoginUser(ctx context.Context, input model.LoginUser)
 		}, nil
 	}
 
-	sessionToken := digest.GenerateToken()
+	sessionToken := utility.GenerateToken()
 	user := users[0]
 	userID := user.ID
 	session.Session.SessionToken = &sessionToken
@@ -77,7 +76,7 @@ func(u *UsecaseRepository) LoginUser(ctx context.Context, input model.LoginUser)
 
 	loginLogInput := repository.CreateUserLoginLogInput{
 		UserID: userID,
-		Token:  digest.SHA512(sessionToken),
+		Token:  utility.SHA512(sessionToken),
 	}
 	err = u.Repository.CreateUserLoginLog(loginLogInput)
 	if err != nil {

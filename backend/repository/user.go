@@ -2,7 +2,7 @@ package repository
 
 import (
 	"github.com/sijysn/resistar/backend/entity"
-	"github.com/sijysn/resistar/backend/internal/digest"
+	"github.com/sijysn/resistar/backend/utility"
 )
 
 type GetUsersInput struct {
@@ -38,7 +38,7 @@ func(r *Repository) GetUserByID(input GetUserByIDInput) (*entity.User, error) {
 
 func(repository *Repository) GetUserByEmailAndPassword(input GetUserByEmailAndPasswordInput) ([]entity.User, error) {
 	var dbUsers []entity.User
-	err := repository.DB.Debug().Where("email = ? AND password = ?", input.Email, digest.SHA512(input.Password)).Limit(1).Find(&dbUsers).Error
+	err := repository.DB.Debug().Where("email = ? AND password = ?", input.Email, utility.SHA512(input.Password)).Limit(1).Find(&dbUsers).Error
 	if err != nil {
 		return nil, err
 	}
