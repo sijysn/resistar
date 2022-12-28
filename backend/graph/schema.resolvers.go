@@ -762,58 +762,10 @@ func (r *queryResolver) Adjustment(ctx context.Context, input model.AdjustmentQu
 
 // GroupsWhereUserHasBeenInvited is the resolver for the groupsWhereUserHasBeenInvited field.
 func (r *queryResolver) GroupsWhereUserHasBeenInvited(ctx context.Context, input model.GroupsQuery) ([]*model.Group, error) {
-	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
-	if responseAccess.Status == http.StatusInternalServerError {
-		return nil, fmt.Errorf("サーバーエラーが発生しました")
-	}
-	var groups []*model.Group
-	if responseAccess.Status == auth.StatusUnauthorized {
-		errorMessage := "認証されていません"
-		groups = append(groups, &model.Group{
-			ErrorMessage: &errorMessage,
-		})
-		return groups, nil
-	}
-
-	userID, err := strconv.ParseUint(input.UserID, 10, 64)
+	groups, err := r.Usecase.GetGroupsWhereUserHasBeenInvited(ctx, input)
 	if err != nil {
 		return nil, err
 	}
-	var dbInvitedUsers []dbModel.InvitedUser
-	err = r.DB.Debug().Where("user_id = ?", uint(userID)).Find(&dbInvitedUsers).Error
-	if err != nil {
-		return nil, err
-	}
-	if len(dbInvitedUsers) == 0 {
-		return []*model.Group{}, nil
-	}
-	var dbGroupIDs []uint
-	for _, dbInvitedUser := range dbInvitedUsers {
-		if !dbInvitedUser.Joined {
-			dbGroupIDs = append(dbGroupIDs, dbInvitedUser.GroupID)
-		}
-	}
-	var dbGroups []dbModel.Group
-	err = r.DB.Where("id IN ?", dbGroupIDs).Preload("Users").Find(&dbGroups).Order("created_at DESC").Error
-	if err != nil {
-		return nil, err
-	}
-	for _, dbGroup := range dbGroups {
-		var users []*model.User
-		for _, dbGroupUser := range dbGroup.Users {
-			users = append(users, &model.User{
-				ID:    strconv.FormatUint(uint64(dbGroupUser.ID), 10),
-				Email: dbGroupUser.Email,
-				Name:  dbGroupUser.Name,
-			})
-		}
-		groups = append(groups, &model.Group{
-			ID:    strconv.FormatUint(uint64(dbGroup.ID), 10),
-			Name:  dbGroup.Name,
-			Users: users,
-		})
-	}
-
 	return groups, nil
 }
 
