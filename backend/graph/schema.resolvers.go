@@ -8,9 +8,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"math"
 	"net/http"
-	"sort"
 	"strconv"
 	"time"
 
@@ -649,87 +647,10 @@ func (r *queryResolver) Amounts(ctx context.Context, input model.AmountsQuery) (
 
 // Adjustments is the resolver for the adjustments field.
 func (r *queryResolver) Adjustments(ctx context.Context, input model.AdjustmentQuery) ([]*model.Adjustment, error) {
-	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
-	if responseAccess.Status == http.StatusInternalServerError {
-		return nil, fmt.Errorf("サーバーエラーが発生しました")
-	}
-	var adjustments []*model.Adjustment
-	if responseAccess.Status != auth.StatusGroup {
-		errorMessage := "認証されていません"
-		adjustments = append(adjustments, &model.Adjustment{
-			ErrorMessage: &errorMessage,
-		})
-		return adjustments, nil
-	}
-
-	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
+	adjustments, err := r.Usecase.GetAdjustments(ctx, input)
 	if err != nil {
 		return nil, err
 	}
-	var dbGroup *dbModel.Group
-	err = r.DB.Debug().Where("id = ?", uint(groupID)).Preload("Users").Limit(1).Find(&dbGroup).Error
-	if err != nil {
-		return nil, err
-	}
-	type scan struct {
-		PersonalBalance int
-		ID              uint
-		Email           string
-		Name            string
-	}
-	var scans []*scan
-	err = r.DB.Debug().Table("balances").Select("SUM(balances.amount) as personal_balance, users.id, users.email, users.name").Where("balances.group_id = ? AND date_part('year', balances.created_at) = ? AND date_part('month', balances.created_at) = ?", uint(groupID), input.Year, input.Month).Joins("LEFT JOIN users ON users.id = balances.user_id").Group("users.id").Scan(&scans).Error
-	if err != nil {
-		return nil, err
-	}
-
-	type personalBalanceType struct {
-		PersonalBalance int
-		User            *model.User
-	}
-	var personalBalances []*personalBalanceType
-	for _, v := range scans {
-		personalBalances = append(personalBalances, &personalBalanceType{
-			PersonalBalance: v.PersonalBalance,
-			User: &model.User{
-				ID:    strconv.FormatUint(uint64(v.ID), 10),
-				Email: v.Email,
-				Name:  v.Name,
-			},
-		})
-	}
-
-	paidTooMuch := &personalBalanceType{}
-	paidLess := &personalBalanceType{}
-	var i int
-	for true {
-		sort.Slice(personalBalances, func(i, j int) bool { return personalBalances[i].PersonalBalance < personalBalances[j].PersonalBalance })
-		for _, pb := range personalBalances {
-			if pb.PersonalBalance > paidTooMuch.PersonalBalance {
-				paidTooMuch = pb
-			}
-			if pb.PersonalBalance < paidLess.PersonalBalance {
-				paidLess = pb
-			}
-		}
-
-		if paidTooMuch.PersonalBalance == paidLess.PersonalBalance {
-			break
-		}
-		payment := math.Min(float64(paidTooMuch.PersonalBalance), math.Abs(float64(paidLess.PersonalBalance)))
-		if payment < 10 {
-			break
-		}
-		adjustments = append(adjustments, &model.Adjustment{
-			FromUser: paidLess.User,
-			ToUser:   paidTooMuch.User,
-			Amount:   int(payment),
-		})
-		paidTooMuch.PersonalBalance -= int(payment)
-		paidLess.PersonalBalance += int(payment)
-		i++
-	}
-
 	return adjustments, nil
 }
 
