@@ -45,13 +45,9 @@ func (u *UsecaseRepository) GetAdjustments(ctx context.Context, input model.Adju
 		return nil, err
 	}
 
-	type userPersonalBalance struct {
-		PersonalBalance int
-		User            *model.User
-	}
-	var personalBalances []*userPersonalBalance
+	var userPersonalBalances []*userPersonalBalance
 	for _, v := range personalBalancesWithUserInfo {
-		personalBalances = append(personalBalances, &userPersonalBalance{
+		userPersonalBalances = append(userPersonalBalances, &userPersonalBalance{
 			PersonalBalance: v.PersonalBalance,
 			User: &model.User{
 				ID:    utility.ParseUintToString(v.ID),
@@ -61,12 +57,17 @@ func (u *UsecaseRepository) GetAdjustments(ctx context.Context, input model.Adju
 		})
 	}
 
+	adjustments = calculateAdjustments(adjustments, userPersonalBalances, 10)
+	return adjustments, nil
+}
+
+func calculateAdjustments(adjustments []*model.Adjustment, userPersonalBalances []*userPersonalBalance, numberToTruncate float64) []*model.Adjustment {
 	paidTooMuch := &userPersonalBalance{}
 	paidLess := &userPersonalBalance{}
 	var i int
 	for true {
-		sort.Slice(personalBalances, func(i, j int) bool { return personalBalances[i].PersonalBalance < personalBalances[j].PersonalBalance })
-		for _, pb := range personalBalances {
+		sort.Slice(userPersonalBalances, func(i, j int) bool { return userPersonalBalances[i].PersonalBalance < userPersonalBalances[j].PersonalBalance })
+		for _, pb := range userPersonalBalances {
 			if pb.PersonalBalance > paidTooMuch.PersonalBalance {
 				paidTooMuch = pb
 			}
@@ -79,7 +80,7 @@ func (u *UsecaseRepository) GetAdjustments(ctx context.Context, input model.Adju
 			break
 		}
 		payment := math.Min(float64(paidTooMuch.PersonalBalance), math.Abs(float64(paidLess.PersonalBalance)))
-		if payment < 10 {
+		if payment < numberToTruncate {
 			break
 		}
 		adjustments = append(adjustments, &model.Adjustment{
@@ -92,5 +93,10 @@ func (u *UsecaseRepository) GetAdjustments(ctx context.Context, input model.Adju
 		i++
 	}
 
-	return adjustments, nil
+	return adjustments
+}
+
+type userPersonalBalance struct {
+	PersonalBalance int
+	User            *model.User
 }
