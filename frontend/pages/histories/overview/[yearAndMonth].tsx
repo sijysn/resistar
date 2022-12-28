@@ -9,7 +9,7 @@ import {
   addApolloState,
   initializeApollo,
 } from "../../../lib/apollo/apollo-client";
-import { getAdjustment } from "../../../lib/apollo/server/getAdjustment";
+import { getAdjustments } from "../../../lib/apollo/server/getAdjustments";
 import { getUsers } from "../../../lib/apollo/server/getUsers";
 import InviteUserModal from "../../../components/histories/overview/InviteUserModal";
 import Header from "../../../components/histories/overview/Header";
@@ -105,7 +105,7 @@ export const getServerSideProps: GetServerSideProps<ServerSideProps> = async (
   const cookies = nookies.get(context);
   const apolloClient = initializeApollo(cookies["jwtToken"]);
 
-  await getAdjustment(apolloClient, {
+  await getAdjustments(apolloClient, {
     groupID: cookies["groupID"],
     year,
     month,

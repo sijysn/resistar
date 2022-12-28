@@ -6,9 +6,9 @@ import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import {
-  getAdjustmentProps,
-  getAdjustmentVarsProps,
-  GET_ADJUSTMENT,
+  getAdjustmentsProps,
+  getAdjustmentsVarsProps,
+  GET_ADJUSTMENTS,
 } from "../../../lib/apollo/api/getAdjustment";
 
 const Adjustment: React.FC<Props> = ({ yearAndMonth, cookies }) => {
@@ -20,19 +20,19 @@ const Adjustment: React.FC<Props> = ({ yearAndMonth, cookies }) => {
     month,
   };
   const { loading, error, data } = useQuery<
-    getAdjustmentProps,
-    getAdjustmentVarsProps
-  >(GET_ADJUSTMENT, {
+    getAdjustmentsProps,
+    getAdjustmentsVarsProps
+  >(GET_ADJUSTMENTS, {
     variables: getAdjustmentQueryVars,
     notifyOnNetworkStatusChange: true,
   });
   if (error) return <Message>{error.message}</Message>;
   if (loading || !data) return <Message>Loading</Message>;
-  if (data.adjustment.length === 0) return <Message>¥---</Message>;
+  if (data.adjustments.length === 0) return <Message>¥---</Message>;
 
   return (
     <Wrapper>
-      {data.adjustment.map(({ fromUser, toUser, amount }, index) => {
+      {data.adjustments.map(({ fromUser, toUser, amount }, index) => {
         return (
           <Item key={index}>
             <Typography
