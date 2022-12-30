@@ -17,6 +17,10 @@ type GetUserWithGroupsByIDInput struct {
 	UserID uint
 }
 
+type GetUserByEmailInput struct {
+	Email string
+}
+
 type GetUserByEmailAndPasswordInput struct {
 	Email string
 	Password string
@@ -43,6 +47,15 @@ func(r *Repository) GetUserByID(input GetUserByIDInput) (*entity.User, error) {
 func(r *Repository) GetUserWithGroupsByID(input GetUserWithGroupsByIDInput) (*entity.User, error) {
 	var user *entity.User
 	err := r.DB.Debug().Where("id = ?", input.UserID).Preload("Groups").Limit(1).Find(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+func(r *Repository) GetUserByEmail(input GetUserByEmailInput) (*entity.User, error) {
+	var user *entity.User
+	err := r.DB.Where("email = ?", input.Email).Limit(1).First(&user).Error
 	if err != nil {
 		return nil, err
 	}

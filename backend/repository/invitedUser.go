@@ -2,6 +2,25 @@ package repository
 
 import "github.com/sijysn/resistar/backend/entity"
 
+
+type InviteUserInput struct {
+	GroupID uint
+	UserID uint
+	Joined bool
+}
+func (r *Repository) InviteUser(input InviteUserInput) (error) {
+	invitedUser := &entity.InvitedUser{
+		GroupID: input.GroupID,
+		UserID:  input.UserID,
+		Joined:  false,
+	}
+	err := r.DB.Debug().Create(invitedUser).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 type GetInvitedUsersByUserIDInput struct {
 	UserID uint
 }
