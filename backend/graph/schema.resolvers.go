@@ -220,102 +220,11 @@ func (r *mutationResolver) AddGroup(ctx context.Context, input model.NewGroup) (
 
 // InviteUserToGroup is the resolver for the inviteUserToGroup field.
 func (r *mutationResolver) InviteUserToGroup(ctx context.Context, input model.InviteUserToGroupInput) (*model.Result, error) {
-	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
-	if responseAccess.Status == http.StatusInternalServerError {
-		return nil, fmt.Errorf("サーバーエラーが発生しました")
-	}
-	if responseAccess.Status != auth.StatusGroup {
-		errorMessage := "認証されていません"
-		return &model.Result{
-			Message: errorMessage,
-			Success: false,
-		}, nil
-	}
-	err := validation.Validate(
-		input.Email,
-		validation.Required,
-		validation.Length(5, 100),
-		is.Email,
-	)
+	result, err := r.Usecase.InviteUserToGroup(ctx, input)
 	if err != nil {
 		return nil, err
 	}
-
-	// ユーザーが存在するかチェックする
-	var dbUsers []dbModel.User
-	err = r.DB.Where("email = ?", input.Email).Limit(1).Find(&dbUsers).Error
-	if err != nil {
-		return nil, err
-	}
-	if len(dbUsers) == 0 {
-		errorMessage := "このメールアドレスは登録されていません"
-		return &model.Result{
-			Message: errorMessage,
-			Success: false,
-		}, nil
-	}
-
-	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
-	if err != nil {
-		return nil, err
-	}
-
-	// グループが存在するかチェックする
-	var dbGroups []dbModel.Group
-	err = r.DB.Where("id = ?", uint(groupID)).Limit(1).Find(&dbGroups).Error
-	if err != nil {
-		return nil, err
-	}
-	if len(dbGroups) == 0 {
-		errorMessage := "無効なグループです"
-		return &model.Result{
-			Message: errorMessage,
-			Success: false,
-		}, nil
-	}
-
-	// ユーザーがグループに参加しているかチェックする
-	var dbGroup *dbModel.Group
-	err = r.DB.Debug().Where("id = ?", uint(groupID)).Preload("Users", "email = ?", input.Email).Limit(1).Find(&dbGroup).Error
-	if err != nil {
-		return nil, err
-	}
-	if len(dbGroup.Users) == 1 {
-		errorMessage := "このメールアドレスのユーザーは招待できません"
-		return &model.Result{
-			Message: errorMessage,
-			Success: false,
-		}, nil
-	}
-
-	var dbInvitedUsers []dbModel.InvitedUser
-	userID := dbUsers[0].ID
-	err = r.DB.Debug().Where("group_id = ? AND user_id = ?", uint(groupID), userID).Order("created_at DESC").Limit(1).Find(&dbInvitedUsers).Error
-	if err != nil {
-		return nil, err
-	}
-	// まだ招待されてないか、退会済みの場合
-	if len(dbInvitedUsers) == 0 || dbInvitedUsers[0].Joined {
-		dbNewInvitedUser := &dbModel.InvitedUser{
-			GroupID: uint(groupID),
-			UserID:  userID,
-			Joined:  false,
-		}
-		err = r.DB.Create(dbNewInvitedUser).Error
-		if err != nil {
-			return nil, err
-		}
-		message := "招待メールを送りました"
-		return &model.Result{
-			Message: message,
-			Success: true,
-		}, nil
-	}
-	errorMessage := "このメールアドレスのユーザーは招待できません"
-	return &model.Result{
-		Message: errorMessage,
-		Success: false,
-	}, nil
+	return result, err
 }
 
 // JoinGroup is the resolver for the joinGroup field.

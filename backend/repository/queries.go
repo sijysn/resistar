@@ -9,6 +9,7 @@ type Queries interface {
 	GetUsers(input GetUsersInput) ([]entity.User, error)
 	GetUserByID(input GetUserByIDInput) (*entity.User, error)
 	GetUserWithGroupsByID(input GetUserWithGroupsByIDInput) (*entity.User, error)
+	GetUserByEmail(input GetUserByEmailInput) (*entity.User, error)
 	GetUserByEmailAndPassword(input GetUserByEmailAndPasswordInput) ([]entity.User, error)
 	GetGroupByID(input GetGroupByIDInput) (*entity.Group, error)
 	GetGroupWithUsersByID(input GetGroupWithUsersByIDInput) (*entity.Group, error)
@@ -19,6 +20,7 @@ type Queries interface {
 	ScanPersonalBalance(input ScanPersonalBalanceInput) (*model.Amounts, error)
 	ScanPersonalBalancesWithUserInfo(input ScanPersonalBalancesWithUserInfoInput) ([]*PersonalBalanceWithUserInfo, error)
 	ScanGroupTotal(input ScanGroupTotalInput) (*model.Amounts, error)
+	InviteUser(input InviteUserInput) (error)
 	GetInvitedUsersByUserID(input GetInvitedUsersByUserIDInput) ([]entity.InvitedUser, error)
 	GetInvitedUsersByGroupIDAndUserID(input GetInvitedUsersByGroupIDAndUserIDInput) ([]entity.InvitedUser, error)
 	SaveInvitedUser(input SaveInvitedUserInput) error

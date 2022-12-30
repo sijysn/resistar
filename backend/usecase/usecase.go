@@ -18,6 +18,7 @@ type Usecases interface {
 	LoginUser(ctx context.Context, input model.LoginUser) (*model.Result, error)
 	LoginGroup(ctx context.Context, input model.LoginGroup) (*model.Result, error)
 	LogoutGroup(ctx context.Context) (*model.Result, error)
+	InviteUserToGroup(ctx context.Context, input model.InviteUserToGroupInput) (*model.Result, error)
 }
 
 type UsecaseRepository struct {
