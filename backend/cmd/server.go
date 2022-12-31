@@ -74,7 +74,7 @@ func run() {
 		AllowedHeaders:   []string{"Access-Control-Allow-Headers", "Authorization", "Content-Type"},
 		Debug:            true,
 	}).Handler)
-	router.Use(middleware.Middleware(db))
+	router.Use(middleware.Middleware(repository))
 
 	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	router.Handle("/query", srv)

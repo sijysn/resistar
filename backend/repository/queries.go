@@ -30,6 +30,8 @@ type Queries interface {
 	GetInvitedUsersByUserID(input GetInvitedUsersByUserIDInput) ([]entity.InvitedUser, error)
 	GetInvitedUsersByGroupIDAndUserID(input GetInvitedUsersByGroupIDAndUserIDInput) ([]entity.InvitedUser, error)
 	SaveInvitedUser(input SaveInvitedUserInput) error
+	GetUserLoginLog(input GetUserLoginLogInput) (*entity.UserLoginLog, error)
 	CreateUserLoginLog(input CreateUserLoginLogInput) error
+	GetGroupLoginLog(input GetGroupLoginLogInput) (*entity.GroupLoginLog, error)
 	CreateGroupLoginLog(input CreateGroupLoginLogInput) error
 }
