@@ -29,11 +29,11 @@ func(u *UsecaseRepository) GetUsers(ctx context.Context, input model.UsersQuery)
 	if err != nil {
 		return nil, err
 	}
-	getUsersInput := repository.GetUsersInput{
+	getGroupWithUsersByIDInput := repository.GetGroupWithUsersByIDInput{
 		GroupID: groupID,
 	}
-	dbUsers, err := u.Repository.GetUsers(getUsersInput)
-	for _, dbUser := range dbUsers {
+	dbGroup, err := u.Repository.GetGroupWithUsersByID(getGroupWithUsersByIDInput)
+	for _, dbUser := range dbGroup.Users {
 		users = append(users, &model.User{
 			ID:       utility.ParseUintToString(dbUser.ID),
 			Email:    dbUser.Email,

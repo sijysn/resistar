@@ -1,6 +1,9 @@
 package repository
 
-import "github.com/sijysn/resistar/backend/graph/model"
+import (
+	"github.com/sijysn/resistar/backend/entity"
+	"github.com/sijysn/resistar/backend/graph/model"
+)
 
 type ScanPersonalBalanceInput struct {
 	Year    string
@@ -53,4 +56,14 @@ func (r *Repository) ScanGroupTotal(input ScanGroupTotalInput) (*model.Amounts, 
 		return nil, err
 	}
 	return input.Amounts, nil
+}
+type CreateBalancesInput struct {
+	Balances []entity.Balance
+}
+func (r *Repository) CreateBalances(input CreateBalancesInput) ([]entity.Balance, error) {
+	err := r.DB.Debug().Create(&input.Balances).Error
+	if err != nil {
+		return nil, err
+	}
+	return input.Balances, nil
 }

@@ -7,7 +7,7 @@ import (
 
 type Queries interface {
 	GetUsers(input GetUsersInput) ([]entity.User, error)
-	GetUserByID(input GetUserByIDInput) (*entity.User, error)
+	GetUser(input GetUserInput) (*entity.User, error)
 	GetUserWithGroupsByID(input GetUserWithGroupsByIDInput) (*entity.User, error)
 	GetUserByEmail(input GetUserByEmailInput) (*entity.User, error)
 	GetUserByEmailAndPassword(input GetUserByEmailAndPasswordInput) ([]entity.User, error)
@@ -19,9 +19,13 @@ type Queries interface {
 	AddUserAssociation(input AddUserAssociationInput) error
 	CreateGroup(input CreateGroupInput) (*entity.Group, error)
 	GetHistoriesByGroupID(input GetHistoriesByGroupIDInput) ([]entity.History, error)
+	CreateHistory(input CreateHistoryInput) (*entity.History, error)
+	AddFromUsersAssociation(input AddFromUsersAssociationInput) error
+	AddToUsersAssociation(input AddToUsersAssociationInput) error
 	ScanPersonalBalance(input ScanPersonalBalanceInput) (*model.Amounts, error)
 	ScanPersonalBalancesWithUserInfo(input ScanPersonalBalancesWithUserInfoInput) ([]*PersonalBalanceWithUserInfo, error)
 	ScanGroupTotal(input ScanGroupTotalInput) (*model.Amounts, error)
+	CreateBalances(input CreateBalancesInput) ([]entity.Balance, error)
 	InviteUser(input InviteUserInput) (error)
 	GetInvitedUsersByUserID(input GetInvitedUsersByUserIDInput) ([]entity.InvitedUser, error)
 	GetInvitedUsersByGroupIDAndUserID(input GetInvitedUsersByGroupIDAndUserIDInput) ([]entity.InvitedUser, error)

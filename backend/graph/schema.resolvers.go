@@ -6,82 +6,17 @@ package graph
 
 import (
 	"context"
-	"fmt"
-	"net/http"
-	"strconv"
 
 	"github.com/sijysn/resistar/backend/graph/generated"
 	"github.com/sijysn/resistar/backend/graph/model"
-	"github.com/sijysn/resistar/backend/internal/auth"
-	"github.com/sijysn/resistar/backend/internal/middleware"
-	dbModel "github.com/sijysn/resistar/backend/internal/model"
-	"github.com/sijysn/resistar/backend/internal/sql"
 )
 
 // AddHistory is the resolver for the addHistory field.
 func (r *mutationResolver) AddHistory(ctx context.Context, input model.NewHistory) (*model.History, error) {
-	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
-	if responseAccess.Status == http.StatusInternalServerError {
-		return nil, fmt.Errorf("サーバーエラーが発生しました")
-	}
-	if responseAccess.Status != auth.StatusGroup {
-		errorMessage := "認証されていません"
-		return &model.History{
-			ErrorMessage: &errorMessage,
-		}, nil
-	}
-
-	var dbFromUsers []dbModel.User
-	err := r.DB.Where(input.FromUserIds).Find(&dbFromUsers).Error
+	newHistory, err := r.Usecase.AddHistory(ctx, input)
 	if err != nil {
 		return nil, err
 	}
-
-	var dbToUsers []dbModel.User
-	err = r.DB.Where(input.ToUserIds).Find(&dbToUsers).Error
-	if err != nil {
-		return nil, err
-	}
-
-	groupID, err := strconv.ParseUint(input.GroupID, 10, 64)
-	if err != nil {
-		return nil, err
-	}
-
-	dbNewHistory := &dbModel.History{
-		Title:   input.Title,
-		Type:    model.Type(input.Type),
-		Price:   input.Price,
-		GroupID: uint(groupID),
-	}
-
-	var newHistory *model.History
-	err = r.DB.Create(dbNewHistory).Error
-	if err != nil {
-		return nil, err
-	}
-	err = r.DB.Model(dbNewHistory).Association("FromUsers").Append(dbFromUsers)
-	if err != nil {
-		return nil, err
-	}
-	err = r.DB.Model(dbNewHistory).Association("ToUsers").Append(dbToUsers)
-	if err != nil {
-		return nil, err
-	}
-
-	err = sql.AddBalances(r.DB, input.Price, dbFromUsers, dbToUsers, dbNewHistory.CreatedAt, dbNewHistory.UpdatedAt, dbNewHistory.ID, uint(groupID))
-	if err != nil {
-		return nil, err
-	}
-
-	newHistory = &model.History{
-		ID:        strconv.FormatUint(uint64(dbNewHistory.ID), 10),
-		Title:     dbNewHistory.Title,
-		Type:      dbNewHistory.Type,
-		Price:     dbNewHistory.Price,
-		CreatedAt: dbNewHistory.CreatedAt.Format("2006-01-02 15:04:05"),
-	}
-
 	return newHistory, nil
 }
 

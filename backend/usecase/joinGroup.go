@@ -34,10 +34,10 @@ func (u *UsecaseRepository) JoinGroup(ctx context.Context, input model.JoinGroup
 	}
 
 	// ユーザーが存在するかチェックする
-	getUserByIDInput := repository.GetUserByIDInput{
+	getUserInput := repository.GetUserInput{
 		UserID: userID,
 	}
-	dbUser, err := u.Repository.GetUserByID(getUserByIDInput)
+	dbUser, err := u.Repository.GetUser(getUserInput)
 	if err != nil {
 		errorMessage := "メールアドレスまたはパスワードが違います"
 		return &model.Result{

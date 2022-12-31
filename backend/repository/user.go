@@ -6,10 +6,10 @@ import (
 )
 
 type GetUsersInput struct {
-	GroupID uint
+	UserIDs []uint
 }
 
-type GetUserByIDInput struct {
+type GetUserInput struct {
 	UserID uint
 }
 
@@ -27,15 +27,15 @@ type GetUserByEmailAndPasswordInput struct {
 }
 
 func(r *Repository) GetUsers(input GetUsersInput) ([]entity.User, error) {
-	var dbGroup *entity.Group
-	err := r.DB.Debug().Where("id = ?", input.GroupID).Preload("Users").Limit(1).Find(&dbGroup).Error
+	var users []entity.User
+	err := r.DB.Where(input.UserIDs).Find(&users).Error
 	if err != nil {
 		return nil, err
 	}
-	return dbGroup.Users, nil
+	return users, nil
 }
 
-func(r *Repository) GetUserByID(input GetUserByIDInput) (*entity.User, error) {
+func(r *Repository) GetUser(input GetUserInput) (*entity.User, error) {
 	var user *entity.User
 	err := r.DB.Debug().Where("id = ?", input.UserID).Limit(1).First(&user).Error
 	if err != nil {
