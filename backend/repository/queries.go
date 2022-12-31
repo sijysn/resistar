@@ -16,6 +16,7 @@ type Queries interface {
 	GetGroupWithUsersByIDAndUserID(input GetGroupWithUsersByIDAndUserIDInput) (*entity.Group, error)
 	GetGroupsByIDs(input GetGroupsByIDsInput) ([]entity.Group, error)
 	AddUserAssociation(input AddUserAssociationInput) error
+	CreateGroup(input CreateGroupInput) (*entity.Group, error)
 	GetHistoriesByGroupID(input GetHistoriesByGroupIDInput) ([]entity.History, error)
 	ScanPersonalBalance(input ScanPersonalBalanceInput) (*model.Amounts, error)
 	ScanPersonalBalancesWithUserInfo(input ScanPersonalBalancesWithUserInfoInput) ([]*PersonalBalanceWithUserInfo, error)

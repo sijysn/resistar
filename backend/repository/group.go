@@ -67,3 +67,18 @@ func (r *Repository) AddUserAssociation(input AddUserAssociationInput) error {
 	}
 	return nil
 }
+
+type CreateGroupInput struct {
+	Name string
+}
+
+func (r *Repository) CreateGroup(input CreateGroupInput) (*entity.Group, error) {
+	newGroup := &entity.Group{
+		Name: input.Name,
+	}
+	err := r.DB.Create(newGroup).Error
+	if err != nil {
+		return nil, err
+	}
+	return newGroup, nil
+}
