@@ -7,20 +7,16 @@ package graph
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"strconv"
-	"time"
 
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
-	"github.com/golang-jwt/jwt"
 	"github.com/sijysn/resistar/backend/graph/generated"
 	"github.com/sijysn/resistar/backend/graph/model"
 	"github.com/sijysn/resistar/backend/internal/auth"
 	"github.com/sijysn/resistar/backend/internal/middleware"
 	dbModel "github.com/sijysn/resistar/backend/internal/model"
-	"github.com/sijysn/resistar/backend/internal/session"
 	"github.com/sijysn/resistar/backend/internal/sql"
 	"github.com/sijysn/resistar/backend/utility"
 )
@@ -138,84 +134,11 @@ func (r *mutationResolver) AddUser(ctx context.Context, input model.NewUser) (*m
 
 // AddGroup is the resolver for the addGroup field.
 func (r *mutationResolver) AddGroup(ctx context.Context, input model.NewGroup) (*model.Result, error) {
-	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
-	if responseAccess.Status == http.StatusInternalServerError {
-		return nil, fmt.Errorf("サーバーエラーが発生しました")
-	}
-	if responseAccess.Status == auth.StatusUnauthorized {
-		errorMessage := "認証されていません"
-		return &model.Result{
-			Message: errorMessage,
-		}, nil
-	}
-
-	var dbUsers []dbModel.User
-	userID, err := strconv.ParseUint(input.UserID, 10, 64)
+	result, err := r.Usecase.AddGroup(ctx, input)
 	if err != nil {
 		return nil, err
 	}
-	err = r.DB.Debug().Preload("Groups").Where("id = ?", uint(userID)).Find(&dbUsers).Error
-	if err != nil {
-		return nil, err
-	}
-	dbNewGroup := &dbModel.Group{
-		Name: input.GroupName,
-	}
-	err = r.DB.Create(dbNewGroup).Error
-	if err != nil {
-		return nil, err
-	}
-	err = r.DB.Model(dbNewGroup).Association("Users").Append(dbUsers)
-	if err != nil {
-		return nil, err
-	}
-	dbGroupID := dbNewGroup.ID
-	session.Session.GroupID = &dbGroupID
-
-	groupID := strconv.FormatUint(uint64(dbNewGroup.ID), 10)
-
-	signBytes, err := ioutil.ReadFile("./jwt.pem")
-	if err != nil {
-		panic(err)
-	}
-
-	signKey, err := jwt.ParseRSAPrivateKeyFromPEM(signBytes)
-	if err != nil {
-		panic(err)
-	}
-
-	sessionToken := utility.GenerateToken()
-	claims := jwt.MapClaims{
-		"sessionToken": sessionToken,
-		"userID":       uint(userID),
-		"groupID":      dbNewGroup.ID,
-		"exp":          time.Now().AddDate(0, 1, 0).Unix(),
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-	jwtToken, err := token.SignedString(signKey)
-	if err != nil {
-		panic(err)
-	}
-
-	loginLog := &dbModel.GroupLoginLog{
-		UserID:  uint(userID),
-		GroupID: dbNewGroup.ID,
-		Token:   utility.SHA512(sessionToken),
-	}
-	err = r.DB.Create(loginLog).Error
-	if err != nil {
-		return nil, err
-	}
-
-	responseAccess.SetCookie("jwtToken", jwtToken, false, time.Now().Add(24*time.Hour))
-	responseAccess.SetCookie("groupID", groupID, false, time.Now().Add(24*time.Hour))
-	responseAccess.Writer.WriteHeader(http.StatusOK)
-
-	message := "グループを作成しました"
-	return &model.Result{
-		Message: message,
-		Success: true,
-	}, nil
+	return result, nil
 }
 
 // InviteUserToGroup is the resolver for the inviteUserToGroup field.
