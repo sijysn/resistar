@@ -10,15 +10,12 @@ import (
 	"net/http"
 	"strconv"
 
-	validation "github.com/go-ozzo/ozzo-validation"
-	"github.com/go-ozzo/ozzo-validation/is"
 	"github.com/sijysn/resistar/backend/graph/generated"
 	"github.com/sijysn/resistar/backend/graph/model"
 	"github.com/sijysn/resistar/backend/internal/auth"
 	"github.com/sijysn/resistar/backend/internal/middleware"
 	dbModel "github.com/sijysn/resistar/backend/internal/model"
 	"github.com/sijysn/resistar/backend/internal/sql"
-	"github.com/sijysn/resistar/backend/utility"
 )
 
 // AddHistory is the resolver for the addHistory field.
@@ -90,42 +87,7 @@ func (r *mutationResolver) AddHistory(ctx context.Context, input model.NewHistor
 
 // AddUser is the resolver for the addUser field.
 func (r *mutationResolver) AddUser(ctx context.Context, input model.NewUser) (*model.Result, error) {
-	responseAccess := ctx.Value(middleware.ResponseAccessKey).(*middleware.ResponseAccess)
-	if responseAccess.Status == http.StatusInternalServerError {
-		return nil, fmt.Errorf("サーバーエラーが発生しました")
-	}
-
-	err := validation.Validate(
-		input.Email,
-		validation.Required,
-		validation.Length(5, 100),
-		is.Email,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	var dbUsers []dbModel.User
-	count := r.DB.Where("email = ?", input.Email).Find(&dbUsers).RowsAffected
-	if count != 0 {
-		errorMessage := "このメールアドレスは既に登録されています"
-		return &model.Result{
-			Message: errorMessage,
-			Success: false,
-		}, nil
-	}
-
-	password := utility.SHA512(input.Password)
-	dbNewUser := &dbModel.User{
-		Email:    input.Email,
-		Password: password,
-	}
-	err = r.DB.Create(dbNewUser).Error
-	if err != nil {
-		return nil, err
-	}
-
-	result, err := r.LoginUser(ctx, model.LoginUser{Email: input.Email, Password: input.Password})
+	result, err := r.Usecase.AddUser(ctx, input)
 	if err != nil {
 		return nil, err
 	}
