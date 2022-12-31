@@ -11,6 +11,7 @@ type Queries interface {
 	GetUserWithGroupsByID(input GetUserWithGroupsByIDInput) (*entity.User, error)
 	GetUserByEmail(input GetUserByEmailInput) (*entity.User, error)
 	GetUserByEmailAndPassword(input GetUserByEmailAndPasswordInput) ([]entity.User, error)
+	CreateUser(input CreateUserInput) (*entity.User, error)
 	GetGroupByID(input GetGroupByIDInput) (*entity.Group, error)
 	GetGroupWithUsersByID(input GetGroupWithUsersByIDInput) (*entity.Group, error)
 	GetGroupWithUsersByIDAndUserID(input GetGroupWithUsersByIDAndUserIDInput) (*entity.Group, error)

@@ -70,3 +70,20 @@ func(r *Repository) GetUserByEmailAndPassword(input GetUserByEmailAndPasswordInp
 	}
 	return dbUsers, nil
 }
+
+type CreateUserInput struct {
+	Email string
+	Password string
+}
+
+func(r *Repository) CreateUser(input CreateUserInput) (*entity.User, error) {
+	newUser := &entity.User{
+		Email:    input.Email,
+		Password: input.Password,
+	}
+	err := r.DB.Create(newUser).Error
+	if err != nil {
+		return nil, err
+	}
+	return newUser, nil
+}
