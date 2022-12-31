@@ -10,11 +10,10 @@ import (
 
 	"github.com/golang-jwt/jwt"
 	"github.com/golang-jwt/jwt/request"
-	"github.com/sijysn/resistar/backend/entity"
 	"github.com/sijysn/resistar/backend/internal/auth"
 	"github.com/sijysn/resistar/backend/internal/session"
+	"github.com/sijysn/resistar/backend/repository"
 	"github.com/sijysn/resistar/backend/utility"
-	"gorm.io/gorm"
 )
 
 var ResponseAccessKey string
@@ -56,7 +55,7 @@ func (r *ResponseAccess) DeleteCookie(name string) {
 	http.SetCookie(r.Writer, cookie)
 }
 
-func Middleware(db *gorm.DB) func(http.Handler) http.Handler {
+func Middleware(repository repository.Queries) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			verifyBytes, err := ioutil.ReadFile("./jwt.pem.pub.pkcs8")
@@ -74,7 +73,7 @@ func Middleware(db *gorm.DB) func(http.Handler) http.Handler {
 				}
 				return verifyKey, nil
 			})
-			status := getStatus(db, token, r, err)
+			status := getStatus(repository, token, err)
 			responseAccess := ResponseAccess{
 				Writer: w,
 				Status: status,
@@ -86,7 +85,7 @@ func Middleware(db *gorm.DB) func(http.Handler) http.Handler {
 	}
 }
 
-func getStatus(db *gorm.DB, token *jwt.Token, r *http.Request, err error) int {
+func getStatus(r repository.Queries, token *jwt.Token, err error) int {
 	if err != nil  {
 		return auth.StatusUnauthorized
 	}
@@ -104,8 +103,11 @@ func getStatus(db *gorm.DB, token *jwt.Token, r *http.Request, err error) int {
 	}
 	groupID := claims["groupID"]
 	if groupID == nil {
-		var userLoginLog *entity.UserLoginLog
-		err = db.Where("token = ? AND user_id = ?", utility.SHA512(claims["sessionToken"].(string)), uint(claims["userID"].(float64))).Order("created_at DESC").Limit(1).Find(&userLoginLog).Error
+		getUserLoginLogInput := repository.GetUserLoginLogInput{
+			Token: utility.SHA512(claims["sessionToken"].(string)),
+			UserID: uint(claims["userID"].(float64)),
+		}
+		userLoginLog, err := r.GetUserLoginLog(getUserLoginLogInput)
 		if err != nil {
 			return http.StatusInternalServerError
 		}
@@ -116,8 +118,12 @@ func getStatus(db *gorm.DB, token *jwt.Token, r *http.Request, err error) int {
 		return auth.StatusUser
 	}
 
-	var groupLoginLog *entity.GroupLoginLog
-	err = db.Where("token = ? AND user_id = ? AND group_id = ?", utility.SHA512(claims["sessionToken"].(string)), uint(claims["userID"].(float64)), uint(claims["groupID"].(float64))).Order("created_at DESC").Limit(1).Find(&groupLoginLog).Error
+	getGroupLoginLogInput := repository.GetGroupLoginLogInput{
+		Token: utility.SHA512(claims["sessionToken"].(string)),
+		UserID: uint(claims["userID"].(float64)),
+		GroupID: uint(claims["groupID"].(float64)),
+	}
+	groupLoginLog, err := r.GetGroupLoginLog(getGroupLoginLogInput)
 	if err != nil {
 		return http.StatusInternalServerError
 	}
