@@ -10,8 +10,8 @@ import (
 
 	"github.com/golang-jwt/jwt"
 	"github.com/golang-jwt/jwt/request"
+	"github.com/sijysn/resistar/backend/entity"
 	"github.com/sijysn/resistar/backend/internal/auth"
-	"github.com/sijysn/resistar/backend/internal/model"
 	"github.com/sijysn/resistar/backend/internal/session"
 	"github.com/sijysn/resistar/backend/utility"
 	"gorm.io/gorm"
@@ -104,7 +104,7 @@ func getStatus(db *gorm.DB, token *jwt.Token, r *http.Request, err error) int {
 	}
 	groupID := claims["groupID"]
 	if groupID == nil {
-		var userLoginLog *model.UserLoginLog
+		var userLoginLog *entity.UserLoginLog
 		err = db.Where("token = ? AND user_id = ?", utility.SHA512(claims["sessionToken"].(string)), uint(claims["userID"].(float64))).Order("created_at DESC").Limit(1).Find(&userLoginLog).Error
 		if err != nil {
 			return http.StatusInternalServerError
@@ -116,7 +116,7 @@ func getStatus(db *gorm.DB, token *jwt.Token, r *http.Request, err error) int {
 		return auth.StatusUser
 	}
 
-	var groupLoginLog *model.GroupLoginLog
+	var groupLoginLog *entity.GroupLoginLog
 	err = db.Where("token = ? AND user_id = ? AND group_id = ?", utility.SHA512(claims["sessionToken"].(string)), uint(claims["userID"].(float64)), uint(claims["groupID"].(float64))).Order("created_at DESC").Limit(1).Find(&groupLoginLog).Error
 	if err != nil {
 		return http.StatusInternalServerError
