@@ -97,6 +97,7 @@ type ComplexityRoot struct {
 		AddGroup          func(childComplexity int, input model.NewGroup) int
 		AddHistory        func(childComplexity int, input model.NewHistory) int
 		AddUser           func(childComplexity int, input model.NewUser) int
+		DeleteHistory     func(childComplexity int, input model.DeleteHistory) int
 		InviteUserToGroup func(childComplexity int, input model.InviteUserToGroupInput) int
 		JoinGroup         func(childComplexity int, input model.JoinGroup) int
 		LoginGroup        func(childComplexity int, input model.LoginGroup) int
@@ -134,6 +135,7 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	AddHistory(ctx context.Context, input model.NewHistory) (*model.History, error)
+	DeleteHistory(ctx context.Context, input model.DeleteHistory) (*model.Result, error)
 	AddUser(ctx context.Context, input model.NewUser) (*model.Result, error)
 	AddGroup(ctx context.Context, input model.NewGroup) (*model.Result, error)
 	InviteUserToGroup(ctx context.Context, input model.InviteUserToGroupInput) (*model.Result, error)
@@ -440,6 +442,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddUser(childComplexity, args["input"].(model.NewUser)), true
 
+	case "Mutation.deleteHistory":
+		if e.complexity.Mutation.DeleteHistory == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteHistory_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteHistory(childComplexity, args["input"].(model.DeleteHistory)), true
+
 	case "Mutation.inviteUserToGroup":
 		if e.complexity.Mutation.InviteUserToGroup == nil {
 			break
@@ -661,6 +675,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputAdjustmentQuery,
 		ec.unmarshalInputAmountsQuery,
+		ec.unmarshalInputDeleteHistory,
 		ec.unmarshalInputGroupsQuery,
 		ec.unmarshalInputHistoriesQuery,
 		ec.unmarshalInputInviteUserToGroupInput,
@@ -857,6 +872,10 @@ input NewHistory {
   groupID: ID!
 }
 
+input DeleteHistory {
+  id: ID!
+}
+
 input NewUser {
   email: String!
   password: String!
@@ -889,6 +908,7 @@ input LoginGroup {
 
 type Mutation {
   addHistory(input: NewHistory!): History!
+  deleteHistory(input: DeleteHistory!): Result!
   addUser(input: NewUser!): Result!
   addGroup(input: NewGroup!): Result!
   inviteUserToGroup(input: InviteUserToGroupInput!): Result!
@@ -942,6 +962,21 @@ func (ec *executionContext) field_Mutation_addUser_args(ctx context.Context, raw
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNNewUser2githubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐNewUser(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteHistory_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.DeleteHistory
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNDeleteHistory2githubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐDeleteHistory(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2799,6 +2834,67 @@ func (ec *executionContext) fieldContext_Mutation_addHistory(ctx context.Context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_addHistory_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteHistory(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deleteHistory(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteHistory(rctx, fc.Args["input"].(model.DeleteHistory))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Result)
+	fc.Result = res
+	return ec.marshalNResult2ᚖgithubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐResult(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteHistory(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "message":
+				return ec.fieldContext_Result_message(ctx, field)
+			case "success":
+				return ec.fieldContext_Result_success(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Result", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteHistory_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -6177,6 +6273,34 @@ func (ec *executionContext) unmarshalInputAmountsQuery(ctx context.Context, obj 
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputDeleteHistory(ctx context.Context, obj interface{}) (model.DeleteHistory, error) {
+	var it model.DeleteHistory
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputGroupsQuery(ctx context.Context, obj interface{}) (model.GroupsQuery, error) {
 	var it model.GroupsQuery
 	asMap := map[string]interface{}{}
@@ -6902,6 +7026,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_addHistory(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deleteHistory":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteHistory(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {
@@ -7684,6 +7817,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNDeleteHistory2githubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐDeleteHistory(ctx context.Context, v interface{}) (model.DeleteHistory, error) {
+	res, err := ec.unmarshalInputDeleteHistory(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNGroup2ᚕᚖgithubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐGroupᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Group) graphql.Marshaler {

@@ -20,6 +20,15 @@ func (r *mutationResolver) AddHistory(ctx context.Context, input model.NewHistor
 	return newHistory, nil
 }
 
+// DeleteHistory is the resolver for the deleteHistory field.
+func (r *mutationResolver) DeleteHistory(ctx context.Context, input model.DeleteHistory) (*model.Result, error) {
+	result, err := r.Usecase.DeleteHistory(ctx, input)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 // AddUser is the resolver for the addUser field.
 func (r *mutationResolver) AddUser(ctx context.Context, input model.NewUser) (*model.Result, error) {
 	result, err := r.Usecase.AddUser(ctx, input)

@@ -4,6 +4,7 @@ import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import ListItemAvatar from "@mui/material/ListItemAvatar";
+import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import Avatar from "@mui/material/Avatar";
 import { css, Divider, styled } from "@mui/material";
@@ -25,9 +26,10 @@ type Props = {
   loading: boolean;
   error?: ApolloError;
   data?: getHistoriesProps;
+  handleClick: (id: string) => void;
 };
 
-const History: React.FC<Props> = ({ loading, error, data }) => {
+const History: React.FC<Props> = ({ loading, error, data, handleClick }) => {
   if (error) return <Message>{error.message}</Message>;
   if (loading || !data) return <Message>Loading</Message>;
   if (data.histories.length === 0)
@@ -93,6 +95,15 @@ const History: React.FC<Props> = ({ loading, error, data }) => {
                 />
                 <ListItemText
                   primary={<Price>¥{price.toLocaleString()}</Price>}
+                />
+                <DeleteButton
+                  primary={
+                    <Button onClick={() => handleClick(id)}>
+                      <Typography variant="button" color="common.black">
+                        削除
+                      </Typography>
+                    </Button>
+                  }
                 />
               </HistoryListItem>
             </React.Fragment>
@@ -224,6 +235,10 @@ const ToUserAvatar = styled(Avatar)`
 const Price = styled("p")`
   text-align: end;
   margin: 0;
+`;
+
+const DeleteButton = styled(ListItemText)`
+  padding-left: 8px;
 `;
 
 const Message = styled("p")`
