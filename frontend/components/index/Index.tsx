@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useQuery, NetworkStatus } from "@apollo/client";
+import { useQuery, useMutation, NetworkStatus } from "@apollo/client";
 import IconButton from "@mui/material/IconButton";
 import AddIcon from "@mui/icons-material/Add";
 import { styled } from "@mui/material";
@@ -18,11 +18,17 @@ import {
   getAmountsProps,
   getAmountsVarsProps,
 } from "../../lib/apollo/api/getAmounts";
+import {
+  DELETE_HISTORY,
+  deleteHistoryProps,
+  deleteHistoryVarsProps,
+} from "../../lib/apollo/api/deleteHistory";
 
 const Index: React.FC<ServerSideProps> = ({ yearAndMonth, cookies }) => {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
+  const [message, setMessage] = React.useState("");
 
   const currentYear = dayjs(yearAndMonth).format("YYYY");
   const currentMonth = dayjs(yearAndMonth).format("MM");
@@ -83,6 +89,33 @@ const Index: React.FC<ServerSideProps> = ({ yearAndMonth, cookies }) => {
     loadMoreAmounts();
   }, [loadMoreHistories, loadMoreAmounts]);
 
+  const [_delete] = useMutation<deleteHistoryProps, deleteHistoryVarsProps>(
+    DELETE_HISTORY
+  );
+  const deleteHistory = async (id: string) => {
+    if (!window.confirm("本当に消してよろしいですか？")) {
+      return;
+    }
+    const deleteHistoryQueryVars: deleteHistoryVarsProps = {
+      id: id,
+    };
+    const { data } = await _delete({
+      variables: deleteHistoryQueryVars,
+    });
+    if (!data) {
+      setMessage("予期せぬエラーが起こりました");
+      return;
+    }
+    const { message: deleteMessage, success } = data.deleteHistory;
+    if (success) {
+      loadMore();
+      return;
+    }
+    if (deleteMessage) {
+      setMessage(deleteMessage);
+    }
+  };
+
   return (
     <div>
       <Main>
@@ -97,6 +130,7 @@ const Index: React.FC<ServerSideProps> = ({ yearAndMonth, cookies }) => {
           loading={historiesLoading || loadingMoreHistories}
           error={historiesError}
           data={historiesData}
+          handleClick={deleteHistory}
         />
         <AddButton size="large" onClick={openModal}>
           <AddIcon />
