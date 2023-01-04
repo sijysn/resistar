@@ -124,6 +124,10 @@ input NewHistory {
   groupID: ID!
 }
 
+input DeleteHistory {
+  id: ID!
+}
+
 input NewUser {
   email: String!
   password: String!
@@ -156,6 +160,7 @@ input LoginGroup {
 
 type Mutation {
   addHistory(input: NewHistory!): History!
+  deleteHistory(input: DeleteHistory!): Result!
   addUser(input: NewUser!): Result!
   addGroup(input: NewGroup!): Result!
   inviteUserToGroup(input: InviteUserToGroupInput!): Result!
