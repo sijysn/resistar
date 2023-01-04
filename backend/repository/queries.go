@@ -20,6 +20,7 @@ type Queries interface {
 	CreateGroup(input CreateGroupInput) (*entity.Group, error)
 	GetHistoriesByGroupID(input GetHistoriesByGroupIDInput) ([]entity.History, error)
 	CreateHistory(input CreateHistoryInput) (*entity.History, error)
+	DeleteHistory(input DeleteHistoryInput) error
 	AddFromUsersAssociation(input AddFromUsersAssociationInput) error
 	AddToUsersAssociation(input AddToUsersAssociationInput) error
 	ScanPersonalBalance(input ScanPersonalBalanceInput) (*model.Amounts, error)

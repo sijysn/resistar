@@ -3,6 +3,7 @@ package repository
 import (
 	"github.com/sijysn/resistar/backend/entity"
 	"github.com/sijysn/resistar/backend/graph/model"
+	"gorm.io/gorm"
 )
 
 type GetHistoriesByGroupIDInput struct {
@@ -64,5 +65,38 @@ func (r *Repository) AddToUsersAssociation(input AddToUsersAssociationInput) err
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+type DeleteHistoryInput struct {
+	HistoryID uint
+}
+
+func (r *Repository) DeleteHistory(input DeleteHistoryInput) error {
+	r.DB.Transaction(func(tx *gorm.DB) error {
+		history := &entity.History{
+			ID: input.HistoryID,
+		}
+		err := tx.Debug().Delete(history).Error
+		if err != nil {
+			return err
+		}
+		err = tx.Debug().Model(history).Association("FromUsers").Clear()
+		if err != nil {
+			return err
+		}
+		err = tx.Debug().Model(history).Association("ToUsers").Clear()
+		if err != nil {
+			return err
+		}
+		balance := &entity.Balance{
+			HistoryID: input.HistoryID,
+		}
+		err = tx.Debug().Where("history_id = ?", input.HistoryID).Delete(balance).Error
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 	return nil
 }
