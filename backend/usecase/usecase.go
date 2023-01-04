@@ -15,6 +15,7 @@ type Usecases interface {
 	AddGroup(ctx context.Context, input model.NewGroup) (*model.Result, error)
 	GetHistories(ctx context.Context, input model.HistoriesQuery) ([]*model.History, error)
 	AddHistory(ctx context.Context, input model.NewHistory) (*model.History, error)
+	DeleteHistory(ctx context.Context, input model.DeleteHistory) (*model.Result, error)
 	GetAmounts(ctx context.Context, input model.AmountsQuery) (*model.Amounts, error)
 	GetAdjustments(ctx context.Context, input model.AdjustmentQuery) ([]*model.Adjustment, error)
 	JoinGroup(ctx context.Context, input model.JoinGroup) (*model.Result, error)
