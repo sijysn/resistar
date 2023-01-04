@@ -14,7 +14,7 @@ type ScanPersonalBalanceInput struct {
 }
 
 func (r *Repository) ScanPersonalBalance(input ScanPersonalBalanceInput) (*model.Amounts, error) {
-	err := r.DB.Debug().Table("balances").Select("SUM(amount) as personal_balance").Where("group_id = ? AND user_id = ? AND date_part('year', created_at) = ? AND date_part('month', created_at) = ?", input.GroupID, input.UserID, input.Year, input.Month).Scan(&input.Amounts).Error
+	err := r.DB.Debug().Table("balances").Select("SUM(amount) as personal_balance").Where("group_id = ? AND user_id = ? AND date_part('year', created_at) = ? AND date_part('month', created_at) = ? AND deleted_at IS NULL", input.GroupID, input.UserID, input.Year, input.Month).Scan(&input.Amounts).Error
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +36,7 @@ type ScanPersonalBalancesWithUserInfoInput struct {
 }
 
 func (r *Repository) ScanPersonalBalancesWithUserInfo(input ScanPersonalBalancesWithUserInfoInput) ([]*PersonalBalanceWithUserInfo, error) {
-	err := r.DB.Debug().Table("balances").Select("SUM(balances.amount) as personal_balance, users.id, users.email, users.name").Where("balances.group_id = ? AND date_part('year', balances.created_at) = ? AND date_part('month', balances.created_at) = ?", input.GroupID, input.Year, input.Month).Joins("LEFT JOIN users ON users.id = balances.user_id").Group("users.id").Scan(&input.PersonalBalancesWithUserInfo).Error
+	err := r.DB.Debug().Table("balances").Select("SUM(balances.amount) as personal_balance, users.id, users.email, users.name").Where("balances.group_id = ? AND date_part('year', balances.created_at) = ? AND date_part('month', balances.created_at) = ? AND balances.deleted_at IS NULL", input.GroupID, input.Year, input.Month).Joins("LEFT JOIN users ON users.id = balances.user_id").Group("users.id").Scan(&input.PersonalBalancesWithUserInfo).Error
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ type ScanGroupTotalInput struct {
 }
 
 func (r *Repository) ScanGroupTotal(input ScanGroupTotalInput) (*model.Amounts, error) {
-	err := r.DB.Debug().Table("balances").Select("SUM(amount) as group_total").Where("group_id = ? AND date_part('year', created_at) = ? AND date_part('month', created_at) = ? AND amount > 0", input.GroupID, input.Year, input.Month).Scan(&input.Amounts).Error
+	err := r.DB.Debug().Table("balances").Select("SUM(amount) as group_total").Where("group_id = ? AND date_part('year', created_at) = ? AND date_part('month', created_at) = ? AND amount > 0 AND deleted_at IS NULL", input.GroupID, input.Year, input.Month).Scan(&input.Amounts).Error
 	if err != nil {
 		return nil, err
 	}
