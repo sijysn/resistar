@@ -34,11 +34,6 @@ type Props = {
 };
 
 const History: React.FC<Props> = ({ loading, error, data, handleClick }) => {
-  if (error) return <Message>{error.message}</Message>;
-  if (loading || !data) return <Message>Loading</Message>;
-  if (data.histories.length === 0)
-    return <Message>データがありません。</Message>;
-
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
@@ -46,6 +41,11 @@ const History: React.FC<Props> = ({ loading, error, data, handleClick }) => {
   const [history, setHistory] = React.useState<HistoryProps>();
   const changeHistory = (historyId: string) =>
     setHistory(data.histories.find(({ id }) => id === historyId));
+
+  if (error) return <Message>{error.message}</Message>;
+  if (loading || !data) return <Message>Loading</Message>;
+  if (data.histories.length === 0)
+    return <Message>データがありません。</Message>;
 
   return (
     <>
