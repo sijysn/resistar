@@ -39,13 +39,14 @@ const History: React.FC<Props> = ({ loading, error, data, handleClick }) => {
   const closeModal = () => setIsModalOpen(false);
 
   const [history, setHistory] = React.useState<HistoryProps>();
-  const changeHistory = (historyId: string) =>
-    setHistory(data.histories.find(({ id }) => id === historyId));
 
   if (error) return <Message>{error.message}</Message>;
   if (loading || !data) return <Message>Loading</Message>;
   if (data.histories.length === 0)
     return <Message>データがありません。</Message>;
+
+  const changeHistory = (historyId: string) =>
+    setHistory(data.histories.find(({ id }) => id === historyId));
 
   return (
     <>
