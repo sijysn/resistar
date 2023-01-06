@@ -38,8 +38,8 @@ const HistoryDetailModal: React.FC<ModalProps> = ({
           ¥{(history.price / history.toUsers.length).toLocaleString()}
         </Price>
 
-        <HistoryDetailModalSectionTitle title="負担者" />
-        {history.toUsers.map(({ id, name, email, imageURL }) => {
+        <HistoryDetailModalSectionTitle title="購入者" />
+        {history.fromUsers.map(({ id, name, email, imageURL }) => {
           return (
             <MemberItem
               key={id}
@@ -50,8 +50,8 @@ const HistoryDetailModal: React.FC<ModalProps> = ({
           );
         })}
 
-        <HistoryDetailModalSectionTitle title="購入者" />
-        {history.fromUsers.map(({ id, name, email, imageURL }) => {
+        <HistoryDetailModalSectionTitle title="負担者" />
+        {history.toUsers.map(({ id, name, email, imageURL }) => {
           return (
             <MemberItem
               key={id}
