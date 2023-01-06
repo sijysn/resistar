@@ -52,18 +52,7 @@ const History: React.FC<Props> = ({ loading, error, data, handleClick }) => {
                   <Divider />
                 </DateWrapper>
               )}
-              <HistoryListItem
-              // secondaryAction={
-              //   <StyledListItemText>
-              //     <Price>¥{price.toLocaleString()}</Price>
-              //     <DeleteButton onClick={() => handleClick(id)}>
-              //       <Typography variant="button" color="common.black">
-              //         削除
-              //       </Typography>
-              //     </DeleteButton>
-              //   </StyledListItemText>
-              // }
-              >
+              <HistoryListItem>
                 <StyledListItemAvatar>
                   <TypeAvatar
                     src={`/images/types/${type}.svg`}
@@ -109,9 +98,9 @@ const History: React.FC<Props> = ({ loading, error, data, handleClick }) => {
                     <LastListItemTextWrapper>
                       <Price>¥{price.toLocaleString()}</Price>
                       <Button onClick={() => handleClick(id)}>
-                        <Typography variant="button" color="common.black">
+                        <Delete variant="button" color="common.black">
                           削除
-                        </Typography>
+                        </Delete>
                       </Button>
                     </LastListItemTextWrapper>
                   }
@@ -261,6 +250,10 @@ const Price = styled("p")`
   text-align: end;
   margin: 0;
   padding: 6px 8px;
+`;
+
+const Delete = styled(Typography)`
+  opacity: 0.5;
 `;
 
 const Message = styled("p")`
