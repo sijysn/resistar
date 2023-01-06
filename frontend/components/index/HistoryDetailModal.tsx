@@ -6,13 +6,9 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import { styled } from "@mui/material";
 import Typography from "@mui/material/Typography";
-import ListItem from "@mui/material/ListItem";
-import ListItemText from "@mui/material/ListItemText";
-import ListItemAvatar from "@mui/material/ListItemAvatar";
-import Divider from "@mui/material/Divider";
-import Avatar from "@mui/material/Avatar";
-import { HistoryProps } from "../../lib/apollo/api/getHistories";
 import HistoryDetailModalSectionTitle from "./HistoryDetailModalSectionTitle";
+import MemberItem from "../common/MemberItem";
+import { HistoryProps } from "../../lib/apollo/api/getHistories";
 
 type ModalProps = {
   isOpen: boolean;
@@ -45,28 +41,24 @@ const HistoryDetailModal: React.FC<ModalProps> = ({
         <HistoryDetailModalSectionTitle title="負担者" />
         {history.toUsers.map(({ id, name, email, imageURL }) => {
           return (
-            <React.Fragment key={id}>
-              <MembersListItem>
-                <StyledListItemAvatar>
-                  <StyledAvatar src={imageURL} />
-                </StyledListItemAvatar>
-                <StyledListItemText primary={name} secondary={email} />
-              </MembersListItem>
-            </React.Fragment>
+            <MemberItem
+              key={id}
+              name={name}
+              email={email}
+              imageURL={imageURL}
+            />
           );
         })}
 
         <HistoryDetailModalSectionTitle title="購入者" />
         {history.fromUsers.map(({ id, name, email, imageURL }) => {
           return (
-            <React.Fragment key={id}>
-              <MembersListItem>
-                <StyledListItemAvatar>
-                  <StyledAvatar src={imageURL} />
-                </StyledListItemAvatar>
-                <StyledListItemText primary={name} secondary={email} />
-              </MembersListItem>
-            </React.Fragment>
+            <MemberItem
+              key={id}
+              name={name}
+              email={email}
+              imageURL={imageURL}
+            />
           );
         })}
 
@@ -106,29 +98,5 @@ const Date = styled(Typography)`
   padding: 8px 0;
   text-align: right;
 ` as typeof Typography;
-
-const MembersListItem = styled(ListItem)`
-  padding: 0;
-  height: 76px;
-`;
-
-const StyledAvatar = styled(Avatar)`
-  padding: 10px;
-`;
-
-const StyledListItemAvatar = styled(ListItemAvatar)`
-  position: relative;
-  height: 100%;
-  display: flex;
-  align-items: center;
-` as typeof ListItemAvatar;
-
-const StyledListItemText = styled(ListItemText)`
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 0 8px;
-`;
 
 export default HistoryDetailModal;
