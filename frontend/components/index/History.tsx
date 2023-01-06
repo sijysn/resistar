@@ -108,11 +108,11 @@ const History: React.FC<Props> = ({ loading, error, data, handleClick }) => {
                   primary={
                     <LastListItemTextWrapper>
                       <Price>¥{price.toLocaleString()}</Price>
-                      <DeleteButton onClick={() => handleClick(id)}>
+                      <Button onClick={() => handleClick(id)}>
                         <Typography variant="button" color="common.black">
                           削除
                         </Typography>
-                      </DeleteButton>
+                      </Button>
                     </LastListItemTextWrapper>
                   }
                 />
@@ -260,10 +260,7 @@ const LastListItemTextWrapper = styled("div")`
 const Price = styled("p")`
   text-align: end;
   margin: 0;
-`;
-
-const DeleteButton = styled(Button)`
-  padding-left: 8px;
+  padding: 6px 8px;
 `;
 
 const Message = styled("p")`
