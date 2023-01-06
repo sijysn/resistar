@@ -12,6 +12,8 @@ import ListItemAvatar from "@mui/material/ListItemAvatar";
 import Divider from "@mui/material/Divider";
 import Avatar from "@mui/material/Avatar";
 import { HistoryProps } from "../../lib/apollo/api/getHistories";
+import HistoryDetailModalSectionTitle from "./HistoryDetailModalSectionTitle";
+
 type ModalProps = {
   isOpen: boolean;
   close: () => void;
@@ -32,30 +34,15 @@ const HistoryDetailModal: React.FC<ModalProps> = ({
       </DialogTitle>
 
       <StyledDialogContent>
-        <SectionTitleWrapper>
-          <SectionTitle variant="body2" color="text.secondary">
-            合計額
-          </SectionTitle>
-          <Divider />
-        </SectionTitleWrapper>
+        <HistoryDetailModalSectionTitle title="合計額" />
         <Price>¥{history.price.toLocaleString()}</Price>
 
-        <SectionTitleWrapper>
-          <SectionTitle variant="body2" color="text.secondary">
-            1人あたりの支払い額
-          </SectionTitle>
-          <Divider />
-        </SectionTitleWrapper>
+        <HistoryDetailModalSectionTitle title="1人あたりの支払い額" />
         <Price>
           ¥{(history.price / history.toUsers.length).toLocaleString()}
         </Price>
 
-        <SectionTitleWrapper>
-          <SectionTitle variant="body2" color="text.secondary">
-            負担者
-          </SectionTitle>
-          <Divider />
-        </SectionTitleWrapper>
+        <HistoryDetailModalSectionTitle title="負担者" />
         {history.toUsers.map(({ id, name, email, imageURL }) => {
           return (
             <React.Fragment key={id}>
@@ -69,12 +56,7 @@ const HistoryDetailModal: React.FC<ModalProps> = ({
           );
         })}
 
-        <SectionTitleWrapper>
-          <SectionTitle variant="body2" color="text.secondary">
-            購入者
-          </SectionTitle>
-          <Divider />
-        </SectionTitleWrapper>
+        <HistoryDetailModalSectionTitle title="購入者" />
         {history.fromUsers.map(({ id, name, email, imageURL }) => {
           return (
             <React.Fragment key={id}>
@@ -88,12 +70,7 @@ const HistoryDetailModal: React.FC<ModalProps> = ({
           );
         })}
 
-        <SectionTitleWrapper>
-          <SectionTitle variant="body2" color="text.secondary">
-            支払い日時
-          </SectionTitle>
-          <Divider />
-        </SectionTitleWrapper>
+        <HistoryDetailModalSectionTitle title="支払い日時" />
         <Date variant="body2">{history.createdAt}</Date>
       </StyledDialogContent>
       <DialogActions>
@@ -118,14 +95,6 @@ const StyledDialog = styled(Dialog)`
 
 const StyledDialogContent = styled(DialogContent)`
   padding: 16px 24px;
-`;
-
-const SectionTitleWrapper = styled("div")`
-  padding: 8px 0;
-`;
-
-const SectionTitle = styled(Typography)`
-  padding: 8px 0;
 `;
 
 const Price = styled(Typography)`
