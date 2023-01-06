@@ -52,7 +52,18 @@ const History: React.FC<Props> = ({ loading, error, data, handleClick }) => {
                   <Divider />
                 </DateWrapper>
               )}
-              <HistoryListItem>
+              <HistoryListItem
+              // secondaryAction={
+              //   <StyledListItemText>
+              //     <Price>¥{price.toLocaleString()}</Price>
+              //     <DeleteButton onClick={() => handleClick(id)}>
+              //       <Typography variant="button" color="common.black">
+              //         削除
+              //       </Typography>
+              //     </DeleteButton>
+              //   </StyledListItemText>
+              // }
+              >
                 <StyledListItemAvatar>
                   <TypeAvatar
                     src={`/images/types/${type}.svg`}
@@ -93,16 +104,16 @@ const History: React.FC<Props> = ({ loading, error, data, handleClick }) => {
                     </ToUsers>
                   }
                 />
-                <ListItemText
-                  primary={<Price>¥{price.toLocaleString()}</Price>}
-                />
-                <DeleteButton
+                <LastListItemText
                   primary={
-                    <Button onClick={() => handleClick(id)}>
-                      <Typography variant="button" color="common.black">
-                        削除
-                      </Typography>
-                    </Button>
+                    <LastListItemTextWrapper>
+                      <Price>¥{price.toLocaleString()}</Price>
+                      <DeleteButton onClick={() => handleClick(id)}>
+                        <Typography variant="button" color="common.black">
+                          削除
+                        </Typography>
+                      </DeleteButton>
+                    </LastListItemTextWrapper>
                   }
                 />
               </HistoryListItem>
@@ -217,6 +228,11 @@ const StyledListItemText = styled(ListItemText)`
   flex-direction: column;
   justify-content: space-between;
   padding: 0 8px;
+  > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 `;
 
 const AndMore = styled("span")`
@@ -232,12 +248,21 @@ const ToUserAvatar = styled(Avatar)`
   height: 20px;
 ` as typeof Avatar;
 
+const LastListItemText = styled(ListItemText)`
+  flex: none;
+`;
+
+const LastListItemTextWrapper = styled("div")`
+  display: flex;
+  align-items: center;
+`;
+
 const Price = styled("p")`
   text-align: end;
   margin: 0;
 `;
 
-const DeleteButton = styled(ListItemText)`
+const DeleteButton = styled(Button)`
   padding-left: 8px;
 `;
 
