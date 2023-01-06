@@ -8,7 +8,11 @@ import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import Avatar from "@mui/material/Avatar";
 import { css, Divider, styled } from "@mui/material";
-import { getHistoriesProps } from "../../lib/apollo/api/getHistories";
+import HistoryDetailModal from "./HistoryDetailModal";
+import {
+  getHistoriesProps,
+  HistoryProps,
+} from "../../lib/apollo/api/getHistories";
 import {
   QueryType,
   QUERY_TYPE_DIARY,
@@ -34,83 +38,116 @@ const History: React.FC<Props> = ({ loading, error, data, handleClick }) => {
   if (loading || !data) return <Message>Loading</Message>;
   if (data.histories.length === 0)
     return <Message>データがありません。</Message>;
+
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
+
+  const [history, setHistory] = React.useState<HistoryProps>();
+  const changeHistory = (historyId: string) =>
+    setHistory(data.histories.find(({ id }) => id === historyId));
+
   return (
-    <HistoryList>
-      {data.histories.map(
-        ({ id, title, type, price, fromUsers, toUsers, createdAt }, index) => {
-          const typeAvatarStyle = css`
-            background-color: ${getColor(type)};
-          `;
-          return (
-            <React.Fragment key={id}>
-              {showDate(createdAt, index, data) && (
-                <DateWrapper>
-                  <Date variant="body2" color="text.secondary">
-                    {dayjs(createdAt).format("M")}月
-                    {dayjs(createdAt).format("DD")}日
-                  </Date>
-                  <Divider />
-                </DateWrapper>
-              )}
-              <HistoryListItem>
-                <StyledListItemAvatar>
-                  <TypeAvatar
-                    src={`/images/types/${type}.svg`}
-                    css={typeAvatarStyle}
+    <>
+      <HistoryList>
+        {data.histories.map(
+          (
+            { id, title, type, price, fromUsers, toUsers, createdAt },
+            index
+          ) => {
+            const typeAvatarStyle = css`
+              background-color: ${getColor(type)};
+            `;
+            return (
+              <React.Fragment key={id}>
+                {showDate(createdAt, index, data) && (
+                  <DateWrapper>
+                    <Date variant="body2" color="text.secondary">
+                      {dayjs(createdAt).format("M")}月
+                      {dayjs(createdAt).format("DD")}日
+                    </Date>
+                    <Divider />
+                  </DateWrapper>
+                )}
+                <HistoryListItem
+                  onClick={() => {
+                    changeHistory(id);
+                    openModal();
+                  }}
+                >
+                  <StyledListItemAvatar>
+                    <TypeAvatar
+                      src={`/images/types/${type}.svg`}
+                      css={typeAvatarStyle}
+                    />
+                    {fromUsers.map(({ id, imageURL }, index) => {
+                      if (index === 0) {
+                        return <FromUserAvatar1 src={imageURL} key={id} />;
+                      }
+                      if (index === 1) {
+                        return <FromUserAvatar2 src={imageURL} key={id} />;
+                      }
+                      if (index === 2) {
+                        return <FromUserAvatar3 src={imageURL} key={id} />;
+                      }
+                      return <React.Fragment key={id}></React.Fragment>;
+                    })}
+                  </StyledListItemAvatar>
+                  <StyledListItemText
+                    primary={title}
+                    secondary={
+                      <ToUsers>
+                        {toUsers.map(({ id, imageURL }, index) => {
+                          if (index < displayableUsers) {
+                            return (
+                              <ToUserAvatar
+                                key={id}
+                                src={imageURL}
+                                component="span"
+                              />
+                            );
+                          }
+                          return <React.Fragment key={id}></React.Fragment>;
+                        })}
+                        {toUsers.length > displayableUsers && (
+                          <AndMore>
+                            +{toUsers.length - displayableUsers}
+                          </AndMore>
+                        )}
+                      </ToUsers>
+                    }
                   />
-                  {fromUsers.map(({ id, imageURL }, index) => {
-                    if (index === 0) {
-                      return <FromUserAvatar1 src={imageURL} key={id} />;
+                  <LastListItemText
+                    primary={
+                      <LastListItemTextWrapper>
+                        <Price>¥{price.toLocaleString()}</Price>
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleClick(id);
+                          }}
+                        >
+                          <Delete variant="button" color="common.black">
+                            削除
+                          </Delete>
+                        </Button>
+                      </LastListItemTextWrapper>
                     }
-                    if (index === 1) {
-                      return <FromUserAvatar2 src={imageURL} key={id} />;
-                    }
-                    if (index === 2) {
-                      return <FromUserAvatar3 src={imageURL} key={id} />;
-                    }
-                    return <React.Fragment key={id}></React.Fragment>;
-                  })}
-                </StyledListItemAvatar>
-                <StyledListItemText
-                  primary={title}
-                  secondary={
-                    <ToUsers>
-                      {toUsers.map(({ id, imageURL }, index) => {
-                        if (index < displayableUsers) {
-                          return (
-                            <ToUserAvatar
-                              key={id}
-                              src={imageURL}
-                              component="span"
-                            />
-                          );
-                        }
-                        return <React.Fragment key={id}></React.Fragment>;
-                      })}
-                      {toUsers.length > displayableUsers && (
-                        <AndMore>+{toUsers.length - displayableUsers}</AndMore>
-                      )}
-                    </ToUsers>
-                  }
-                />
-                <LastListItemText
-                  primary={
-                    <LastListItemTextWrapper>
-                      <Price>¥{price.toLocaleString()}</Price>
-                      <Button onClick={() => handleClick(id)}>
-                        <Delete variant="button" color="common.black">
-                          削除
-                        </Delete>
-                      </Button>
-                    </LastListItemTextWrapper>
-                  }
-                />
-              </HistoryListItem>
-            </React.Fragment>
-          );
-        }
+                  />
+                </HistoryListItem>
+              </React.Fragment>
+            );
+          }
+        )}
+      </HistoryList>
+      {history && (
+        <HistoryDetailModal
+          isOpen={isModalOpen}
+          close={closeModal}
+          history={history}
+        />
       )}
-    </HistoryList>
+    </>
   );
 };
 

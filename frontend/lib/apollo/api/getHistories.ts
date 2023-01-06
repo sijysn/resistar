@@ -12,11 +12,13 @@ export const GET_HISTORIES = gql`
       fromUsers {
         id
         name
+        email
         imageURL
       }
       toUsers {
         id
         name
+        email
         imageURL
       }
       createdAt
@@ -34,7 +36,7 @@ export type getHistoriesVarsProps = {
   month: string;
 };
 
-type HistoryProps = {
+export type HistoryProps = {
   id: string;
   title: string;
   price: number;

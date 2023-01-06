@@ -28,7 +28,6 @@ const Members: React.FC<Props> = ({ loading, error, data }) => {
         </MembersCount>
         <Divider />
       </MembersCountWrapper>
-      {/* </DateWrapper> */}
       {data.users.map(({ id, name, email, imageURL }) => {
         return (
           <React.Fragment key={id}>

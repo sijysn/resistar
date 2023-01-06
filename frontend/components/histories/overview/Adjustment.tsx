@@ -1,8 +1,8 @@
 import * as React from "react";
 import dayjs from "dayjs";
 import { useQuery } from "@apollo/client";
-import { styled, Typography } from "@mui/material";
-import Button from "@mui/material/Button";
+import { styled } from "@mui/material";
+import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import {
@@ -72,14 +72,6 @@ const Item = styled("div")`
   width: 100%;
   padding: 16px 0;
 `;
-
-const StyledButton = styled(Button)(
-  ({ theme }) => `
-  color: ${theme.palette.common.white};
-  min-width: unset;
-  width: 48px
-`
-);
 
 const Message = styled("p")`
   text-align: center;
