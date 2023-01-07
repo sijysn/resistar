@@ -111,7 +111,7 @@ const AddFormModal: React.FC<ModalProps> = ({
   };
 
   const getUsersQueryVars = {
-    groupID: "1",
+    groupID: cookies["groupID"],
   };
   const {
     loading: usersLoading,
