@@ -16,17 +16,17 @@ export const getServerSideProps: GetServerSideProps<ServerSideProps> = async (
   context
 ) => {
   const now = dayjs();
-  const currentYear = now.format("YYYY");
-  const currentMonth = now.format("MM");
-  const currentYearAndMonth = now.format("YYYY-MM");
+  const year = now.format("YYYY");
+  const month = now.format("MM");
+  const yearAndMonth = now.format("YYYY-MM");
 
   const cookies = nookies.get(context);
   const apolloClient = initializeApollo(cookies["jwtToken"]);
 
   await getHistories(apolloClient, {
     groupID: cookies["groupID"],
-    year: currentYear,
-    month: currentMonth,
+    year: year,
+    month: month,
   });
 
   await getUsers(apolloClient, {
@@ -34,15 +34,15 @@ export const getServerSideProps: GetServerSideProps<ServerSideProps> = async (
   });
 
   await getAmounts(apolloClient, {
-    year: currentYear,
-    month: currentMonth,
+    year: year,
+    month: month,
     groupID: cookies["groupID"],
     userID: cookies["userID"],
   });
 
   return addApolloState(apolloClient, {
     props: {
-      yearAndMonth: currentYearAndMonth,
+      yearAndMonth,
       cookies,
     },
   });

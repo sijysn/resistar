@@ -23,6 +23,11 @@ import {
   deleteHistoryProps,
   deleteHistoryVarsProps,
 } from "../../lib/apollo/api/deleteHistory";
+import {
+  getAdjustmentsProps,
+  getAdjustmentsVarsProps,
+  GET_ADJUSTMENTS,
+} from "../../lib/apollo/api/getAdjustments";
 
 const Index: React.FC<ServerSideProps> = ({ yearAndMonth, cookies }) => {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
@@ -84,10 +89,30 @@ const Index: React.FC<ServerSideProps> = ({ yearAndMonth, cookies }) => {
     });
   };
 
+  const getAdjustmentQueryVars = {
+    groupID: cookies["groupID"],
+    year: currentYear,
+    month: currentMonth,
+  };
+  const { fetchMore: fetchMoreAdjustments } = useQuery<
+    getAdjustmentsProps,
+    getAdjustmentsVarsProps
+  >(GET_ADJUSTMENTS, {
+    variables: getAdjustmentQueryVars,
+    notifyOnNetworkStatusChange: true,
+  });
+
+  const loadMoreAdjustments = async () => {
+    await fetchMoreAdjustments({
+      variables: getAdjustmentQueryVars,
+    });
+  };
+
   const loadMore = React.useCallback(() => {
     loadMoreHistories();
     loadMoreAmounts();
-  }, [loadMoreHistories, loadMoreAmounts]);
+    loadMoreAdjustments();
+  }, [loadMoreHistories, loadMoreAmounts, loadMoreAdjustments]);
 
   const [_delete] = useMutation<deleteHistoryProps, deleteHistoryVarsProps>(
     DELETE_HISTORY

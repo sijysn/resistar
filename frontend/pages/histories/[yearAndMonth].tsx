@@ -12,7 +12,7 @@ import { getHistories } from "../../lib/apollo/server/getHistories";
 import { getUsers } from "../../lib/apollo/server/getUsers";
 import { getAmounts } from "../../lib/apollo/server/getAmounts";
 
-const YearAndMonthHistory: NextPage<ServerSideProps> = (props) => {
+const YearAndMonthHistoryPage: NextPage<ServerSideProps> = (props) => {
   return <Index {...props} />;
 };
 
@@ -65,4 +65,4 @@ type PathParams = {
   yearAndMonth: string;
 };
 
-export default YearAndMonthHistory;
+export default YearAndMonthHistoryPage;
