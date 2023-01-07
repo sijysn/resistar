@@ -3,7 +3,7 @@ import { UserProps } from "./getUsers";
 import { QueryType } from "./addHistory";
 
 export const GET_HISTORIES = gql`
-  query($groupID: ID!, $year: String!, $month: String!) {
+  query GetHistories($groupID: ID!, $year: String!, $month: String!) {
     histories(input: { groupID: $groupID, year: $year, month: $month }) {
       id
       title

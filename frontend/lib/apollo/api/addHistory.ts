@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
 
 export const ADD_HISTORY = gql`
-  mutation(
+  mutation AddHistory(
     $groupID: ID!
     $title: String!
     $type: Type!

@@ -1,7 +1,12 @@
 import { gql } from "@apollo/client";
 
 export const GET_AMOUNTS = gql`
-  query($year: String!, $month: String!, $groupID: ID!, $userID: ID!) {
+  query GetAmounts(
+    $year: String!
+    $month: String!
+    $groupID: ID!
+    $userID: ID!
+  ) {
     amounts(
       input: { year: $year, month: $month, groupID: $groupID, userID: $userID }
     ) {

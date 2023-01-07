@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
 
 export const LOGOUT_GROUP = gql`
-  mutation {
+  mutation LogoutGroup {
     logoutGroup {
       message
       success

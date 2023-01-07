@@ -2,7 +2,7 @@ import { gql } from "@apollo/client";
 import { UserProps } from "./getUsers";
 
 export const GET_ADJUSTMENTS = gql`
-  query($groupID: ID!, $year: String!, $month: String!) {
+  query Adjustments($groupID: ID!, $year: String!, $month: String!) {
     adjustments(input: { groupID: $groupID, year: $year, month: $month }) {
       id
       fromUser {

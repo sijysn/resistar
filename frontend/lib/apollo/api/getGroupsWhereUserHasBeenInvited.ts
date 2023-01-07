@@ -2,7 +2,7 @@ import { gql } from "@apollo/client";
 import { GroupProps } from "./getGroups";
 
 export const GET_GROUPS_WHERE_USER_HAS_BEEN_INVITED = gql`
-  query($userID: ID!) {
+  query GetGroupsWhereUserHasBeenInvited($userID: ID!) {
     groupsWhereUserHasBeenInvited(input: { userID: $userID }) {
       id
       name

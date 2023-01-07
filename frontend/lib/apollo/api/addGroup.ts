@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
 
 export const ADD_GROUP = gql`
-  mutation($userID: ID!, $groupName: String!) {
+  mutation AddGroup($userID: ID!, $groupName: String!) {
     addGroup(input: { userID: $userID, groupName: $groupName }) {
       message
       success

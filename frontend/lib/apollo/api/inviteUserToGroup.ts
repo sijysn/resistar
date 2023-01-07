@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
 
 export const INVITE_USER_TO_GROUP = gql`
-  mutation($email: String!, $groupID: ID!) {
+  mutation InviteUserToGroup($email: String!, $groupID: ID!) {
     inviteUserToGroup(input: { email: $email, groupID: $groupID }) {
       success
       message

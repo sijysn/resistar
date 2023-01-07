@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
 
 export const DELETE_HISTORY = gql`
-  mutation($id: ID!) {
+  mutation DeleteHistory($id: ID!) {
     deleteHistory(input: { id: $id }) {
       message
       success
