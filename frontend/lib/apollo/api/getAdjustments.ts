@@ -4,6 +4,7 @@ import { UserProps } from "./getUsers";
 export const GET_ADJUSTMENTS = gql`
   query($groupID: ID!, $year: String!, $month: String!) {
     adjustments(input: { groupID: $groupID, year: $year, month: $month }) {
+      id
       fromUser {
         id
         name
@@ -20,6 +21,7 @@ export const GET_ADJUSTMENTS = gql`
 `;
 
 export type AdjustmentsProps = {
+  id: string;
   fromUser: UserProps;
   toUser: UserProps;
   amount: number;

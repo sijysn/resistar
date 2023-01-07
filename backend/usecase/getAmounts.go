@@ -57,6 +57,7 @@ func (u *UsecaseRepository) GetAmounts(ctx context.Context, input model.AmountsQ
 	if err != nil {
 		return nil, err
 	}
+	amounts.ID = input.Year + input.Month
 
 	return amounts, nil
 }

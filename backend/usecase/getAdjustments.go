@@ -6,6 +6,7 @@ import (
 	"math"
 	"net/http"
 	"sort"
+	"strconv"
 
 	"github.com/sijysn/resistar/backend/graph/model"
 	"github.com/sijysn/resistar/backend/internal/auth"
@@ -84,6 +85,7 @@ func calculateAdjustments(adjustments []*model.Adjustment, userPersonalBalances 
 			break
 		}
 		adjustments = append(adjustments, &model.Adjustment{
+			ID: strconv.Itoa(len(adjustments)),
 			FromUser: paidLess.User,
 			ToUser:   paidTooMuch.User,
 			Amount:   int(payment),

@@ -62,12 +62,14 @@ type Balance {
 }
 
 type Amounts {
+  id: ID!
   personalBalance: Int!
   groupTotal: Int!
   errorMessage: String
 }
 
 type Adjustment {
+  id: ID!
   fromUser: User!
   toUser: User!
   amount: Int!
