@@ -1,31 +1,31 @@
 import * as React from "react";
 import dayjs from "dayjs";
-import { useQuery } from "@apollo/client";
+import { useQuery, ApolloError } from "@apollo/client";
 import { styled } from "@mui/material";
 import Typography from "@mui/material/Typography";
-import Box from "@mui/material/Box";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import {
   getAdjustmentsProps,
   getAdjustmentsVarsProps,
   GET_ADJUSTMENTS,
-} from "../../../lib/apollo/api/getAdjustment";
+} from "../../../lib/apollo/api/getAdjustments";
 
-const Adjustment: React.FC<Props> = ({ yearAndMonth, cookies }) => {
-  const year = dayjs(yearAndMonth).format("YYYY");
-  const month = dayjs(yearAndMonth).format("M");
-  const getAdjustmentQueryVars = {
-    groupID: cookies["groupID"],
-    year,
-    month,
-  };
-  const { loading, error, data } = useQuery<
-    getAdjustmentsProps,
-    getAdjustmentsVarsProps
-  >(GET_ADJUSTMENTS, {
-    variables: getAdjustmentQueryVars,
-    notifyOnNetworkStatusChange: true,
-  });
+const Adjustments: React.FC<Props> = ({ loading, error, data }) => {
+  // const year = dayjs(yearAndMonth).format("YYYY");
+  // const month = dayjs(yearAndMonth).format("M");
+  // const getAdjustmentQueryVars = {
+  //   groupID: cookies["groupID"],
+  //   year,
+  //   month,
+  // };
+  // const { loading, error, data } = useQuery<
+  //   getAdjustmentsProps,
+  //   getAdjustmentsVarsProps
+  // >(GET_ADJUSTMENTS, {
+  //   variables: getAdjustmentQueryVars,
+  //   notifyOnNetworkStatusChange: true,
+  // });
+  console.log(data);
   if (error) return <Message>{error.message}</Message>;
   if (loading || !data) return <Message>Loading</Message>;
   if (data.adjustments.length === 0) return <Message>¥---</Message>;
@@ -78,8 +78,9 @@ const Message = styled("p")`
 `;
 
 type Props = {
-  yearAndMonth: string;
-  cookies: { [key: string]: any };
+  loading: boolean;
+  error?: ApolloError;
+  data?: getAdjustmentsProps;
 };
 
-export default Adjustment;
+export default Adjustments;
