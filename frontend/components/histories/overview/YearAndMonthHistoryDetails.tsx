@@ -59,7 +59,6 @@ const YearAndMonthHistoryDetails: React.FC<ServerSideProps> = ({
   } = useQuery<getAdjustmentsProps, getAdjustmentsVarsProps>(GET_ADJUSTMENTS, {
     variables: getAdjustmentsQueryVars,
     notifyOnNetworkStatusChange: true,
-    fetchPolicy: "cache-and-network",
   });
   const loadingMoreAdjustments =
     getAdjustmentsNetworkStatus === NetworkStatus.fetchMore;
