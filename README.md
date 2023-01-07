@@ -18,14 +18,17 @@ make next
 ```
 
 ## DNS
-ネームサーバー・プロキシはcloudflare
-ドメイン管理はムームードメイン
+ネームサーバー・プロキシは[cloudflare](https://www.cloudflare.com/)
+  
+ドメイン管理は[ムームードメイン](https://muumuu-domain.com/)
 
 ## deploy
 ### backend
-render.com
+[render.com](https://render.com/)
+  
 mainブランチにマージすると、自動でデプロイされる
 
 ### frontend
-netlify
+[netlify](https://www.netlify.com/)
+  
 mainブランチにマージすると、自動でデプロイされる
