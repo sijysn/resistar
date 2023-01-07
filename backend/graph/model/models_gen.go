@@ -9,6 +9,7 @@ import (
 )
 
 type Adjustment struct {
+	ID           string  `json:"id"`
 	FromUser     *User   `json:"fromUser"`
 	ToUser       *User   `json:"toUser"`
 	Amount       int     `json:"amount"`
@@ -22,6 +23,7 @@ type AdjustmentQuery struct {
 }
 
 type Amounts struct {
+	ID              string  `json:"id"`
 	PersonalBalance int     `json:"personalBalance"`
 	GroupTotal      int     `json:"groupTotal"`
 	ErrorMessage    *string `json:"errorMessage"`

@@ -48,12 +48,14 @@ type ComplexityRoot struct {
 		Amount       func(childComplexity int) int
 		ErrorMessage func(childComplexity int) int
 		FromUser     func(childComplexity int) int
+		ID           func(childComplexity int) int
 		ToUser       func(childComplexity int) int
 	}
 
 	Amounts struct {
 		ErrorMessage    func(childComplexity int) int
 		GroupTotal      func(childComplexity int) int
+		ID              func(childComplexity int) int
 		PersonalBalance func(childComplexity int) int
 	}
 
@@ -189,6 +191,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Adjustment.FromUser(childComplexity), true
 
+	case "Adjustment.id":
+		if e.complexity.Adjustment.ID == nil {
+			break
+		}
+
+		return e.complexity.Adjustment.ID(childComplexity), true
+
 	case "Adjustment.toUser":
 		if e.complexity.Adjustment.ToUser == nil {
 			break
@@ -209,6 +218,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Amounts.GroupTotal(childComplexity), true
+
+	case "Amounts.id":
+		if e.complexity.Amounts.ID == nil {
+			break
+		}
+
+		return e.complexity.Amounts.ID(childComplexity), true
 
 	case "Amounts.personalBalance":
 		if e.complexity.Amounts.PersonalBalance == nil {
@@ -810,12 +826,14 @@ type Balance {
 }
 
 type Amounts {
+  id: ID!
   personalBalance: Int!
   groupTotal: Int!
   errorMessage: String
 }
 
 type Adjustment {
+  id: ID!
   fromUser: User!
   toUser: User!
   amount: Int!
@@ -1188,6 +1206,50 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
+func (ec *executionContext) _Adjustment_id(ctx context.Context, field graphql.CollectedField, obj *model.Adjustment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Adjustment_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Adjustment_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Adjustment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Adjustment_fromUser(ctx context.Context, field graphql.CollectedField, obj *model.Adjustment) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Adjustment_fromUser(ctx, field)
 	if err != nil {
@@ -1400,6 +1462,50 @@ func (ec *executionContext) fieldContext_Adjustment_errorMessage(ctx context.Con
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Amounts_id(ctx context.Context, field graphql.CollectedField, obj *model.Amounts) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Amounts_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Amounts_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Amounts",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
 		},
 	}
 	return fc, nil
@@ -3583,6 +3689,8 @@ func (ec *executionContext) fieldContext_Query_amounts(ctx context.Context, fiel
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
+			case "id":
+				return ec.fieldContext_Amounts_id(ctx, field)
 			case "personalBalance":
 				return ec.fieldContext_Amounts_personalBalance(ctx, field)
 			case "groupTotal":
@@ -3646,6 +3754,8 @@ func (ec *executionContext) fieldContext_Query_adjustments(ctx context.Context, 
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
+			case "id":
+				return ec.fieldContext_Adjustment_id(ctx, field)
 			case "fromUser":
 				return ec.fieldContext_Adjustment_fromUser(ctx, field)
 			case "toUser":
@@ -6703,6 +6813,13 @@ func (ec *executionContext) _Adjustment(ctx context.Context, sel ast.SelectionSe
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Adjustment")
+		case "id":
+
+			out.Values[i] = ec._Adjustment_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "fromUser":
 
 			out.Values[i] = ec._Adjustment_fromUser(ctx, field, obj)
@@ -6749,6 +6866,13 @@ func (ec *executionContext) _Amounts(ctx context.Context, sel ast.SelectionSet, 
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Amounts")
+		case "id":
+
+			out.Values[i] = ec._Amounts_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "personalBalance":
 
 			out.Values[i] = ec._Amounts_personalBalance(ctx, field, obj)
