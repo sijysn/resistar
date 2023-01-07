@@ -1,31 +1,11 @@
 import * as React from "react";
-import dayjs from "dayjs";
-import { useQuery, ApolloError } from "@apollo/client";
+import { ApolloError } from "@apollo/client";
 import { styled } from "@mui/material";
 import Typography from "@mui/material/Typography";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import {
-  getAdjustmentsProps,
-  getAdjustmentsVarsProps,
-  GET_ADJUSTMENTS,
-} from "../../../lib/apollo/api/getAdjustments";
+import { getAdjustmentsProps } from "../../../lib/apollo/api/getAdjustments";
 
 const Adjustments: React.FC<Props> = ({ loading, error, data }) => {
-  // const year = dayjs(yearAndMonth).format("YYYY");
-  // const month = dayjs(yearAndMonth).format("M");
-  // const getAdjustmentQueryVars = {
-  //   groupID: cookies["groupID"],
-  //   year,
-  //   month,
-  // };
-  // const { loading, error, data } = useQuery<
-  //   getAdjustmentsProps,
-  //   getAdjustmentsVarsProps
-  // >(GET_ADJUSTMENTS, {
-  //   variables: getAdjustmentQueryVars,
-  //   notifyOnNetworkStatusChange: true,
-  // });
-  console.log(data);
   if (error) return <Message>{error.message}</Message>;
   if (loading || !data) return <Message>Loading</Message>;
   if (data.adjustments.length === 0) return <Message>¥---</Message>;
