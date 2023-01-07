@@ -23,8 +23,8 @@ const HistoryDetailModal: React.FC<ModalProps> = ({
 }) => {
   return (
     <StyledDialog open={isOpen} keepMounted onClose={close}>
-      <DialogTitle>
-        <Typography component="h1" variant="h6">
+      <DialogTitle component="h1">
+        <Typography component="span" variant="h6">
           {history.title}
         </Typography>
       </DialogTitle>
