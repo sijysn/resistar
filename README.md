@@ -7,20 +7,25 @@
 
 　
 ## 開発環境
-1. コンテナを立ち上げる
+1. APIサーバを立ち上げる
 ```
-yarn docker
+make go
 ```
 
-2. コンテナを止める
+2. nextサーバを立ち上げる
 ```
-yarn docker-stop
+make next
 ```
 
 ## DNS
-ネームサーバー・プロキシはcloudflareを使用している
-ドメイン管理はムームードメインを使用している
+ネームサーバー・プロキシはcloudflare
+ドメイン管理はムームードメイン
 
 ## deploy
-render.comを使用している
+### backend
+render.com
+mainブランチにマージすると、自動でデプロイされる
+
+### frontend
+netlify
 mainブランチにマージすると、自動でデプロイされる
