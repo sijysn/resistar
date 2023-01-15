@@ -33,8 +33,8 @@ func (u *UsecaseRepository) AddUser(ctx context.Context, input model.NewUser) (*
 		Email: input.Email,
 	}
 	_, err = u.Repository.GetUserByEmail(getUserByEmailInput)
-	if err != nil {
-		errorMessage := "このメールアドレスのユーザーは存在しません"
+	if err == nil {
+		errorMessage := "このメールアドレスは既に登録されています"
 		return &model.Result{
 			Message: errorMessage,
 			Success: false,
