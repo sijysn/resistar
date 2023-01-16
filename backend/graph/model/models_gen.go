@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+
+	"github.com/99designs/gqlgen/graphql"
 )
 
 type Adjustment struct {
@@ -128,6 +130,14 @@ type NewUser struct {
 type Result struct {
 	Message string `json:"message"`
 	Success bool   `json:"success"`
+}
+
+type UploadInput struct {
+	Data graphql.Upload `json:"data"`
+}
+
+type UploadPayload struct {
+	Path string `json:"path"`
 }
 
 type User struct {

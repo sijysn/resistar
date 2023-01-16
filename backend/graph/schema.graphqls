@@ -160,6 +160,16 @@ input LoginGroup {
   groupID: ID!
 }
 
+scalar Upload
+
+input UploadInput {
+  data: Upload!
+}
+
+type UploadPayload {
+  path: String!
+}
+
 type Mutation {
   addHistory(input: NewHistory!): History!
   deleteHistory(input: DeleteHistory!): Result!
@@ -170,4 +180,5 @@ type Mutation {
   loginUser(input: LoginUser!): Result!
   loginGroup(input: LoginGroup!): Result!
   logoutGroup: Result!
+  uploadProfileImage(input: UploadInput!): UploadPayload!
 }

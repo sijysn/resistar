@@ -6,6 +6,10 @@ package graph
 
 import (
 	"context"
+	"io"
+	"io/fs"
+	"os"
+	"path"
 
 	"github.com/sijysn/resistar/backend/graph/generated"
 	"github.com/sijysn/resistar/backend/graph/model"
@@ -90,6 +94,35 @@ func (r *mutationResolver) LogoutGroup(ctx context.Context) (*model.Result, erro
 		return nil, err
 	}
 	return result, nil
+}
+
+// UploadProfileImage is the resolver for the uploadProfileImage field.
+func (r *mutationResolver) UploadProfileImage(ctx context.Context, input model.UploadInput) (*model.UploadPayload, error) {
+	const (
+		fileDirName string = "file"
+		filePerm fs.FileMode = 0o666
+	)
+
+	file, err := io.ReadAll(input.Data.File)
+	if err != nil {
+		return nil, err
+	}
+
+	filePath := path.Join(fileDirName, input.Data.Filename)
+	if _, err := os.Create(filePath); err != nil {
+		return nil, err
+	}
+	if err := os.WriteFile(filePath, file, filePerm); err != nil {
+		return nil, err
+	}
+	
+	pwd, err := os.Getwd()
+	if err != nil {
+		return nil, err
+	}
+	return &model.UploadPayload{
+		Path: path.Join(pwd, filePath),
+	}, nil
 }
 
 // Histories is the resolver for the histories field.
