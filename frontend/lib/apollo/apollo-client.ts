@@ -1,16 +1,17 @@
 import { useMemo } from "react";
 import {
   ApolloClient,
-  HttpLink,
   InMemoryCache,
   from,
   NormalizedCacheObject,
   gql,
+  ApolloLink,
 } from "@apollo/client";
 import { onError } from "@apollo/client/link/error";
 import { setContext } from "@apollo/client/link/context";
 import merge from "deepmerge";
 import isEqual from "lodash/isEqual";
+import { createUploadLink } from "apollo-upload-client";
 
 const APOLLO_STATE = "__APOLLO_STATE__";
 
@@ -26,10 +27,10 @@ const errorLink = onError(({ graphQLErrors, networkError }) => {
   if (networkError) console.log(`[Network error]: ${networkError}`);
 });
 
-const httpLink = new HttpLink({
+const httpLink = createUploadLink({
   uri: process.env.NEXT_PUBLIC_API_URL,
   credentials: "include",
-});
+}) as unknown;
 
 const getAuthLink = (jwtToken: string) => {
   return setContext((_, { headers }) => {
@@ -40,7 +41,7 @@ const getAuthLink = (jwtToken: string) => {
         Authorization: jwtToken ? `Bearer ${jwtToken}` : "dddd",
       },
     };
-  }).concat(httpLink);
+  }).concat(httpLink as ApolloLink);
 };
 
 const createApolloClient = (jwtToken: string) => {
@@ -71,6 +72,8 @@ const createApolloClient = (jwtToken: string) => {
         FOOD
         OTHERS
       }
+
+      scalar Upload
     `,
   });
 };
