@@ -92,6 +92,15 @@ func (r *mutationResolver) LogoutGroup(ctx context.Context) (*model.Result, erro
 	return result, nil
 }
 
+// UploadProfileImage is the resolver for the uploadProfileImage field.
+func (r *mutationResolver) UploadProfileImage(ctx context.Context, input model.UploadInput) (*model.UploadPayload, error) {
+	uploaded, err := r.Usecase.UploadProfileImage(ctx, input)
+	if err != nil {
+		return nil, err
+	}
+	return uploaded, nil
+}
+
 // Histories is the resolver for the histories field.
 func (r *queryResolver) Histories(ctx context.Context, input model.HistoriesQuery) ([]*model.History, error) {
 	histories, err := r.Usecase.GetHistories(ctx, input)

@@ -89,6 +89,6 @@ const MemberList = styled("div")`
 const Member = styled(Avatar)`
   width: ${memberSize}px;
   height: ${memberSize}px;
-` as typeof Avatar;
+`;
 
 export default Group;

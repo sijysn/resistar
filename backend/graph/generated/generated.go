@@ -96,15 +96,16 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddGroup          func(childComplexity int, input model.NewGroup) int
-		AddHistory        func(childComplexity int, input model.NewHistory) int
-		AddUser           func(childComplexity int, input model.NewUser) int
-		DeleteHistory     func(childComplexity int, input model.DeleteHistory) int
-		InviteUserToGroup func(childComplexity int, input model.InviteUserToGroupInput) int
-		JoinGroup         func(childComplexity int, input model.JoinGroup) int
-		LoginGroup        func(childComplexity int, input model.LoginGroup) int
-		LoginUser         func(childComplexity int, input model.LoginUser) int
-		LogoutGroup       func(childComplexity int) int
+		AddGroup           func(childComplexity int, input model.NewGroup) int
+		AddHistory         func(childComplexity int, input model.NewHistory) int
+		AddUser            func(childComplexity int, input model.NewUser) int
+		DeleteHistory      func(childComplexity int, input model.DeleteHistory) int
+		InviteUserToGroup  func(childComplexity int, input model.InviteUserToGroupInput) int
+		JoinGroup          func(childComplexity int, input model.JoinGroup) int
+		LoginGroup         func(childComplexity int, input model.LoginGroup) int
+		LoginUser          func(childComplexity int, input model.LoginUser) int
+		LogoutGroup        func(childComplexity int) int
+		UploadProfileImage func(childComplexity int, input model.UploadInput) int
 	}
 
 	Query struct {
@@ -119,6 +120,10 @@ type ComplexityRoot struct {
 	Result struct {
 		Message func(childComplexity int) int
 		Success func(childComplexity int) int
+	}
+
+	UploadPayload struct {
+		Path func(childComplexity int) int
 	}
 
 	User struct {
@@ -145,6 +150,7 @@ type MutationResolver interface {
 	LoginUser(ctx context.Context, input model.LoginUser) (*model.Result, error)
 	LoginGroup(ctx context.Context, input model.LoginGroup) (*model.Result, error)
 	LogoutGroup(ctx context.Context) (*model.Result, error)
+	UploadProfileImage(ctx context.Context, input model.UploadInput) (*model.UploadPayload, error)
 }
 type QueryResolver interface {
 	Histories(ctx context.Context, input model.HistoriesQuery) ([]*model.History, error)
@@ -525,6 +531,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.LogoutGroup(childComplexity), true
 
+	case "Mutation.uploadProfileImage":
+		if e.complexity.Mutation.UploadProfileImage == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_uploadProfileImage_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UploadProfileImage(childComplexity, args["input"].(model.UploadInput)), true
+
 	case "Query.adjustments":
 		if e.complexity.Query.Adjustments == nil {
 			break
@@ -610,6 +628,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Result.Success(childComplexity), true
+
+	case "UploadPayload.path":
+		if e.complexity.UploadPayload.Path == nil {
+			break
+		}
+
+		return e.complexity.UploadPayload.Path(childComplexity), true
 
 	case "User.createdAt":
 		if e.complexity.User.CreatedAt == nil {
@@ -701,6 +726,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputNewGroup,
 		ec.unmarshalInputNewHistory,
 		ec.unmarshalInputNewUser,
+		ec.unmarshalInputUploadInput,
 		ec.unmarshalInputUsersQuery,
 	)
 	first := true
@@ -924,6 +950,16 @@ input LoginGroup {
   groupID: ID!
 }
 
+scalar Upload
+
+input UploadInput {
+  data: Upload!
+}
+
+type UploadPayload {
+  path: String!
+}
+
 type Mutation {
   addHistory(input: NewHistory!): History!
   deleteHistory(input: DeleteHistory!): Result!
@@ -934,6 +970,7 @@ type Mutation {
   loginUser(input: LoginUser!): Result!
   loginGroup(input: LoginGroup!): Result!
   logoutGroup: Result!
+  uploadProfileImage(input: UploadInput!): UploadPayload!
 }
 `, BuiltIn: false},
 }
@@ -1055,6 +1092,21 @@ func (ec *executionContext) field_Mutation_loginUser_args(ctx context.Context, r
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNLoginUser2githubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐLoginUser(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_uploadProfileImage_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.UploadInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNUploadInput2githubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐUploadInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -3423,6 +3475,65 @@ func (ec *executionContext) fieldContext_Mutation_logoutGroup(ctx context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_uploadProfileImage(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_uploadProfileImage(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UploadProfileImage(rctx, fc.Args["input"].(model.UploadInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.UploadPayload)
+	fc.Result = res
+	return ec.marshalNUploadPayload2ᚖgithubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐUploadPayload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_uploadProfileImage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "path":
+				return ec.fieldContext_UploadPayload_path(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type UploadPayload", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_uploadProfileImage_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_histories(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_histories(ctx, field)
 	if err != nil {
@@ -4065,6 +4176,50 @@ func (ec *executionContext) fieldContext_Result_success(ctx context.Context, fie
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UploadPayload_path(ctx context.Context, field graphql.CollectedField, obj *model.UploadPayload) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UploadPayload_path(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Path, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UploadPayload_path(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UploadPayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -6767,6 +6922,34 @@ func (ec *executionContext) unmarshalInputNewUser(ctx context.Context, obj inter
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUploadInput(ctx context.Context, obj interface{}) (model.UploadInput, error) {
+	var it model.UploadInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"data"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "data":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("data"))
+			it.Data, err = ec.unmarshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUsersQuery(ctx context.Context, obj interface{}) (model.UsersQuery, error) {
 	var it model.UsersQuery
 	asMap := map[string]interface{}{}
@@ -7227,6 +7410,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "uploadProfileImage":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_uploadProfileImage(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -7438,6 +7630,34 @@ func (ec *executionContext) _Result(ctx context.Context, sel ast.SelectionSet, o
 		case "success":
 
 			out.Values[i] = ec._Result_success(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var uploadPayloadImplementors = []string{"UploadPayload"}
+
+func (ec *executionContext) _UploadPayload(ctx context.Context, sel ast.SelectionSet, obj *model.UploadPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, uploadPayloadImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UploadPayload")
+		case "path":
+
+			out.Values[i] = ec._UploadPayload_path(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -8204,6 +8424,40 @@ func (ec *executionContext) unmarshalNType2githubᚗcomᚋsijysnᚋresistarᚋba
 
 func (ec *executionContext) marshalNType2githubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐType(ctx context.Context, sel ast.SelectionSet, v model.Type) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) unmarshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, v interface{}) (graphql.Upload, error) {
+	res, err := graphql.UnmarshalUpload(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, sel ast.SelectionSet, v graphql.Upload) graphql.Marshaler {
+	res := graphql.MarshalUpload(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNUploadInput2githubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐUploadInput(ctx context.Context, v interface{}) (model.UploadInput, error) {
+	res, err := ec.unmarshalInputUploadInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNUploadPayload2githubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐUploadPayload(ctx context.Context, sel ast.SelectionSet, v model.UploadPayload) graphql.Marshaler {
+	return ec._UploadPayload(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUploadPayload2ᚖgithubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐUploadPayload(ctx context.Context, sel ast.SelectionSet, v *model.UploadPayload) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._UploadPayload(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋsijysnᚋresistarᚋbackendᚋgraphᚋmodelᚐUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.User) graphql.Marshaler {

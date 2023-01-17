@@ -23,6 +23,7 @@ type Usecases interface {
 	LoginGroup(ctx context.Context, input model.LoginGroup) (*model.Result, error)
 	LogoutGroup(ctx context.Context) (*model.Result, error)
 	InviteUserToGroup(ctx context.Context, input model.InviteUserToGroupInput) (*model.Result, error)
+	UploadProfileImage(ctx context.Context, input model.UploadInput) (*model.UploadPayload, error)
 }
 
 type UsecaseRepository struct {

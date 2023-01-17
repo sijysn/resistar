@@ -26,6 +26,16 @@ type GetUserByEmailAndPasswordInput struct {
 	Password string
 }
 
+type CreateUserInput struct {
+	Email string
+	Password string
+}
+
+type UpdateUserInput struct {
+	UserID uint
+	ImageURL string
+}
+
 func(r *Repository) GetUsers(input GetUsersInput) ([]entity.User, error) {
 	var users []entity.User
 	err := r.DB.Where(input.UserIDs).Find(&users).Error
@@ -71,19 +81,25 @@ func(r *Repository) GetUserByEmailAndPassword(input GetUserByEmailAndPasswordInp
 	return dbUsers, nil
 }
 
-type CreateUserInput struct {
-	Email string
-	Password string
-}
-
 func(r *Repository) CreateUser(input CreateUserInput) (*entity.User, error) {
 	newUser := &entity.User{
 		Email:    input.Email,
 		Password: input.Password,
 	}
-	err := r.DB.Create(newUser).Error
+	err := r.DB.Debug().Create(newUser).Error
 	if err != nil {
 		return nil, err
 	}
 	return newUser, nil
+}
+
+func(r *Repository) UpdateUser(input UpdateUserInput) (*entity.User, error) {
+	user := &entity.User{
+		ID: input.UserID,
+	}
+	err := r.DB.Debug().Model(user).Update("image_url", input.ImageURL).Error
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }

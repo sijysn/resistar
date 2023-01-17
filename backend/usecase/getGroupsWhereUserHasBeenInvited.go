@@ -60,6 +60,7 @@ func (u *UsecaseRepository) GetGroupsWhereUserHasBeenInvited(ctx context.Context
 				ID:    utility.ParseUintToString(dbGroupUser.ID),
 				Email: dbGroupUser.Email,
 				Name:  dbGroupUser.Name,
+				ImageURL: dbGroupUser.ImageURL,
 			})
 		}
 		groups = append(groups, &model.Group{
