@@ -45,7 +45,7 @@ const CreateNewPage: NextPage = () => {
     }
     const { message: addUserMessage, success } = data.addUser;
     if (success) {
-      window.location.href = "/get-started/landing";
+      window.location.href = "/profile";
       return;
     }
     if (addUserMessage) {
