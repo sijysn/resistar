@@ -53,6 +53,7 @@ func(u *UsecaseRepository) GetGroups(ctx context.Context, input model.GroupsQuer
 				ID:    utility.ParseUintToString(dbMyGroupUser.ID),
 				Email: dbMyGroupUser.Email,
 				Name:  dbMyGroupUser.Name,
+				ImageURL: dbMyGroupUser.ImageURL,
 			})
 		}
 
