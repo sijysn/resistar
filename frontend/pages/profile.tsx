@@ -1,6 +1,17 @@
 import * as React from "react";
 import type { NextPage } from "next";
+import Link from "next/link";
 import { useMutation } from "@apollo/client";
+import CardMedia from "@mui/material/CardMedia";
+import Grid from "@mui/material/Grid";
+import Input from "@mui/material/Input";
+import InputLabel from "@mui/material/InputLabel";
+import Avatar from "@mui/material/Avatar";
+import Typography from "@mui/material/Typography";
+import Container from "@mui/material/Container";
+import CameraAltIcon from "@mui/icons-material/CameraAlt";
+import Alert from "@mui/material/Alert";
+import { styled } from "@mui/material";
 import {
   UPLOAD_PROFILE_IMAGE,
   uploadProfileImageProps,
@@ -10,6 +21,7 @@ import {
 const ProfilePage: NextPage = () => {
   const [imageURL, setImageURL] = React.useState("");
   const [message, setMessage] = React.useState("");
+  const [uploading, setUploading] = React.useState(false);
   const [upload] = useMutation<
     uploadProfileImageProps,
     uploadProfileImageVarsProps
@@ -18,6 +30,7 @@ const ProfilePage: NextPage = () => {
   const onChange: React.ChangeEventHandler<HTMLInputElement> = async (e) => {
     const files = e.currentTarget.files;
     if (!files || files.length === 0) return;
+    setUploading(true);
     const file = files[0];
     // todo: fileの拡張子をチェックする
     const uploadProfileImageVars: uploadProfileImageVarsProps = {
@@ -25,20 +38,108 @@ const ProfilePage: NextPage = () => {
     };
     const { data } = await upload({ variables: uploadProfileImageVars });
     if (!data) {
+      setUploading(false);
       setMessage("画像がアップロードできませんでした");
       return;
     }
     if (data.uploadProfileImage) {
+      setUploading(false);
       setImageURL(data.uploadProfileImage.path);
     }
   };
 
   return (
-    <>
-      <input type="file" accept="image/*" required onChange={onChange} />
-      <img src={imageURL || ""} width="150" />
-    </>
+    <Wrapper component="main" maxWidth="xs">
+      <SectionWrapper>
+        <BrandIcon
+          sx={{ bgcolor: "secondary.main" }}
+          src="/images/icon-192x192.png"
+        />
+        <Typography component="h1" variant="h6">
+          プロフィール写真設定
+        </Typography>
+      </SectionWrapper>
+      {message && <Alert severity="error">{message}</Alert>}
+      {uploading ? (
+        <div>loading</div>
+      ) : (
+        <ProfileImage
+          image={
+            imageURL ||
+            "https://res.cloudinary.com/dfw3mlaic/image/upload/v1/images/unknown_ffqtxf"
+          }
+          title="Profile Photo"
+        >
+          <Grid container alignItems="center">
+            <UploadArea htmlFor="upload-image">
+              <HiddenInput
+                id="upload-image"
+                type="file"
+                name="upload-image"
+                onChange={onChange}
+              />
+
+              <DummyButton role="button">
+                <CameraIcon />
+              </DummyButton>
+            </UploadArea>
+          </Grid>
+        </ProfileImage>
+      )}
+      <Link href="/">
+        <LinkText component="a" variant="button" color="primary">
+          home
+        </LinkText>
+      </Link>
+    </Wrapper>
   );
 };
+
+// todo: serversidepropsで画像を取得
+
+const Wrapper = styled(Container)`
+  text-align: center;
+` as typeof Container;
+
+const SectionWrapper = styled("section")`
+  margin-top: 8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+`;
+
+const BrandIcon = styled(Avatar)`
+  margin: 8px;
+`;
+
+const ProfileImage = styled(CardMedia)`
+  width: 160px;
+  height: 160px;
+  margin: 16px auto 0;
+  border-radius: 50%;
+`;
+
+const UploadArea = styled(InputLabel)`
+  border-radius: 50%;
+`;
+
+const HiddenInput = styled(Input)`
+  display: none;
+`;
+
+const DummyButton = styled(Avatar)`
+  width: 160px;
+  height: 160px;
+  background-color: rgba(0, 0, 0, 0.5);
+`;
+
+const CameraIcon = styled(CameraAltIcon)`
+  font-size: 80px;
+`;
+
+const LinkText = styled(Typography)`
+  margin: 16px 0;
+  display: inline-block;
+` as typeof Typography;
 
 export default ProfilePage;
