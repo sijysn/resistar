@@ -77,6 +77,7 @@ func(u *UsecaseRepository) UploadProfileImage(ctx context.Context, input model.U
 	if err != nil {
 		return nil, err
 	}
+	// todo: ID返すようにする
 	return &model.UploadPayload{
 		Path: user.ImageURL,
 	}, nil
