@@ -15,5 +15,5 @@ export type uploadProfileImageProps = {
 };
 
 export type uploadProfileImageVarsProps = {
-  data: any;
+  data: File;
 };
