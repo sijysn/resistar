@@ -15,7 +15,7 @@ const MemberItem: React.FC<Props> = ({ name, email, imageURL }) => {
   return (
     <MembersListItem>
       <StyledListItemAvatar>
-        <StyledAvatar src={imageURL} />
+        <Avatar src={imageURL} />
       </StyledListItemAvatar>
       <StyledListItemText primary={name} secondary={email} />
     </MembersListItem>
@@ -25,10 +25,6 @@ const MemberItem: React.FC<Props> = ({ name, email, imageURL }) => {
 const MembersListItem = styled(ListItem)`
   padding: 16px;
   height: 76px;
-`;
-
-const StyledAvatar = styled(Avatar)`
-  padding: 10px;
 `;
 
 const StyledListItemAvatar = styled(ListItemAvatar)`
