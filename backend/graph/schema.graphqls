@@ -91,6 +91,10 @@ input UsersQuery {
   groupID: ID!
 }
 
+input UserQuery {
+  userID: ID!
+}
+
 input GroupsQuery {
   userID: ID!
 }
@@ -111,6 +115,7 @@ input AdjustmentQuery {
 type Query {
   histories(input: HistoriesQuery!): [History!]!
   users(input: UsersQuery!): [User!]!
+  user(input: UserQuery!): User!
   groups(input: GroupsQuery!): [Group!]!
   amounts(input: AmountsQuery!): Amounts!
   adjustments(input: AdjustmentQuery!): [Adjustment!]!

@@ -153,6 +153,10 @@ type User struct {
 	ErrorMessage *string  `json:"errorMessage"`
 }
 
+type UserQuery struct {
+	UserID string `json:"userID"`
+}
+
 type UsersQuery struct {
 	GroupID string `json:"groupID"`
 }
