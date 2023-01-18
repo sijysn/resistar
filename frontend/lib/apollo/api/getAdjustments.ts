@@ -1,5 +1,5 @@
 import { gql } from "@apollo/client";
-import { UserProps } from "./getUsers";
+import { UserProps } from "./getUser";
 
 export const GET_ADJUSTMENTS = gql`
   query Adjustments($groupID: ID!, $year: String!, $month: String!) {
@@ -9,11 +9,13 @@ export const GET_ADJUSTMENTS = gql`
         id
         name
         email
+        imageURL
       }
       toUser {
         id
         name
         email
+        imageURL
       }
       amount
     }

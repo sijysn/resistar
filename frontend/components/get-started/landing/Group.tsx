@@ -6,7 +6,7 @@ import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
-import { UserProps } from "../../../lib/apollo/api/getUsers";
+import { UserProps } from "../../../lib/apollo/api/getUser";
 
 const Group: React.FC<Props> = ({ id, name, users, handleClick }) => {
   return (

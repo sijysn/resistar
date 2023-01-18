@@ -1,5 +1,5 @@
 import { gql } from "@apollo/client";
-import { UserProps } from "./getUsers";
+import { UserProps } from "./getUser";
 import { QueryType } from "./addHistory";
 
 export const GET_HISTORIES = gql`

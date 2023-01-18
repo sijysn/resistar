@@ -5,6 +5,7 @@ import Avatar from "@mui/material/Avatar";
 import Typography from "@mui/material/Typography";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { getAdjustmentsProps } from "../../../lib/apollo/api/getAdjustments";
+import { DEFAULT_PROFILE_IMAGE_URL } from "../../../lib/constants";
 
 const Adjustments: React.FC<Props> = ({ loading, error, data }) => {
   if (error) return <Message>{error.message}</Message>;
@@ -16,7 +17,9 @@ const Adjustments: React.FC<Props> = ({ loading, error, data }) => {
       {data.adjustments.map(({ fromUser, toUser, amount }, index) => {
         return (
           <Item key={index}>
-            <ProfileImageAvatar src={fromUser.imageURL} />
+            <ProfileImageAvatar
+              src={fromUser.imageURL || DEFAULT_PROFILE_IMAGE_URL}
+            />
             <Typography
               sx={{ width: "80px", marginRight: "4px" }}
               variant="body2"
@@ -25,7 +28,7 @@ const Adjustments: React.FC<Props> = ({ loading, error, data }) => {
             </Typography>
             <ArrowForwardIcon />
             <ProfileImageAvatar
-              src={toUser.imageURL}
+              src={toUser.imageURL || DEFAULT_PROFILE_IMAGE_URL}
               sx={{ marginLeft: "4px" }}
             />
             <Typography sx={{ width: "80px" }} variant="body2">

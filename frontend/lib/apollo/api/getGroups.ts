@@ -1,5 +1,5 @@
 import { gql } from "@apollo/client";
-import { UserProps } from "./getUsers";
+import { UserProps } from "./getUser";
 
 export const GET_GROUPS = gql`
   query GetGroups($userID: ID!) {
