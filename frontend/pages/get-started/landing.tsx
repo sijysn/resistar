@@ -1,7 +1,6 @@
 import * as React from "react";
 import type { GetServerSideProps, NextPage } from "next";
 import nookies from "nookies";
-
 import {
   addApolloState,
   initializeApollo,

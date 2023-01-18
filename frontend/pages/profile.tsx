@@ -1,7 +1,8 @@
 import * as React from "react";
-import type { NextPage } from "next";
+import type { GetServerSideProps, NextPage } from "next";
 import Link from "next/link";
-import { useMutation } from "@apollo/client";
+import nookies from "nookies";
+import { useQuery, useMutation } from "@apollo/client";
 import CardMedia from "@mui/material/CardMedia";
 import Grid from "@mui/material/Grid";
 import Input from "@mui/material/Input";
@@ -12,13 +13,20 @@ import Container from "@mui/material/Container";
 import CameraAltIcon from "@mui/icons-material/CameraAlt";
 import Alert from "@mui/material/Alert";
 import { styled } from "@mui/material";
+import { addApolloState, initializeApollo } from "../lib/apollo/apollo-client";
+import {
+  getUserProps,
+  getUserVarsProps,
+  GET_USER,
+} from "../lib/apollo/api/getUser";
+import { getUser } from "../lib/apollo/server/getUser";
 import {
   UPLOAD_PROFILE_IMAGE,
   uploadProfileImageProps,
   uploadProfileImageVarsProps,
 } from "../lib/apollo/api/uploadProfileImage";
 
-const ProfilePage: NextPage = () => {
+const ProfilePage: NextPage<ServerSideProps> = ({ cookies }) => {
   const [imageURL, setImageURL] = React.useState("");
   const [message, setMessage] = React.useState("");
   const [uploading, setUploading] = React.useState(false);
@@ -48,6 +56,22 @@ const ProfilePage: NextPage = () => {
     }
   };
 
+  const getUserQueryVars = {
+    userID: cookies["userID"],
+  };
+  const { loading, error, data, fetchMore, networkStatus } = useQuery<
+    getUserProps,
+    getUserVarsProps
+  >(GET_USER, {
+    variables: getUserQueryVars,
+    // networkStatusが変わるとコンポーネントが再レンダリングされる
+    notifyOnNetworkStatusChange: true,
+  });
+
+  if (loading || !data) {
+    return <div>loading</div>;
+  }
+
   return (
     <Wrapper component="main" maxWidth="xs">
       <SectionWrapper>
@@ -63,7 +87,10 @@ const ProfilePage: NextPage = () => {
       {uploading ? (
         <div>loading</div>
       ) : (
-        <ProfileImage image={imageURL} title="Profile Photo">
+        <ProfileImage
+          image={imageURL || data.user.imageURL}
+          title="Profile Photo"
+        >
           <Grid container alignItems="center">
             <UploadArea htmlFor="upload-image">
               <HiddenInput
@@ -89,7 +116,26 @@ const ProfilePage: NextPage = () => {
   );
 };
 
-// todo: serversidepropsで画像を取得
+export const getServerSideProps: GetServerSideProps<ServerSideProps> = async (
+  context
+) => {
+  const cookies = nookies.get(context);
+  const apolloClient = initializeApollo(cookies["jwtToken"]);
+
+  await getUser(apolloClient, {
+    userID: cookies["userID"],
+  });
+
+  return addApolloState(apolloClient, {
+    props: {
+      cookies,
+    },
+  });
+};
+
+export type ServerSideProps = {
+  cookies: { [key: string]: string };
+};
 
 const Wrapper = styled(Container)`
   text-align: center;
