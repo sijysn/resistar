@@ -9,6 +9,7 @@ export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const isPathNotLogin = pathname === "/login" || pathname === "/createnew";
   const isPathGetStarted = pathname.includes("get-started");
+  const isPathProfile = pathname === "/profile";
 
   // ユーザーもグループもログインしている場合
   if (isGroupLoggedIn) {
@@ -19,7 +20,7 @@ export function middleware(request: NextRequest) {
   }
   // ユーザーのみログインしている場合
   if (isUserLoggedIn) {
-    if (isPathGetStarted) {
+    if (isPathGetStarted || isPathProfile) {
       return NextResponse.next();
     }
     return NextResponse.redirect(new URL("/get-started/landing", request.url));
