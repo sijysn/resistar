@@ -63,13 +63,7 @@ const ProfilePage: NextPage = () => {
       {uploading ? (
         <div>loading</div>
       ) : (
-        <ProfileImage
-          image={
-            imageURL ||
-            "https://res.cloudinary.com/dfw3mlaic/image/upload/v1/images/unknown_ffqtxf"
-          }
-          title="Profile Photo"
-        >
+        <ProfileImage image={imageURL} title="Profile Photo">
           <Grid container alignItems="center">
             <UploadArea htmlFor="upload-image">
               <HiddenInput

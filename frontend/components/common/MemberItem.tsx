@@ -8,14 +8,23 @@ import { styled } from "@mui/material";
 type Props = {
   name: string;
   email: string;
-  imageURL?: string;
+  imageURL: string;
+  handleImageURL?: (url: string) => void;
 };
 
-const MemberItem: React.FC<Props> = ({ name, email, imageURL }) => {
+const MemberItem: React.FC<Props> = ({
+  name,
+  email,
+  imageURL,
+  handleImageURL,
+}) => {
   return (
     <MembersListItem>
       <StyledListItemAvatar>
-        <Avatar src={imageURL} />
+        <Avatar
+          src={imageURL}
+          onClick={handleImageURL ? () => handleImageURL(imageURL) : undefined}
+        />
       </StyledListItemAvatar>
       <StyledListItemText primary={name} secondary={email} />
     </MembersListItem>

@@ -5,6 +5,7 @@ import Divider from "@mui/material/Divider";
 import Typography from "@mui/material/Typography";
 import { styled } from "@mui/material";
 import MemberItem from "../../common/MemberItem";
+import ProfileImageModal from "../../common/ProfileImageModal";
 import { getUsersProps } from "../../../lib/apollo/api/getUsers";
 
 type Props = {
@@ -14,23 +15,49 @@ type Props = {
 };
 
 const Members: React.FC<Props> = ({ loading, error, data }) => {
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
+
+  const [modalImageURL, setModalImageURL] = React.useState("");
+  const changeModalImageURL = (url: string) => {
+    setModalImageURL(url);
+    openModal();
+  };
+
   if (error) return <Message>{error.message}</Message>;
   if (loading || !data) return <Message>Loading</Message>;
   if (data.users.length === 0) return <Message>メンバーがいません。</Message>;
   return (
-    <MembersList>
-      <MembersCountWrapper>
-        <MembersCount variant="body2" color="text.secondary">
-          メンバー({data.users.length})
-        </MembersCount>
-        <Divider />
-      </MembersCountWrapper>
-      {data.users.map(({ id, name, email, imageURL }) => {
-        return (
-          <MemberItem key={id} name={name} email={email} imageURL={imageURL} />
-        );
-      })}
-    </MembersList>
+    <>
+      <MembersList>
+        <MembersCountWrapper>
+          <MembersCount variant="body2" color="text.secondary">
+            メンバー({data.users.length})
+          </MembersCount>
+          <Divider />
+        </MembersCountWrapper>
+        {data.users.map(({ id, name, email, imageURL }) => {
+          return (
+            <MemberItem
+              key={id}
+              name={name}
+              email={email}
+              imageURL={
+                imageURL ||
+                "https://res.cloudinary.com/dfw3mlaic/image/upload/v1/images/unknown_ffqtxf"
+              }
+              handleImageURL={changeModalImageURL}
+            />
+          );
+        })}
+      </MembersList>
+      <ProfileImageModal
+        isOpen={isModalOpen}
+        close={closeModal}
+        imageURL={modalImageURL}
+      />
+    </>
   );
 };
 
