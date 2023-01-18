@@ -1,6 +1,7 @@
 import * as React from "react";
 import { ApolloError } from "@apollo/client";
 import { styled } from "@mui/material";
+import Avatar from "@mui/material/Avatar";
 import Typography from "@mui/material/Typography";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { getAdjustmentsProps } from "../../../lib/apollo/api/getAdjustments";
@@ -15,21 +16,23 @@ const Adjustments: React.FC<Props> = ({ loading, error, data }) => {
       {data.adjustments.map(({ fromUser, toUser, amount }, index) => {
         return (
           <Item key={index}>
+            <ProfileImageAvatar src={fromUser.imageURL} />
             <Typography
-              sx={{ width: "80px", marginRight: "8px" }}
+              sx={{ width: "80px", marginRight: "4px" }}
               variant="body2"
             >
               {fromUser.name}
             </Typography>
             <ArrowForwardIcon />
-            <Typography
-              sx={{ width: "80px", marginLeft: "8px" }}
-              variant="body2"
-            >
+            <ProfileImageAvatar
+              src={toUser.imageURL}
+              sx={{ marginLeft: "4px" }}
+            />
+            <Typography sx={{ width: "80px" }} variant="body2">
               {toUser.name}
             </Typography>
             <Typography
-              sx={{ width: "60px", marginLeft: "8px" }}
+              sx={{ width: "60px", marginLeft: "4px" }}
               variant="body2"
             >
               ¥{amount.toLocaleString()}
@@ -52,6 +55,11 @@ const Item = styled("div")`
   width: 100%;
   padding: 16px 0;
 `;
+
+const ProfileImageAvatar = styled(Avatar)`
+  width: 20px;
+  height: 20px;
+` as typeof Avatar;
 
 const Message = styled("p")`
   text-align: center;
