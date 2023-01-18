@@ -26,8 +26,8 @@ import {
   getUsersProps,
   getUsersVarsProps,
   GET_USERS,
-  UserProps,
 } from "../../lib/apollo/api/getUsers";
+import { UserProps } from "../../lib/apollo/api/getUser";
 
 type ModalProps = {
   isOpen: boolean;

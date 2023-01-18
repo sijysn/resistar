@@ -1,4 +1,5 @@
 import { gql } from "@apollo/client";
+import { UserProps } from "./getUser";
 
 export const GET_USERS = gql`
   query GetUsers($groupID: ID!) {
@@ -10,13 +11,6 @@ export const GET_USERS = gql`
     }
   }
 `;
-
-export type UserProps = {
-  id: string;
-  name: string;
-  email: string;
-  imageURL?: string;
-};
 
 export type getUsersProps = {
   users: UserProps[];
