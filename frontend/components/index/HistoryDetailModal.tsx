@@ -9,6 +9,7 @@ import Typography from "@mui/material/Typography";
 import HistoryDetailModalSectionTitle from "./HistoryDetailModalSectionTitle";
 import MemberItem from "../common/MemberItem";
 import { HistoryProps } from "../../lib/apollo/api/getHistories";
+import { DEFAULT_PROFILE_IMAGE_URL } from "../../lib/constants";
 
 type ModalProps = {
   isOpen: boolean;
@@ -45,7 +46,7 @@ const HistoryDetailModal: React.FC<ModalProps> = ({
               key={id}
               name={name}
               email={email}
-              imageURL={imageURL}
+              imageURL={imageURL || DEFAULT_PROFILE_IMAGE_URL}
             />
           );
         })}
@@ -57,7 +58,7 @@ const HistoryDetailModal: React.FC<ModalProps> = ({
               key={id}
               name={name}
               email={email}
-              imageURL={imageURL}
+              imageURL={imageURL || DEFAULT_PROFILE_IMAGE_URL}
             />
           );
         })}

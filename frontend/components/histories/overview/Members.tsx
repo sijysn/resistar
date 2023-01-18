@@ -7,6 +7,7 @@ import { styled } from "@mui/material";
 import MemberItem from "../../common/MemberItem";
 import ProfileImageModal from "../../common/ProfileImageModal";
 import { getUsersProps } from "../../../lib/apollo/api/getUsers";
+import { DEFAULT_PROFILE_IMAGE_URL } from "../../../lib/constants";
 
 type Props = {
   loading: boolean;
@@ -43,10 +44,7 @@ const Members: React.FC<Props> = ({ loading, error, data }) => {
               key={id}
               name={name}
               email={email}
-              imageURL={
-                imageURL ||
-                "https://res.cloudinary.com/dfw3mlaic/image/upload/v1/images/unknown_ffqtxf"
-              }
+              imageURL={imageURL || DEFAULT_PROFILE_IMAGE_URL}
               handleImageURL={changeModalImageURL}
             />
           );
