@@ -15,12 +15,14 @@ type ModalProps = {
   isOpen: boolean;
   close: () => void;
   history: HistoryProps;
+  handleImageURL?: (url: string) => void;
 };
 
 const HistoryDetailModal: React.FC<ModalProps> = ({
   isOpen,
   close,
   history,
+  handleImageURL,
 }) => {
   return (
     <StyledDialog open={isOpen} keepMounted onClose={close}>
@@ -47,6 +49,7 @@ const HistoryDetailModal: React.FC<ModalProps> = ({
               name={name}
               email={email}
               imageURL={imageURL || DEFAULT_PROFILE_IMAGE_URL}
+              handleImageURL={handleImageURL}
             />
           );
         })}
@@ -59,6 +62,7 @@ const HistoryDetailModal: React.FC<ModalProps> = ({
               name={name}
               email={email}
               imageURL={imageURL || DEFAULT_PROFILE_IMAGE_URL}
+              handleImageURL={handleImageURL}
             />
           );
         })}

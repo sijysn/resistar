@@ -9,6 +9,7 @@ import Typography from "@mui/material/Typography";
 import Avatar from "@mui/material/Avatar";
 import { css, Divider, styled } from "@mui/material";
 import HistoryDetailModal from "./HistoryDetailModal";
+import ProfileImageModal from "../common/ProfileImageModal";
 import {
   getHistoriesProps,
   HistoryProps,
@@ -34,9 +35,24 @@ type Props = {
 };
 
 const History: React.FC<Props> = ({ loading, error, data, handleClick }) => {
-  const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
+  const [
+    isHistoryDetailModalOpen,
+    setIsHistoryDetailModalOpenOpen,
+  ] = React.useState(false);
+  const openHistoryDetailModal = () => setIsHistoryDetailModalOpenOpen(true);
+  const closeHistoryDetailModal = () => setIsHistoryDetailModalOpenOpen(false);
+
+  const [isProfileImageModalOpen, setIsProfileImageModalOpen] = React.useState(
+    false
+  );
+  const openProfileImageModal = () => setIsProfileImageModalOpen(true);
+  const closeProfileImageModal = () => setIsProfileImageModalOpen(false);
+
+  const [modalImageURL, setModalImageURL] = React.useState("");
+  const changeModalImageURL = (url: string) => {
+    setModalImageURL(url);
+    openProfileImageModal();
+  };
 
   const [history, setHistory] = React.useState<HistoryProps>();
 
@@ -73,7 +89,7 @@ const History: React.FC<Props> = ({ loading, error, data, handleClick }) => {
                 <HistoryListItem
                   onClick={() => {
                     changeHistory(id);
-                    openModal();
+                    openHistoryDetailModal();
                   }}
                 >
                   <StyledListItemAvatar>
@@ -143,11 +159,17 @@ const History: React.FC<Props> = ({ loading, error, data, handleClick }) => {
       </HistoryList>
       {history && (
         <HistoryDetailModal
-          isOpen={isModalOpen}
-          close={closeModal}
+          isOpen={isHistoryDetailModalOpen}
+          close={closeHistoryDetailModal}
           history={history}
+          handleImageURL={changeModalImageURL}
         />
       )}
+      <StyledProfileImageModal
+        isOpen={isProfileImageModalOpen}
+        close={closeProfileImageModal}
+        imageURL={modalImageURL}
+      />
     </>
   );
 };
@@ -296,6 +318,10 @@ const Delete = styled(Typography)`
 
 const Message = styled("p")`
   text-align: center;
+`;
+
+const StyledProfileImageModal = styled(ProfileImageModal)`
+  z-index: 1400;
 `;
 
 export default History;
