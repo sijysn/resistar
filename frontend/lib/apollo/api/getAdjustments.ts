@@ -9,11 +9,13 @@ export const GET_ADJUSTMENTS = gql`
         id
         name
         email
+        imageURL
       }
       toUser {
         id
         name
         email
+        imageURL
       }
       amount
     }
