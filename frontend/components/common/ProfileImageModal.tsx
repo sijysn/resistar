@@ -7,15 +7,17 @@ type ModalProps = {
   isOpen: boolean;
   close: () => void;
   imageURL: string;
+  className?: string;
 };
 
 const ProfileImageModal: React.FC<ModalProps> = ({
   isOpen,
   close,
   imageURL,
+  className,
 }) => {
   return (
-    <StyledBackdrop open={isOpen} onClick={close}>
+    <StyledBackdrop open={isOpen} onClick={close} className={className}>
       <StyledAvatar src={imageURL} onClick={(e) => e.stopPropagation()} />
     </StyledBackdrop>
   );
