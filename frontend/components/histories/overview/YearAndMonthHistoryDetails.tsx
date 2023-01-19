@@ -82,7 +82,7 @@ const YearAndMonthHistoryDetails: React.FC<ServerSideProps> = ({
   };
 
   return (
-    <>
+    <main>
       <Overview>
         <Header
           yearAndMonth={yearAndMonth}
@@ -104,7 +104,7 @@ const YearAndMonthHistoryDetails: React.FC<ServerSideProps> = ({
         onAdd={() => {}}
         cookies={cookies}
       />
-    </>
+    </main>
   );
 };
 
