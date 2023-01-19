@@ -14,9 +14,9 @@ const Adjustments: React.FC<Props> = ({ loading, error, data }) => {
 
   return (
     <Wrapper>
-      {data.adjustments.map(({ fromUser, toUser, amount }, index) => {
+      {data.adjustments.map(({ id, fromUser, toUser, amount }) => {
         return (
-          <Item key={index}>
+          <Item key={id}>
             <ProfileImageAvatar
               src={fromUser.imageURL || DEFAULT_PROFILE_IMAGE_URL}
             />
