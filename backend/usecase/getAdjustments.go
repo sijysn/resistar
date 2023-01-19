@@ -54,6 +54,7 @@ func (u *UsecaseRepository) GetAdjustments(ctx context.Context, input model.Adju
 				ID:    utility.ParseUintToString(v.ID),
 				Email: v.Email,
 				Name:  v.Name,
+				ImageURL: v.ImageURL,
 			},
 		})
 	}
