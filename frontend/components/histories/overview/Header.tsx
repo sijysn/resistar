@@ -61,6 +61,7 @@ const Wrapper = styled("div")`
   align-items: center;
   justify-content: space-between;
   width: 100%;
+  max-width: 425px;
 `;
 
 type Props = {

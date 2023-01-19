@@ -142,7 +142,7 @@ const Index: React.FC<ServerSideProps> = ({ yearAndMonth, cookies }) => {
   };
 
   return (
-    <div>
+    <>
       <Main>
         <Overview
           yearAndMonth={yearAndMonth}
@@ -169,7 +169,7 @@ const Index: React.FC<ServerSideProps> = ({ yearAndMonth, cookies }) => {
       </Main>
 
       <Footer>© allrights reserved seiji yoshino</Footer>
-    </div>
+    </>
   );
 };
 
