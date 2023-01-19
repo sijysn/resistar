@@ -129,6 +129,7 @@ const OverviewHeader = styled("div")`
   align-items: center;
   justify-content: space-between;
   width: 100%;
+  max-width: 425px;
 `;
 
 const OverviewBody = styled("a")`

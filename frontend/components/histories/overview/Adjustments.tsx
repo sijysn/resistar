@@ -49,6 +49,7 @@ const Adjustments: React.FC<Props> = ({ loading, error, data }) => {
 
 const Wrapper = styled("div")`
   width: 100%;
+  max-width: 425px;
   padding: 16px;
 `;
 const Item = styled("div")`
